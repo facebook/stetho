@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_horizontal"
+    android:padding="15dp">
+
+  <Button
+      android:id="@+id/settings_btn"
+      android:text="@string/settings_btn"
+      android:layout_width="@dimen/main_button_width"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="10dp"
+      />
+
+  <Button
+      android:id="@+id/apod_btn"
+      android:text="@string/apod_btn"
+      android:layout_width="@dimen/main_button_width"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="10dp"
+      />
+
+</LinearLayout>

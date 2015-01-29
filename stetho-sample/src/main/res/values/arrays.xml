@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+  <array name="pref_list_values">
+    <item>foo</item>
+    <item>bar</item>
+    <item>baz</item>
+  </array>
+  <array name="pref_list_keys">
+    <item>Foo</item>
+    <item>Bar</item>
+    <item>Baz</item>
+  </array>
+</resources>
+

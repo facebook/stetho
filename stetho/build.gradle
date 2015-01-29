@@ -1,0 +1,38 @@
+apply plugin: 'com.android.library'
+apply plugin: 'robolectric'
+
+android {
+    compileSdkVersion 21
+    buildToolsVersion "21.1.2"
+
+    defaultConfig {
+        minSdkVersion 9
+        targetSdkVersion 21
+        versionCode 1
+        versionName "1.0"
+    }
+
+    sourceSets {
+        androidTest {
+            setRoot('src/test')
+        }
+    }
+}
+
+robolectric {
+    include '**/*Test.class'
+    exclude '**/espresso/**/*.class'
+}
+
+dependencies {
+    compile 'commons-cli:commons-cli:1.2'
+    compile 'com.google.code.findbugs:jsr305:2.0.1'
+
+    androidTestCompile 'junit:junit:4.12'
+    androidTestCompile('org.robolectric:robolectric:2.4') {
+        exclude module: 'commons-logging'
+        exclude module: 'httpclient'
+    }
+    androidTestCompile 'org.powermock:powermock-api-mockito:1.6.1'
+    androidTestCompile 'org.powermock:powermock-module-junit4:1.6.1'
+}

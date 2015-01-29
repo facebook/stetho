@@ -1,0 +1,55 @@
+// Copyright 2004-present Facebook. All Rights Reserved.
+
+package com.facebook.stetho.websocket;
+
+/**
+ * Alternative to JSR-356's Endpoint class but with a less insane J2EE-style API.
+ */
+public interface SimpleEndpoint {
+
+  /**
+   * Invoked when a new WebSocket session is established.
+   *
+   * @param session Unique handle for this session.
+   */
+  public void onOpen(SimpleSession session);
+
+  /**
+   * Invoked when a text-based message is received from the peer.  May have spanned multiple
+   * WebSocket packets.
+   *
+   * @param session Unique handle for this session.
+   * @param message Complete payload data.
+   */
+  public void onMessage(SimpleSession session, String message);
+
+  /**
+   * Invoked when a binary message is received from the peer.  May have spanned multiple
+   * WebSocket packets.
+   *
+   * @param session Unique handle for this session.
+   * @param message Complete payload data.
+   * @param messageLen Maximum number of bytes of {@code message} to read.
+   */
+  public void onMessage(SimpleSession session, byte[] message, int messageLen);
+
+  /**
+   * Invoked when a remote peer closed the WebSocket session or if {@link SimpleSession#close}
+   * is invoked on our side.
+   *
+   * @param session Unique handle for this session.
+   * @param closeReasonCode Close reason code (see RFC6455)
+   * @param closeReasonPhrase Possibly arbitrary text phrase associated with the reason code.
+   */
+  public void onClose(SimpleSession session, int closeReasonCode, String closeReasonPhrase);
+
+  /**
+   * Invoked when errors occur out of the normal band of the WebSocket protocol.  This is
+   * intended for debug purposes and is generally not actionable.  The {@link #onClose} method
+   * will still be invoked in all cases, making it reasonable to simply log in this method.
+   *
+   * @param session Unique handle for this session.
+   * @param t Exception that occurred.
+   */
+  public void onError(SimpleSession session, Throwable t);
+}

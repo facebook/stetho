@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+  <string name="app_name">Stetho Sample</string>
+  <string name="settings_btn">Settings</string>
+  <string name="apod_btn">APOD RSS Feed</string>
+  <string name="settings_title">Settings</string>
+  <string name="pref_category1_title">General</string>
+  <string name="pref_checkbox_title">Boolean setting</string>
+  <string name="pref_checkbox_summary">Set the value of this boolean property</string>
+  <string name="pref_category2_title">Other Options</string>
+  <string name="pref_list_title">List of choices</string>
+  <string name="pref_list_summary">Choose from a set of values</string>
+  <string name="pref_list_dialog_title">Choices</string>
+  <string name="pref_change_message">%1$s is now \'%2$s\'</string>
+  <string name="apod_title">APOD Listing</string>
+</resources>

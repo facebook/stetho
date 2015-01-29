@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.facebook.stetho.sample">
+
+  <uses-permission android:name="android.permission.INTERNET" />
+
+  <application
+      android:label="@string/app_name"
+      android:name=".SampleApplication">
+
+    <activity
+        android:label="@string/app_name"
+        android:name=".MainActivity">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN"/>
+        <category android:name="android.intent.category.LAUNCHER"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+      </intent-filter>
+    </activity>
+
+    <activity
+        android:label="@string/settings_title"
+        android:name=".SettingsActivity" />
+
+    <activity
+        android:label="@string/apod_title"
+        android:name=".APODActivity" />
+
+    <provider
+        android:name=".APODContentProvider"
+        android:authorities="com.facebook.stetho.sample.apod"
+        android:exported="false" />
+
+  </application>
+
+</manifest>
