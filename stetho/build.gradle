@@ -36,3 +36,12 @@ dependencies {
     androidTestCompile 'org.powermock:powermock-api-mockito:1.6.1'
     androidTestCompile 'org.powermock:powermock-module-junit4:1.6.1'
 }
+
+task androidSourcesJar(type: Jar) {
+    classifier = 'sources'
+    from android.sourceSets.main.java.srcDirs
+}
+
+artifacts {
+    androidSourcesJar
+}
