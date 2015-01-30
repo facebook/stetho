@@ -1,12 +1,11 @@
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 21
     buildToolsVersion "21.1.2"
 
     defaultConfig {
-        applicationId "com.facebook.stetho.sample"
-        minSdkVersion 11
+        minSdkVersion 9
         targetSdkVersion 21
         versionCode 1
         versionName "1.0"
@@ -15,6 +14,5 @@ android {
 
 dependencies {
     compile project(':stetho')
-    compile project(':stetho-urlconnection')
     compile 'com.google.code.findbugs:jsr305:2.0.1'
 }
