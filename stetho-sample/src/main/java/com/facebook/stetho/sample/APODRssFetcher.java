@@ -33,7 +33,7 @@ public class APODRssFetcher {
   public void fetchAndStore() {
     Networker.HttpRequest request = Networker.HttpRequest.newBuilder()
         .friendlyName("APOD RSS")
-        .method(Networker.HttpMethod.GET)
+        .method(Networker.HttpMethod.GET, null /* body */)
         .url(APOD_RSS_URL)
         .build();
     Networker.get().submit(request, mStoreRssResponse);

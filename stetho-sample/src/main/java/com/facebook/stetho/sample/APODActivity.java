@@ -118,7 +118,7 @@ public class APODActivity extends ListActivity {
         final int bindPosition,
         final ViewHolder holder) {
       Networker.HttpRequest imageRequest = Networker.HttpRequest.newBuilder()
-          .method(Networker.HttpMethod.GET)
+          .method(Networker.HttpMethod.GET, null /* body */)
           .url(imageUrl)
           .build();
       Networker.get().submit(imageRequest, new Networker.Callback() {
