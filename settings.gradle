@@ -1,3 +1,4 @@
 include ':stetho'
 include ':stetho-urlconnection'
+include ':stetho-okhttp'
 include ':stetho-sample'
