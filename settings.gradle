@@ -1,2 +1,3 @@
 include ':stetho'
+include ':stetho-okhttp'
 include ':stetho-sample'
