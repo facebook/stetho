@@ -34,6 +34,34 @@ easily create your own!
 ![dumpapp prefs Screenshot](https://github.com/facebook/stetho/raw/master/docs/images/dumpapp-prefs.png)
 
 ## Integration
+
+### Add library code
+Assemble the JAR files locally using:
+
+```shell
+./gradlew assemble
+```
+
+Copy the relevant jar files to your `libs/` directory.  Only the main `stetho`
+jar file is strictly required, however you may wish to copy
+`stetho-urlconnection` or `stetho-okhttp` for simplified network integration.
+Also take note that you will need to rename the jar files to avoid conflicts.
+The jar files are located in their respective `build` directories:
+
+```shell
+./stetho/build/intermediates/bundles/debug/classes.jar
+./stetho-urlconnection/build/intermediates/bundles/debug/classes.jar
+./stetho-okhttp/build/intermediates/bundles/debug/classes.jar
+```
+
+You will also need Apache's `commons-cli` library, which you can access from
+`build.gradle`:
+
+```groovy
+compile 'commons-cli:commons-cli:1.2'
+```
+
+### Set-up
 Integrating with Stetho is intended to be seamless and straightforward for
 most existing Android applications.  There is a simple initialization step
 which occurs in your `Application` class:
