@@ -95,17 +95,10 @@ OkHttpClient client = new OkHttpClient();
 client.networkInterceptors().add(new StethoInterceptor());
 ```
 
-If you are using any of other network stack options, you will need to manually
-provide data to the `NetworkEventReporter` interface.  The general pattern for implementing this is:
-
-```java
-NetworkEventReporter reporter = NetworkEventReporterImpl.get();
-// Important to check if it is enabled first so as not to add overhead to
-// the common case that is not under scrutiny.
-if (reporter.isEnabled()) {
-  reporter.requestWillBeSent(new MyInspectorRequest(request));
-}
-```
+If you are using `HttpURLConnection`, you can use `StethoURLConnectionManager`
+to assist with integration though you should be aware that there are some
+caveats with this approach.  In particular, compressed payload sizes may not be
+visualized even though compression is indeed in effect.
 
 See the `stetho-sample` project for more details.
 
