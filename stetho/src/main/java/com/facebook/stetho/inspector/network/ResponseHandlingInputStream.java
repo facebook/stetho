@@ -20,7 +20,8 @@ import com.facebook.stetho.inspector.protocol.module.Console;
  * {@link InputStream} passing all data to the {@link OutputStream}.
  * This is done to allow us to guarantee all responses are represented in the webkit inspector.
  */
-final class ResponseHandlingInputStream extends FilterInputStream {
+// @VisibleForTest
+public final class ResponseHandlingInputStream extends FilterInputStream {
 
   public static final String TAG = "ResponseHandlingInputStream";
 
