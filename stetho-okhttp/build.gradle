@@ -48,4 +48,6 @@ dependencies {
     // Needed for Robolectric and PowerMock to be combined in a single test.
     androidTestCompile 'org.powermock:powermock-module-junit4-rule:1.6.1'
     androidTestCompile 'org.powermock:powermock-classloading-xstream:1.6.1'
+
+    androidTestCompile 'com.squareup.okhttp:mockwebserver:2.2.0'
 }

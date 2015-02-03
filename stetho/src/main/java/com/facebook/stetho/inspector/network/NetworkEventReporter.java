@@ -3,7 +3,6 @@
 package com.facebook.stetho.inspector.network;
 
 import javax.annotation.Nullable;
-
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -78,6 +77,10 @@ public interface NetworkEventReporter {
    *     {@link InspectorResponse}.  This header is used to determine the appropriate
    *     storage format for the body.  For instance, {@code image/*} is necessary to cause
    *     images to appear in the Inspector UI.
+   * @param contentEncoding The {@code Content-Encoding} header value that was specified in
+   *     {@link InspectorResponse}.  This header is used to determine what type of decompression
+   *     is to be applied when delivering the raw response stream to the debugging interface.
+   *     If null, no decompression will be used.
    * @param inputStream Response stream if applicable ("HEAD" for instance does not have a body).
    *     {@code null} otherwise.
    * @param responseHandler Callback to forward stream events back to the relevant event reporter
@@ -90,6 +93,7 @@ public interface NetworkEventReporter {
   public InputStream interpretResponseStream(
       String requestId,
       @Nullable String contentType,
+      @Nullable String contentEncoding,
       @Nullable InputStream inputStream,
       ResponseHandler responseHandler);
 

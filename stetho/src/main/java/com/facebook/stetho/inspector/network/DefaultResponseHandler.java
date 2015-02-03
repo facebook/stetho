@@ -10,19 +10,24 @@ public class DefaultResponseHandler implements ResponseHandler {
   private final String mRequestId;
 
   private int mBytesRead = 0;
+  private int mDecodedBytesRead = -1;
 
   public DefaultResponseHandler(NetworkEventReporter eventReporter, String requestId) {
     mEventReporter = eventReporter;
     mRequestId = requestId;
   }
 
+  @Override
   public void onRead(int numBytes) {
-    // Simply count the bytes received so we can report it at the end.  Note that it is
-    // an expected part of the protocol to deliver this data in discrete chunks but
-    // unfortunately our implementation is so inefficient that it creates noticable
-    // lag in the application.  We could either optimize message delivery or just buffer; we
-    // choose buffering :)
     mBytesRead += numBytes;
+  }
+
+  @Override
+  public void onReadDecoded(int numBytes) {
+    if (mDecodedBytesRead == -1) {
+      mDecodedBytesRead = 0;
+    }
+    mDecodedBytesRead += numBytes;
   }
 
   public void onEOF() {
@@ -36,6 +41,9 @@ public class DefaultResponseHandler implements ResponseHandler {
   }
 
   private void reportDataReceived() {
-    mEventReporter.dataReceived(mRequestId, mBytesRead, mBytesRead);
+    mEventReporter.dataReceived(
+        mRequestId,
+        mBytesRead,
+        mDecodedBytesRead >= 0 ? mDecodedBytesRead : mBytesRead);
   }
 }

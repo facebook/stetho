@@ -6,6 +6,7 @@ import com.facebook.stetho.urlconnection.ByteArrayRequestEntity;
 import com.facebook.stetho.urlconnection.SimpleRequestEntity;
 import com.facebook.stetho.urlconnection.StethoURLConnectionManager;
 
+import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,6 +15,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.zip.GZIPInputStream;
 
 /**
  * Very simple centralized network middleware for illustration purposes.
@@ -25,6 +27,9 @@ public class Networker {
 
   private static final int READ_TIMEOUT_MS = 10000;
   private static final int CONNECT_TIMEOUT_MS = 15000;
+
+  private static final String HEADER_ACCEPT_ENCODING = "Accept-Encoding";
+  private static final String GZIP_ENCODING = "gzip";
 
   public static synchronized Networker get() {
     if (sInstance == null) {
@@ -65,18 +70,17 @@ public class Networker {
       HttpURLConnection conn = configureAndConnectRequest();
       try {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        InputStream responseStream = conn.getInputStream();
+        InputStream rawStream = conn.getInputStream();
         try {
-          // Let Stetho see.
-          responseStream = stethoManager.interpretResponseStream(
-              responseStream,
-              null /* customResponseHandler */);
-          if (responseStream != null) {
-            copy(responseStream, out, new byte[1024]);
+          // Let Stetho see the raw, possibly compressed stream.
+          rawStream = stethoManager.interpretResponseStream(rawStream);
+          InputStream decompressedStream = applyDecompressionIfApplicable(conn, rawStream);
+          if (decompressedStream != null) {
+            copy(decompressedStream, out, new byte[1024]);
           }
         } finally {
-          if (responseStream != null) {
-            responseStream.close();
+          if (rawStream != null) {
+            rawStream.close();
           }
         }
         return new HttpResponse(conn.getResponseCode(), out.toByteArray());
@@ -97,6 +101,10 @@ public class Networker {
         conn.setReadTimeout(READ_TIMEOUT_MS);
         conn.setConnectTimeout(CONNECT_TIMEOUT_MS);
         conn.setRequestMethod(request.method.toString());
+
+        // Adding this disables transparent gzip compression so that we can intercept
+        // the raw stream and display the correct response body size.
+        requestDecompression(conn);
 
         SimpleRequestEntity requestEntity = null;
         if (request.body != null) {
@@ -132,6 +140,19 @@ public class Networker {
         throw outer;
       }
     }
+  }
+
+  private static void requestDecompression(HttpURLConnection conn) {
+    conn.setRequestProperty(HEADER_ACCEPT_ENCODING, GZIP_ENCODING);
+  }
+
+  @Nullable
+  private static InputStream applyDecompressionIfApplicable(
+      HttpURLConnection conn, @Nullable InputStream in) throws IOException {
+    if (in != null && GZIP_ENCODING.equals(conn.getContentEncoding())) {
+      return new GZIPInputStream(in);
+    }
+    return in;
   }
 
   private static void copy(InputStream in, OutputStream out, byte[] buf) throws IOException {

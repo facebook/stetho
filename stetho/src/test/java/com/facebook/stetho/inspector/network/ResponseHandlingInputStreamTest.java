@@ -56,6 +56,7 @@ public class ResponseHandlingInputStreamTest {
         new ByteArrayInputStream(TEST_RESPONSE_BODY),
         TEST_REQUEST_ID,
         mTestOutputStream,
+        null /* decompressedCounter */,
         mNetworkPeerManager,
         new DefaultResponseHandler(mNetworkEventReporter, TEST_REQUEST_ID));
   }
@@ -153,6 +154,7 @@ public class ResponseHandlingInputStreamTest {
         new ByteArrayInputStream(TEST_RESPONSE_BODY),
         TEST_REQUEST_ID,
         exceptionOutputStream,
+        null /* decompressedCounter */,
         mNetworkPeerManager,
         new DefaultResponseHandler(mNetworkEventReporter, TEST_REQUEST_ID));
 

@@ -1,26 +1,18 @@
 package com.facebook.stetho.okhttp;
 
-import javax.annotation.Nullable;
+import com.facebook.stetho.inspector.network.DefaultResponseHandler;
+import com.facebook.stetho.inspector.network.NetworkEventReporter;
+import com.facebook.stetho.inspector.network.NetworkEventReporterImpl;
+import com.squareup.okhttp.*;
+import okio.BufferedSink;
+import okio.BufferedSource;
+import okio.Okio;
 
+import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import com.facebook.stetho.inspector.network.DefaultResponseHandler;
-import com.facebook.stetho.inspector.network.NetworkEventReporter;
-import com.facebook.stetho.inspector.network.NetworkEventReporterImpl;
-
-import com.squareup.okhttp.Connection;
-import com.squareup.okhttp.Interceptor;
-import com.squareup.okhttp.MediaType;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.RequestBody;
-import com.squareup.okhttp.Response;
-import com.squareup.okhttp.ResponseBody;
-import okio.BufferedSink;
-import okio.BufferedSource;
-import okio.Okio;
 
 /**
  * Provides easy integration with <a href="http://square.github.io/okhttp/">OkHttp</a> 2.2.0+
@@ -86,6 +78,7 @@ public class StethoInterceptor implements Interceptor {
       responseStream = mEventReporter.interpretResponseStream(
           requestId,
           contentType != null ? contentType.toString() : null,
+          response.header("Content-Encoding"),
           responseStream,
           new DefaultResponseHandler(mEventReporter, requestId));
       if (responseStream != null) {
