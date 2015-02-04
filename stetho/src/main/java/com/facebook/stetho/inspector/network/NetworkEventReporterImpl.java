@@ -14,6 +14,7 @@ import android.os.SystemClock;
 
 import com.facebook.stetho.common.LogRedirector;
 import com.facebook.stetho.common.Utf8Charset;
+import com.facebook.stetho.inspector.console.CLog;
 import com.facebook.stetho.inspector.protocol.module.Console;
 import com.facebook.stetho.inspector.protocol.module.Network;
 import com.facebook.stetho.inspector.protocol.module.Page;
@@ -110,9 +111,10 @@ public class NetworkEventReporterImpl implements NetworkEventReporter {
         return new String(body, Utf8Charset.INSTANCE);
       }
     } catch (IOException e) {
-      writeToConsole(
+      CLog.writeToConsole(
           peerManager,
           Console.MessageLevel.WARNING,
+          Console.MessageSource.NETWORK,
           "Could not reproduce POST body: " + e);
     }
     return null;
@@ -183,9 +185,10 @@ public class NetworkEventReporterImpl implements NetworkEventReporter {
             peerManager,
             responseHandler);
       } catch (IOException e) {
-        writeToConsole(
+        CLog.writeToConsole(
             peerManager,
             Console.MessageLevel.ERROR,
+            Console.MessageSource.NETWORK,
             "Error writing response body data for request #" + requestId);
       }
     }
@@ -272,22 +275,6 @@ public class NetworkEventReporterImpl implements NetworkEventReporter {
       }
     }
     return json;
-  }
-
-  private static void writeToConsole(
-      NetworkPeerManager networkPeerManager,
-      Console.MessageLevel logLevel,
-      String messageText) {
-    // Send to logcat to increase the chances that a developer will notice :)
-    LogRedirector.d(TAG, messageText);
-
-    Console.ConsoleMessage message = new Console.ConsoleMessage();
-    message.source = Console.MessageSource.NETWORK;
-    message.level = logLevel;
-    message.text = messageText;
-    Console.MessageAddedRequest messageAddedRequest = new Console.MessageAddedRequest();
-    messageAddedRequest.message = message;
-    networkPeerManager.sendNotificationToPeers("Console.messageAdded", messageAddedRequest);
   }
 
   @Nonnull
