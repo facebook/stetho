@@ -5,6 +5,9 @@ package com.facebook.stetho.inspector.protocol.module;
 import java.util.Collections;
 import java.util.List;
 
+import android.content.Context;
+import com.facebook.stetho.inspector.console.CLog;
+import com.facebook.stetho.inspector.helper.ChromePeerManager;
 import com.facebook.stetho.inspector.jsonrpc.JsonRpcPeer;
 import com.facebook.stetho.inspector.jsonrpc.JsonRpcResult;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
@@ -15,12 +18,16 @@ import com.facebook.stetho.json.annotation.JsonValue;
 import org.json.JSONObject;
 
 public class Page implements ChromeDevtoolsDomain {
-  public Page() {
+  private final Context mContext;
+
+  public Page(Context context) {
+    mContext = context.getApplicationContext();
   }
 
   @ChromeDevtoolsMethod
   public void enable(JsonRpcPeer peer, JSONObject params) {
     notifyExecutionContexts(peer);
+    sendWelcomeMessage(peer);
   }
 
   @ChromeDevtoolsMethod
@@ -34,6 +41,28 @@ public class Page implements ChromeDevtoolsDomain {
     ExecutionContextCreatedParams params = new ExecutionContextCreatedParams();
     params.context = context;
     peer.invokeMethod("Runtime.executionContextCreated", params, null /* callback */);
+  }
+
+  private void sendWelcomeMessage(JsonRpcPeer peer) {
+    Console.ConsoleMessage message = new Console.ConsoleMessage();
+    message.source = Console.MessageSource.JAVASCRIPT;
+    message.level = Console.MessageLevel.LOG;
+    message.text =
+// Note: not using Android resources so we can maintain .jar distribution for now.
+"_____/\\\\\\\\\\\\\\\\\\\\\\_______________________________________________/\\\\\\_______________________\n" +
+" ___/\\\\\\/////////\\\\\\____________________________________________\\/\\\\\\_______________________\n" +
+"  __\\//\\\\\\______\\///______/\\\\\\_________________________/\\\\\\______\\/\\\\\\_______________________\n" +
+"   ___\\////\\\\\\__________/\\\\\\\\\\\\\\\\\\\\\\_____/\\\\\\\\\\\\\\\\___/\\\\\\\\\\\\\\\\\\\\\\_\\/\\\\\\_____________/\\\\\\\\\\____\n" +
+"    ______\\////\\\\\\______\\////\\\\\\////____/\\\\\\/////\\\\\\_\\////\\\\\\////__\\/\\\\\\\\\\\\\\\\\\\\____/\\\\\\///\\\\\\__\n" +
+"     _________\\////\\\\\\______\\/\\\\\\_______/\\\\\\\\\\\\\\\\\\\\\\_____\\/\\\\\\______\\/\\\\\\/////\\\\\\__/\\\\\\__\\//\\\\\\_\n" +
+"      __/\\\\\\______\\//\\\\\\_____\\/\\\\\\_/\\\\__\\//\\\\///////______\\/\\\\\\_/\\\\__\\/\\\\\\___\\/\\\\\\_\\//\\\\\\__/\\\\\\__\n" +
+"       _\\///\\\\\\\\\\\\\\\\\\\\\\/______\\//\\\\\\\\\\____\\//\\\\\\\\\\\\\\\\\\\\____\\//\\\\\\\\\\___\\/\\\\\\___\\/\\\\\\__\\///\\\\\\\\\\/___\n" +
+"        ___\\///////////_________\\/////______\\//////////______\\/////____\\///____\\///_____\\/////_____\n" +
+"         Welcome to Stetho\n" +
+"          Attached to " + mContext.getPackageName() + "\n";
+    Console.MessageAddedRequest messageAddedRequest = new Console.MessageAddedRequest();
+    messageAddedRequest.message = message;
+    peer.invokeMethod("Console.messageAdded", messageAddedRequest, null /* callback */);
   }
 
   // Dog science...

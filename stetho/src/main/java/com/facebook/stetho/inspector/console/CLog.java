@@ -10,7 +10,6 @@ import com.facebook.stetho.inspector.protocol.module.Console;
 public class CLog {
   private static final String TAG = "CLog";
 
-  // @VisibleForTest
   public static void writeToConsole(
       ChromePeerManager chromePeerManager,
       Console.MessageLevel logLevel,

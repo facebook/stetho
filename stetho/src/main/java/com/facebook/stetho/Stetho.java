@@ -110,7 +110,7 @@ public class Stetho {
         modules.add(new HeapProfiler());
         modules.add(new Inspector());
         modules.add(new Network(context));
-        modules.add(new Page());
+        modules.add(new Page(context));
         modules.add(new Profiler());
         modules.add(new Runtime());
         modules.add(new Worker());
