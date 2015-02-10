@@ -171,8 +171,6 @@ public class Networker {
     public final String url;
     public final byte[] body;
 
-    String uniqueId;
-
     public static Builder newBuilder() {
       return new Builder();
     }

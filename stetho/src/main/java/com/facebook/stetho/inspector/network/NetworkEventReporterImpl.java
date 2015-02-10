@@ -3,7 +3,6 @@
 package com.facebook.stetho.inspector.network;
 
 import android.os.SystemClock;
-import com.facebook.stetho.common.LogRedirector;
 import com.facebook.stetho.common.Utf8Charset;
 import com.facebook.stetho.inspector.console.CLog;
 import com.facebook.stetho.inspector.protocol.module.Console;
@@ -27,8 +26,6 @@ import java.util.ArrayList;
  * implementation will be automatically wired up to them.
  */
 public class NetworkEventReporterImpl implements NetworkEventReporter {
-  private static final String TAG = "RealNetworkEventReporter";
-
   @Nullable
   private ResourceTypeHelper mResourceTypeHelper;
 
