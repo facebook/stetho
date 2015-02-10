@@ -94,6 +94,7 @@ public class NetworkEventReporterImpl implements NetworkEventReporter {
       params.timestamp = stethoNow() / 1000.0;
       params.initiator = initiatorJSON;
       params.redirectResponse = null;
+      params.type = Page.ResourceType.OTHER;
       peerManager.sendNotificationToPeers("Network.requestWillBeSent", params);
     }
   }
@@ -143,7 +144,7 @@ public class NetworkEventReporterImpl implements NetworkEventReporter {
       }
       receivedParams.response = responseJSON;
       peerManager.sendNotificationToPeers("Network.responseReceived", receivedParams);
-      }
+    }
   }
 
   @Override
