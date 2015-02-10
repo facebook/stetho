@@ -2,17 +2,17 @@
 
 package com.facebook.stetho.inspector.network;
 
+import com.facebook.stetho.inspector.console.CLog;
+import com.facebook.stetho.inspector.helper.ChromePeerManager;
+import com.facebook.stetho.inspector.protocol.module.Console;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
-
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
-import com.facebook.stetho.inspector.console.CLog;
-import com.facebook.stetho.inspector.protocol.module.Console;
 
 /**
  * {@link InputStream} that caches the data as the data is read, and writes them to the given
@@ -29,7 +29,8 @@ public final class ResponseHandlingInputStream extends FilterInputStream {
 
   private final String mRequestId;
   private final OutputStream mOutputStream;
-  private final NetworkPeerManager mNetworkPeerManager;
+  @Nullable private final CountingOutputStream mDecompressedCounter;
+  private final ChromePeerManager mNetworkPeerManager;
   private final ResponseHandler mResponseHandler;
 
   /**
@@ -45,20 +46,31 @@ public final class ResponseHandlingInputStream extends FilterInputStream {
   @GuardedBy("this")
   private byte[] mSkipBuffer;
 
+  private long mLastDecompressedCount = 0;
+
   /**
    * @param inputStream
    * @param requestId the requestId to use when we call the {@link NetworkEventReporter}
    * @param outputStream stream to write to.
+   * @param decompressedCounter Optional decompressing counting output stream which
+   *     can be queried after each write to determine the number of decompressed bytes
+   *     yielded.  Used to implement {@link ResponseHandler#onReadDecoded(int)}.
+   * @param networkPeerManager A peer manager which is used to log internal errors to the
+   *     Inspector console.
+   * @param responseHandler Special interface to intercept read events before they are sent
+   *     to peers via {@link NetworkEventReporter} methods.
    */
   public ResponseHandlingInputStream(
       InputStream inputStream,
       String requestId,
       OutputStream outputStream,
-      NetworkPeerManager networkPeerManager,
+      @Nullable CountingOutputStream decompressedCounter,
+      ChromePeerManager networkPeerManager,
       ResponseHandler responseHandler) {
     super(inputStream);
     mRequestId = requestId;
     mOutputStream = outputStream;
+    mDecompressedCounter = decompressedCounter;
     mNetworkPeerManager = networkPeerManager;
     mResponseHandler = responseHandler;
     mClosed = false;
@@ -66,9 +78,9 @@ public final class ResponseHandlingInputStream extends FilterInputStream {
 
   private synchronized int checkEOF(int n) {
     if (n == -1) {
+      closeOutputStreamQuietly();
       mResponseHandler.onEOF();
       mEofSeen = true;
-      closeOutputStreamQuietly();
     }
     return n;
   }
@@ -78,7 +90,7 @@ public final class ResponseHandlingInputStream extends FilterInputStream {
     try {
       int result = checkEOF(in.read());
       if (result != -1) {
-        mResponseHandler.onRead(result);
+        mResponseHandler.onRead(1);
         writeToOutputStream(result);
       }
       return result;
@@ -173,20 +185,13 @@ public final class ResponseHandlingInputStream extends FilterInputStream {
   }
 
   /**
-   * Calling this will make this output stream unusable. This will happen if we encounter an error
-   * writing to the file, or if {@link #close()} is called.
-   */
-  private synchronized void setOutputStreamClosed() {
-    mClosed = true;
-  }
-
-  /**
    * Attempts to close all the output stream, and swallows any exceptions.
    */
   private synchronized void closeOutputStreamQuietly() {
     if (!mClosed) {
       try {
         mOutputStream.close();
+        reportDecodedSizeIfApplicable();
       } catch (IOException e) {
         CLog.writeToConsole(
             mNetworkPeerManager,
@@ -194,7 +199,7 @@ public final class ResponseHandlingInputStream extends FilterInputStream {
             Console.MessageSource.NETWORK,
             "Could not close the output stream" + e);
       } finally {
-        setOutputStreamClosed();
+        mClosed = true;
       }
     }
   }
@@ -210,6 +215,15 @@ public final class ResponseHandlingInputStream extends FilterInputStream {
     return ex;
   }
 
+  private void reportDecodedSizeIfApplicable() {
+    if (mDecompressedCounter != null) {
+      long currentCount = mDecompressedCounter.getCount();
+      int delta = (int)(currentCount - mLastDecompressedCount);
+      mResponseHandler.onReadDecoded(delta);
+      mLastDecompressedCount = currentCount;
+    }
+  }
+
   /**
    * Writes the byte to all the output streams. If we get an exception when writing to any
    * of the streams, we close all the streams, and then propagate the first exception that
@@ -222,6 +236,7 @@ public final class ResponseHandlingInputStream extends FilterInputStream {
 
     try {
       mOutputStream.write(oneByte);
+      reportDecodedSizeIfApplicable();
     } catch (IOException e) {
       handleIOExceptionWritingToStream(e);
     }
@@ -237,6 +252,7 @@ public final class ResponseHandlingInputStream extends FilterInputStream {
 
     try {
       mOutputStream.write(b, offset, count);
+      reportDecodedSizeIfApplicable();
     } catch (IOException e) {
       handleIOExceptionWritingToStream(e);
     }

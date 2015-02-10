@@ -2,26 +2,23 @@
 
 package com.facebook.stetho.inspector.network;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-
 import android.os.SystemClock;
-
 import com.facebook.stetho.common.LogRedirector;
 import com.facebook.stetho.common.Utf8Charset;
 import com.facebook.stetho.inspector.console.CLog;
 import com.facebook.stetho.inspector.protocol.module.Console;
 import com.facebook.stetho.inspector.protocol.module.Network;
 import com.facebook.stetho.inspector.protocol.module.Page;
-
 import org.apache.http.protocol.HTTP;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
 
 /**
  * Implementation of {@link NetworkEventReporter} which allows callers to inform the Stetho
@@ -153,11 +150,12 @@ public class NetworkEventReporterImpl implements NetworkEventReporter {
   public InputStream interpretResponseStream(
       String requestId,
       @Nullable String contentType,
-      @Nullable InputStream inputStream,
+      @Nullable String contentEncoding,
+      @Nullable InputStream availableInputStream,
       ResponseHandler responseHandler) {
     NetworkPeerManager peerManager = getPeerManagerIfEnabled();
     if (peerManager != null) {
-      if (inputStream == null) {
+      if (availableInputStream == null) {
         responseHandler.onEOF();
         return null;
       }
@@ -174,15 +172,16 @@ public class NetworkEventReporterImpl implements NetworkEventReporter {
       }
 
       try {
-        OutputStream responseOutputStream =
+        OutputStream fileOutputStream =
             peerManager.getResponseBodyFileManager().openResponseBodyFile(
                 requestId,
                 base64Encode);
-        return new ResponseHandlingInputStream(
-            inputStream,
-            requestId,
-            responseOutputStream,
+        return DecompressionHelper.teeInputWithDecompression(
             peerManager,
+            requestId,
+            availableInputStream,
+            fileOutputStream,
+            contentEncoding,
             responseHandler);
       } catch (IOException e) {
         CLog.writeToConsole(
@@ -192,7 +191,7 @@ public class NetworkEventReporterImpl implements NetworkEventReporter {
             "Error writing response body data for request #" + requestId);
       }
     }
-    return inputStream;
+    return availableInputStream;
   }
 
   @Override

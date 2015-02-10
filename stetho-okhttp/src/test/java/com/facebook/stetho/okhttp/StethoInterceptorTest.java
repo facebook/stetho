@@ -2,8 +2,13 @@ package com.facebook.stetho.okhttp;
 
 import android.net.Uri;
 import android.os.Build;
-import com.facebook.stetho.inspector.network.*;
+import com.facebook.stetho.inspector.network.DecompressionHelper;
+import com.facebook.stetho.inspector.network.NetworkEventReporter;
+import com.facebook.stetho.inspector.network.NetworkEventReporterImpl;
+import com.facebook.stetho.inspector.network.ResponseHandler;
 import com.squareup.okhttp.*;
+import com.squareup.okhttp.mockwebserver.MockResponse;
+import com.squareup.okhttp.mockwebserver.MockWebServer;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,7 +19,6 @@ import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
@@ -23,26 +27,28 @@ import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.zip.GZIPOutputStream;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.*;
 
 @Config(emulateSdk = Build.VERSION_CODES.JELLY_BEAN)
 @RunWith(RobolectricTestRunner.class)
-@PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*" })
+@PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*", "javax.net.ssl.*" })
 @PrepareForTest(NetworkEventReporterImpl.class)
 public class StethoInterceptorTest {
   @Rule
   public PowerMockRule rule = new PowerMockRule();
 
   @Test
-  public void testManualChainHappyPath() throws IOException {
+  public void testHappyPath() throws IOException {
     PowerMockito.mockStatic(NetworkEventReporterImpl.class);
 
     final NetworkEventReporter mockEventReporter = Mockito.mock(NetworkEventReporter.class);
     InOrder inOrder = Mockito.inOrder(mockEventReporter);
     Mockito.when(mockEventReporter.isEnabled()).thenReturn(true);
-    ByteArrayOutputStream capturedOutput = fakeInterpretResponseStream(mockEventReporter);
+    ByteArrayOutputStream capturedOutput = hookAlmostRealInterpretResponseStream(mockEventReporter);
     PowerMockito.when(NetworkEventReporterImpl.get()).thenReturn(mockEventReporter);
 
     StethoInterceptor interceptor = new StethoInterceptor();
@@ -84,16 +90,73 @@ public class StethoInterceptorTest {
     inOrder.verifyNoMoreInteractions();
   }
 
+  @Test
+  public void testWithCompression() throws IOException {
+    PowerMockito.mockStatic(NetworkEventReporterImpl.class);
+
+    final NetworkEventReporter mockEventReporter = Mockito.mock(NetworkEventReporter.class);
+    Mockito.when(mockEventReporter.isEnabled()).thenReturn(true);
+    ByteArrayOutputStream capturedOutput = hookAlmostRealInterpretResponseStream(mockEventReporter);
+    PowerMockito.when(NetworkEventReporterImpl.get()).thenReturn(mockEventReporter);
+
+    byte[] uncompressedData = repeat(".", 1024).getBytes();
+    byte[] compressedData = compress(uncompressedData);
+
+    MockWebServer server = new MockWebServer();
+    server.play();
+    server.enqueue(new MockResponse()
+        .setBody(compressedData)
+        .addHeader("Content-Encoding: gzip"));
+
+    OkHttpClient client = new OkHttpClient();
+    client.networkInterceptors().add(new StethoInterceptor());
+
+    Request request = new Request.Builder()
+        .url(server.getUrl("/"))
+        .build();
+    Response response = client.newCall(request).execute();
+
+    // Verify that the final output and the caller both saw the uncompressed stream.
+    assertArrayEquals(uncompressedData, response.body().bytes());
+    assertArrayEquals(uncompressedData, capturedOutput.toByteArray());
+
+    // And verify that the StethoInterceptor was able to see both.
+    Mockito.verify(mockEventReporter)
+        .dataReceived(
+            anyString(),
+            eq(compressedData.length),
+            eq(uncompressedData.length));
+
+    server.shutdown();
+  }
+
+  private static String repeat(String s, int reps) {
+    StringBuilder b = new StringBuilder(s.length() * reps);
+    while (reps-- > 0) {
+      b.append(s);
+    }
+    return b.toString();
+  }
+
+  private static byte[] compress(byte[] data) throws IOException {
+    ByteArrayOutputStream buf = new ByteArrayOutputStream();
+    GZIPOutputStream out = new GZIPOutputStream(buf);
+    out.write(data);
+    out.close();
+    return buf.toByteArray();
+  }
+
   /**
    * Provide a suitably "real" implementation of
    * {@link NetworkEventReporter#interpretResponseStream} for our mock to test that
    * events are properly delegated.
    */
-  private static ByteArrayOutputStream fakeInterpretResponseStream(
+  private static ByteArrayOutputStream hookAlmostRealInterpretResponseStream(
       final NetworkEventReporter mockEventReporter) {
     final ByteArrayOutputStream capturedOutput = new ByteArrayOutputStream();
     Mockito.when(
         mockEventReporter.interpretResponseStream(
+            anyString(),
             anyString(),
             anyString(),
             any(InputStream.class),
@@ -104,13 +167,16 @@ public class StethoInterceptorTest {
               public InputStream answer(InvocationOnMock invocationOnMock) throws Throwable {
                 Object[] args = invocationOnMock.getArguments();
                 String requestId = (String)args[0];
-                InputStream responseStream = (InputStream)args[2];
-                return new ResponseHandlingInputStream(
-                    responseStream,
-                    requestId,
-                    capturedOutput,
+                String contentEncoding = (String)args[2];
+                InputStream responseStream = (InputStream)args[3];
+                ResponseHandler responseHandler = (ResponseHandler)args[4];
+                return DecompressionHelper.teeInputWithDecompression(
                     null /* networkPeerManager */,
-                    new DefaultResponseHandler(mockEventReporter, requestId));
+                    requestId,
+                    responseStream,
+                    capturedOutput,
+                    contentEncoding,
+                    responseHandler);
               }
             });
     return capturedOutput;

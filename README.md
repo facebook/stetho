@@ -97,8 +97,9 @@ client.networkInterceptors().add(new StethoInterceptor());
 
 If you are using `HttpURLConnection`, you can use `StethoURLConnectionManager`
 to assist with integration though you should be aware that there are some
-caveats with this approach.  In particular, compressed payload sizes may not be
-visualized even though compression is indeed in effect.
+caveats with this approach.  In particular, you must explicitly add
+`Accept-Encoding: gzip` to the request headers and manually handle compressed
+responses in order for Stetho to report compressed payload sizes.
 
 See the `stetho-sample` project for more details.
 

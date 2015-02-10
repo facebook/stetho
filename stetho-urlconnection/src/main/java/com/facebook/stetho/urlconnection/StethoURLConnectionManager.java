@@ -3,7 +3,6 @@ package com.facebook.stetho.urlconnection;
 import com.facebook.stetho.inspector.network.DefaultResponseHandler;
 import com.facebook.stetho.inspector.network.NetworkEventReporter;
 import com.facebook.stetho.inspector.network.NetworkEventReporterImpl;
-import com.facebook.stetho.inspector.network.ResponseHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -17,6 +16,15 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Individual connection flow manager that aids in communicating network events to Stetho
  * via the {@link NetworkEventReporter} API.  This class is stateful and should be instantiated
  * for each individual HTTP request.
+ * <p>
+ * Be aware that there are caveats with inspection using {@link HttpURLConnection} on Android:
+ * <ul>
+ * <li>Compressed payload sizes are typically not available, even when compression was in use over
+ * the wire.
+ * <li>Redirects are by default handled internally, making it impossible to visualize them.
+ * To visualize them, redirects must be handled manually by invoking
+ * {@link HttpURLConnection#setFollowRedirects(boolean)}.
+ * </ul>
  */
 @NotThreadSafe
 public class StethoURLConnectionManager {
@@ -104,34 +112,33 @@ public class StethoURLConnectionManager {
 
   /**
    * Deliver the response stream from {@link HttpURLConnection#getInputStream()} to
-   * Stetho so that it can be intercepted.  Note that this should be
-   * the uncompressed stream if gzip encoded was used, so manually wrapping it in a
-   * {@link java.util.zip.GZIPInputStream} would be required.  If you do this, the
-   * raw encoded sizes will be incorrect by default which can be fixed by supplying
-   * your own custom {@link ResponseHandler}.
+   * Stetho so that it can be intercepted.  Note that compression is transparently
+   * supported on modern Android systems and no special awareness is necessary for
+   * gzip compression on the wire.  Unfortunately this means that it is sometimes impossible
+   * to determine whether compression actually occurred and so Stetho may report inflated
+   * byte counts.
+   * <p>
+   * If the {@code Content-Length} header is provided by the server, this will be assumed to be
+   * the raw byte count on the wire.
    *
-   * @param responseStream Stream as furnished by {@link HttpURLConnection#getInputStream()} or a
-   *     decompressing one if compression was used.
-   * @param customResponseHandler Custom response handler hook to allow callers to report
-   *     the compressed and uncompressed sizes if desired.  This is not required and can
-   *     be null.
+   * @param responseStream Stream as furnished by {@link HttpURLConnection#getInputStream()}.
    *
    * @return The filtering stream which is to be read after this method is called.
    */
-  public InputStream interpretResponseStream(
-      @Nullable InputStream responseStream,
-      @Nullable ResponseHandler customResponseHandler) {
+  public InputStream interpretResponseStream(@Nullable InputStream responseStream) {
     throwIfNoConnection();
     if (isStethoEnabled()) {
-      ResponseHandler responseHandler = customResponseHandler;
-      if (responseHandler == null) {
-        responseHandler = new DefaultResponseHandler(mStethoHook, getStethoRequestId());
-      }
+      // Note that Content-Encoding is stripped out by HttpURLConnection on modern versions of
+      // Android (fun fact, it's powered by okhttp) when decompression is handled transparently.
+      // When this occurs, we will not be able to report the compressed size properly.  Callers,
+      // however, can disable this behaviour which will once again give us access to the raw
+      // Content-Encoding so that we can handle it properly.
       responseStream = mStethoHook.interpretResponseStream(
           getStethoRequestId(),
           mConnection.getHeaderField("Content-Type"),
+          mConnection.getHeaderField("Content-Encoding"),
           responseStream,
-          responseHandler);
+          new DefaultResponseHandler(mStethoHook, getStethoRequestId()));
     }
     return responseStream;
   }
