@@ -146,6 +146,13 @@ public class Network implements ChromeDevtoolsDomain {
 
     @JsonProperty(required = true)
     public String errorText;
+
+    // Chrome introduced this undocumented new addition that, if not sent, will cause the row
+    // to be removed from the UI and raise a JavaScript exception in the console.  This is
+    // clearly an upstream bug that needs to be fixed, though we can work around it by
+    // providing this new undocumented field.
+    @JsonProperty
+    public Page.ResourceType type;
   }
 
   public static class DataReceivedParams {
