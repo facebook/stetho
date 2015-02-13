@@ -50,6 +50,8 @@ def main():
   except HumanReadableError as e:
     print(e)
     sys.exit(1)
+  except BrokenPipeError as e:
+    sys.exit(0)
   except KeyboardInterrupt:
     sys.exit(1)
 
