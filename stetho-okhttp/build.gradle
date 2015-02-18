@@ -51,3 +51,5 @@ dependencies {
 
     androidTestCompile 'com.squareup.okhttp:mockwebserver:2.2.0'
 }
+
+apply from: rootProject.file('release.gradle')

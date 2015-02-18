@@ -37,22 +37,4 @@ dependencies {
     androidTestCompile 'org.powermock:powermock-module-junit4:1.6.1'
 }
 
-task androidJavadoc(type: Javadoc) {
-    source = android.sourceSets.main.java.srcDirs
-    classpath += files(android.bootClasspath)
-}
-
-task androidJavadocJar(type: Jar) {
-    classifier = 'javadoc'
-    from androidJavadoc.destinationDir
-}
-
-task androidSourcesJar(type: Jar) {
-    classifier = 'sources'
-    from android.sourceSets.main.java.srcDirs
-}
-
-artifacts {
-    archives androidJavadocJar
-    archives androidSourcesJar
-}
+apply from: rootProject.file('release.gradle')

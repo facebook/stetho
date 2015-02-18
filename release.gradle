@@ -1,0 +1,101 @@
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+def isReleaseBuild() {
+    return VERSION_NAME.contains("SNAPSHOT") == false
+}
+
+def getRepositoryUrl() {
+    return hasProperty('repositoryUrl') ? property('repositoryUrl') : "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+}
+
+def getRepositoryUsername() {
+    return hasProperty('repositoryUsername') ? property('repositoryUsername') : ""
+}
+
+def getRepositoryPassword() {
+    return hasProperty('repositoryPassword') ? property('repositoryPassword') : ""
+}
+
+afterEvaluate { project ->
+    task androidJavadoc(type: Javadoc) {
+        source = android.sourceSets.main.java.srcDirs
+        classpath += files(android.bootClasspath)
+    }
+
+    task androidJavadocJar(type: Jar) {
+        classifier = 'javadoc'
+        from androidJavadoc.destinationDir
+    }
+
+    task androidSourcesJar(type: Jar) {
+        classifier = 'sources'
+        from android.sourceSets.main.java.srcDirs
+    }
+
+    android.libraryVariants.all { variant ->
+        def name = variant.name.capitalize()
+        task "jar${name}"(type: Jar) {
+            from variant.javaCompile.destinationDir
+        }
+    }
+
+    artifacts {
+        archives androidJavadocJar
+        archives androidSourcesJar
+    }
+
+    version = VERSION_NAME
+    group = GROUP
+
+    signing {
+        required { isReleaseBuild() && gradle.taskGraph.hasTask("uploadArchives") }
+        sign configurations.archives
+    }
+
+    uploadArchives {
+        configuration = configurations.archives
+        repositories.mavenDeployer {
+            beforeDeployment {
+                MavenDeployment deployment -> signing.signPom(deployment)
+            }
+
+            repository(url: getRepositoryUrl()) {
+                authentication(
+                        userName: getRepositoryUsername(),
+                        password: getRepositoryPassword())
+
+            }
+
+            pom.project {
+                name POM_NAME
+                artifactId POM_ARTIFACT_ID
+                packaging POM_PACKAGING
+                url 'https://github.com/facebook/stetho'
+
+                scm {
+                    url 'https://github.com/facebook/stetho.git'
+                    connection 'scm:git:https://github.com/facebook/stetho.git'
+                    developerConnection 'scm:git:git@github.com:facebook/stetho.git'
+                }
+
+                licenses {
+                    license {
+                        name 'BSD License'
+                        url 'https://github.com/facebook/stetho/blob/master/LICENSE'
+                        distribution 'repo'
+                    }
+                }
+            }
+        }
+    }
+
+    task installArchives(type: Upload) {
+        configuration = configurations.archives
+        repositories {
+            mavenDeployer {
+                repository url: "file://${System.properties['user.home']}/.m2/repository"
+            }
+        }
+    }
+}
