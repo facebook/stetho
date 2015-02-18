@@ -35,30 +35,28 @@ easily create your own!
 
 ## Integration
 
-### Add library code
-Assemble the JAR files locally using:
-
-```shell
-./gradlew assemble
+### Download
+Download [the latest JARs](https://github.com/facebook/stetho/releases/latest) or grab via Gradle:
+```groovy
+compile 'com.facebook.stetho:stetho:1.0.0'
+```
+or Maven:
+```xml
+<dependency>
+  <groupId>com.facebook.stetho</groupid>
+  <artifactId>stetho</artifactId>
+  <version>1.0.0</version>
+</dependency>
 ```
 
-Copy the relevant jar files to your `libs/` directory.  Only the main `stetho`
-jar file is strictly required, however you may wish to copy
-`stetho-urlconnection` or `stetho-okhttp` for simplified network integration.
-Also take note that you will need to rename the jar files to avoid conflicts.
-The jar files are located in their respective `build` directories:
-
-```shell
-./stetho/build/intermediates/bundles/debug/classes.jar
-./stetho-urlconnection/build/intermediates/bundles/debug/classes.jar
-./stetho-okhttp/build/intermediates/bundles/debug/classes.jar
-```
-
-You will also need Apache's `commons-cli` library, which you can access from
-`build.gradle`:
+Only the main `stetho` dependency is strictly required, however you may also wish to use one of the network helpers:
 
 ```groovy
-compile 'commons-cli:commons-cli:1.2'
+compile 'com.facebook.stetho:stetho-okhttp:1.0.0'
+```
+or:
+```groovy
+compile 'com.facebook.stetho:stetho-urlconnection:1.0.0'
 ```
 
 ### Set-up
