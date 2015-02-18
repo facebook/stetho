@@ -71,6 +71,7 @@ afterEvaluate { project ->
                 name POM_NAME
                 artifactId POM_ARTIFACT_ID
                 packaging POM_PACKAGING
+                description 'Stetho Debugging Platform for Android'
                 url 'https://github.com/facebook/stetho'
 
                 scm {
@@ -84,6 +85,13 @@ afterEvaluate { project ->
                         name 'BSD License'
                         url 'https://github.com/facebook/stetho/blob/master/LICENSE'
                         distribution 'repo'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'facebook'
+                        name 'Facebook'
                     }
                 }
             }

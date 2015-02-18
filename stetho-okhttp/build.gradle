@@ -35,7 +35,7 @@ dependencies {
     compile project(':stetho')
     compile 'com.google.code.findbugs:jsr305:2.0.1'
     //noinspection GradleDynamicVersion
-    compile 'com.squareup.okhttp:okhttp:2.2.0+'
+    compile 'com.squareup.okhttp:okhttp:[2,3)'
 
     androidTestCompile 'junit:junit:4.12'
     androidTestCompile('org.robolectric:robolectric:2.4') {
