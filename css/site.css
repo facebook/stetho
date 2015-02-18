@@ -118,45 +118,45 @@ a.app_link {
 
 .image.inspector-discovery {
   background-image: url(../images/inspector-discovery.png);
-  width: 421px;
-  height: 293px;
+  width: 589px;
+  height: 410px;
   display: block;
-  background-size: 421px 293px;
+  background-size: 589px 410px;
   position: relative;
-  left: 85px;
+  left: 0px;
   top: 7px;
 }
 
 .image.inspector-network {
   background-image: url(../images/inspector-network.png);
-  width: 419px;
-  height: 274px;
+  width: 587px;
+  height: 384px;
   display: block;
-  background-size: 419px 274px;
+  background-size: 587px 384px;
   position: relative;
-  left: 85px;
+  left: 0px;
   top: 7px;
 }
 
 .image.inspector-sqlite {
   background-image: url(../images/inspector-sqlite.png);
-  width: 419px;
-  height: 274px;
+  width: 587px;
+  height: 384px;
   display: block;
-  background-size: 419px 274px;
+  background-size: 587px 384px;
   position: relative;
-  left: 85px;
+  left: 0px;
   top: 7px;
 }
 
 .image.dumpapp-prefs {
   background-image: url(../images/dumpapp-prefs.png);
-  width: 362px;
-  height: 206px;
+  width: 507px;
+  height: 288px;
   display: block;
-  background-size: 362px 206px;
+  background-size: 507px 288px;
   position: relative;
-  left: 85px;
+  left: 40px;
   top: 7px;
 }
 
