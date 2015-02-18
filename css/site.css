@@ -1,0 +1,261 @@
+* {
+  font-family: 'Roboto', sans-serif;
+}
+
+a {
+  border-bottom: 1px dotted #4caf50;
+  color: #4caf50;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.title {
+    font-weight: 300;
+    font-size: 48px;
+}
+
+.subtitle {
+  font-weight: 300;
+  font-size: 16px;
+  margin-top: 48px;
+}
+
+.section_title {
+  font-weight: 400;
+  font-size: 24px;
+  margin-top: 48px;
+}
+
+.section_subtitle {
+  font-weight: 400;
+  font-size: 16px;
+  margin-top: 20px;
+}
+
+.content {
+  width: 600px;
+  margin: auto;
+  padding: 20px;
+  position: relative;
+  margin-bottom: 100px;
+}
+
+.code {
+  padding-left: 20px;
+}
+
+.code * {
+  font-size: 14px;
+  font-family: 'Droid Sans Mono', sans-serif;
+  font-weight: normal;
+}
+
+p {
+  font-weight: 300;
+  font-size: 16px;
+  color: #333;
+}
+
+.download_link {
+  margin: 20px 0;
+  background: #4caf50;
+  border-radius: 12px;
+  -moz-border-radius: 12px;
+  -webkit-border-radius: 12px;
+  -o-border-radius: 12px;
+  color: #fff;
+  padding: 15px;
+  display: block;
+  font-size:18px;
+  width: 180px;
+  text-align: center;
+}
+
+p.license {
+  font-weight: 300;
+}
+
+.header {
+  padding-left: 0px;
+  position: relative;
+}
+
+.usage {
+  position: relative;
+  min-height: 75px;
+  display: table;
+  margin-bottom: 20px;
+}
+
+.usage .description {
+  min-height: 75px;
+  margin: 0;
+  padding-left: 85px;
+  display: table-cell;
+  vertical-align:middle;
+}
+
+a.app_link {
+  color: #333;
+  font-weight: 400;
+}
+
+.logo {
+  width: 243px;
+  height: 70px;
+  display: block;
+  background-size: 243px auto;
+}
+
+.logo.stetho {
+  background-image: url(../images/stetho_logo_darktext.png);
+  background-color: white;
+  position: absolute;
+  left: -85px;
+  top: 7px;
+}
+
+.image.inspector-discovery {
+  background-image: url(../images/inspector-discovery.png);
+  width: 421px;
+  height: 293px;
+  display: block;
+  background-size: 421px 293px;
+  position: relative;
+  left: 85px;
+  top: 7px;
+}
+
+.image.inspector-network {
+  background-image: url(../images/inspector-network.png);
+  width: 419px;
+  height: 274px;
+  display: block;
+  background-size: 419px 274px;
+  position: relative;
+  left: 85px;
+  top: 7px;
+}
+
+.image.inspector-sqlite {
+  background-image: url(../images/inspector-sqlite.png);
+  width: 419px;
+  height: 274px;
+  display: block;
+  background-size: 419px 274px;
+  position: relative;
+  left: 85px;
+  top: 7px;
+}
+
+.image.dumpapp-prefs {
+  background-image: url(../images/dumpapp-prefs.png);
+  width: 362px;
+  height: 206px;
+  display: block;
+  background-size: 362px 206px;
+  position: relative;
+  left: 85px;
+  top: 7px;
+}
+
+.usage .logo {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+}
+
+.logo.jelly {
+  background-image: url(../images/jelly.png);
+}
+
+.logo.perka {
+  background-image: url(../images/perka.png);
+}
+
+.logo.home {
+  background-image: url(../images/home.png);
+}
+
+.logo.inflikr {
+  background-image: url(../images/inflikr.png);
+}
+
+.logo.linkedin {
+  background-image: url(../images/linkedin.png);
+}
+
+.logo.messenger {
+  background-image: url(../images/messenger.png);
+}
+
+.logo.skitch {
+  background-image: url(../images/skitch.png);
+}
+
+.logo.slingshot {
+  background-image: url(../images/slingshot.png);
+}
+
+.logo.mirage {
+  background-image: url(../images/mirage.png);
+}
+
+.logo.evernote {
+  background-image: url(../images/evernote.png);
+}
+
+.logo.flow {
+  background-image: url(../images/flow.png);
+}
+
+@media (-webkit-min-device-pixel-ratio: 2),
+(min--moz-device-pixel-ratio: 2),
+(min-resolution: 2dppx),
+(min-resolution: 192dpi) {
+
+  .logo.jelly {
+    background-image: url(../images/jelly_2x.png);
+  }
+
+  .logo.perka {
+    background-image: url(../images/perka_2x.png);
+  }
+
+  .logo.home {
+    background-image: url(../images/home_2x.png);
+  }
+
+  .logo.inflikr {
+    background-image: url(../images/inflikr_2x.png);
+  }
+
+  .logo.linkedin {
+    background-image: url(../images/linkedin_2x.png);
+  }
+
+  .logo.messenger {
+    background-image: url(../images/messenger_2x.png);
+  }
+
+  .logo.skitch {
+    background-image: url(../images/skitch_2x.png);
+  }
+
+  .logo.slingshot {
+    background-image: url(../images/slingshot_2x.png);
+  }
+
+  .logo.mirage {
+    background-image: url(../images/mirage_2x.png);
+  }
+
+  .logo.evernote {
+    background-image: url(../images/evernote_2x.png);
+  }
+
+  .logo.flow {
+    background-image: url(../images/flow_2x.png);
+  }
+
+}

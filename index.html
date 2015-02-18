@@ -1,0 +1,116 @@
+---
+---
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>Stetho - a debug bridge for Android applications</title>
+  <link href='http://fonts.googleapis.com/css?family=Droid+Sans+Mono|Roboto:400,300,700' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="css/syntax.css" type="text/css" media="screen" charset="utf-8">
+  <link rel="stylesheet" href="css/site.css" type="text/css" media="screen" charset="utf-8">
+  <link rel="icon" href="images/favicon.png" type="image/x-icon">
+</head>
+<body>
+  <div class="content">
+    <div class="header">
+      <div class="logo stetho"></div>
+      <div class="title">Stetho</div>
+      <div class="subtitle">A debug bridge for Android applications</div>
+    </div>
+
+    <div class="section_title">About</div>
+    <p>
+    <a href="http://github.com/facebook/stetho" target="_blank">Stetho</a> is a sophisticated debug bridge for Android applications. When enabled, developers have access to the Chrome Developer Tools feature natively part of the Chrome desktop browser. Developers can also choose to enable the optional dumpapp tool which offers a powerful command-line interface to application internals.
+    </p>
+	<div class="section_title">Download</div>
+    <p>
+    To include Stetho in your project, grab the latest prebuilt Jar files.
+    <a class="download_link" href="https://github.com/facebook/stetho/releases/latest" target="_blank">↓ Download Jar v1.0.0</a>
+    </p>
+    <p>
+    Alternatively you can include Stetho from Maven Central via Gradle or Maven.
+    </p>
+    <div class="code">
+    {% highlight groovy %}
+// Gradle dependency on Stetho
+dependencies {
+  compile 'com.facebook.stetho:stetho:1.0.0'
+}
+    {% endhighlight %}
+    </div>
+    <br />
+    <div class="code">
+    {% highlight xml %}
+  <!-- Maven dependency on Stetho -->
+<dependency>
+  <groupId>com.facebook.stetho</groupId>
+  <artifactId>stetho</artifactId>
+  <version>1.0.0</version>
+</dependency>
+    {% endhighlight %}
+    </div>
+    </p>
+    <div class="section_title">Features</div>
+    <div class="section_subtitle">WebKit Inspector</div>
+    <p>
+    WebKit Inspector is the internal name of the Chrome Developer Tools feature. It is implemented using a client/server protocol which the Stetho software provides for your application. Once your application is integrated, simply navigate to chrome://inspect and click "Inspect" to get started!
+    </p>
+    <div class="image inspector-discovery"></div>
+    <div class="section_subtitle">Network inspection</div>
+    <p>
+    Network inspection is possible with the full spectrum of Chrome Developer Tools features, including image preview, JSON response helpers, and even exporting traces to the HAR format.
+    </p>
+    <div class="image inspector-network"></div>
+    <div class="section_subtitle">Database inspection</div>
+    <p>
+    SQLite databases can be visualized and interactively explored with full read/write capabilities.
+    </p>
+    <div class="image inspector-sqlite"></div>
+    <div class="section_subtitle">dumpapp</div>
+    <p>
+    Dumpapp extends beyond the Inspector UI features shown above to provide a much 
+    more extensible, command-line interface to application components.  A default
+    set of plugins is provided, but the real power of dumpapp is the ability to
+    easily create your own!
+    </p>
+    <div class="image dumpapp-prefs"></div>
+    <div class="section_title">Building</div>
+    <p>
+    You can use the included Gradle wrapper to build Stetho libraries and sample applications locally as well.
+    Check out the code at <a href="http://github.com/facebook/stetho" target="_blank">github.com/facebook/stetho</a>.
+    </p>
+    <div class="code">
+    {% highlight bash %}
+cd $STETHO_CHECKOUT
+
+# build the Android distribution Jar
+./gradlew assemble
+
+# copy over the relevant library files
+cp ...
+    {% endhighlight %}
+    </div>
+
+    <div class="section_title">Contributions</div>
+    <p>Use <a href="https://github.com/facebook/stetho/issues">Github issues</a> for requests.</p>
+    <p>We actively welcome pull requests; learn how to <a href="https://github.com/facebook/stetho/blob/master/CONTRIBUTING.md">contribute</a>.</p>
+
+    <div class="section_title">Changelog</div>
+    <p>Changes are tracked as <a href="https://github.com/facebook/stetho/releases">Github releases</a>.</p>
+
+
+    <div class="section_title">License</div>
+    <p><code>Stetho</code> is <a href="https://github.com/facebook/stetho/blob/master/LICENSE">BSD-licensed</a>. We also provide an additional <a href="https://github.com/facebook/stetho/blob/master/PATENTS">patent grant</a>.</p>
+
+  </div>
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-47751506-1', 'facebook.github.io');
+    ga('send', 'pageview');
+  </script>
+</body>
+</html>
