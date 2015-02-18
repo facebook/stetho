@@ -24,8 +24,7 @@
     </p>
 	<div class="section_title">Download</div>
     <p>
-    To include Stetho in your project, grab the latest prebuilt Jar files.
-    <a class="download_link" href="https://github.com/facebook/stetho/releases/latest" target="_blank">↓ Download Jar v1.0.0</a>
+    <a class="download_link" href="https://github.com/facebook/stetho/releases/download/v1.0.0/stetho-1.0.0.jar" target="_blank">↓ Download v1.0.0</a>
     </p>
     <p>
     Alternatively you can include Stetho from Maven Central via Gradle or Maven.
@@ -50,10 +49,30 @@ dependencies {
     {% endhighlight %}
     </div>
     </p>
+    <p>
+    Only the main <code>stetho</code> dependency is strictly required, however you may also wish to use one of the network helpers:
+    </p>
+    <div class="code">
+    {% highlight groovy %}
+dependencies {
+  compile 'com.facebook.stetho:stetho-okhttp:1.0.0'
+}
+    {% endhighlight %}
+    </div>
+    <p>
+    or:
+    </p>
+    <div class="code">
+    {% highlight groovy %}
+dependencies {
+  compile 'com.facebook.stetho:stetho-urlconnection:1.0.0'
+}
+    {% endhighlight %}
+    </div>
     <div class="section_title">Features</div>
     <div class="section_subtitle">WebKit Inspector</div>
     <p>
-    WebKit Inspector is the internal name of the Chrome Developer Tools feature. It is implemented using a client/server protocol which the Stetho software provides for your application. Once your application is integrated, simply navigate to chrome://inspect and click "Inspect" to get started!
+    WebKit Inspector is the internal name of the Chrome Developer Tools feature. It is implemented using a client/server protocol which the Stetho software provides for your application. Once your application is integrated, simply navigate to <code>chrome://inspect</code> and click "Inspect" to get started!
     </p>
     <div class="image inspector-discovery"></div>
     <div class="section_subtitle">Network inspection</div>
@@ -74,22 +93,6 @@ dependencies {
     easily create your own!
     </p>
     <div class="image dumpapp-prefs"></div>
-    <div class="section_title">Building</div>
-    <p>
-    You can use the included Gradle wrapper to build Stetho libraries and sample applications locally as well.
-    Check out the code at <a href="http://github.com/facebook/stetho" target="_blank">github.com/facebook/stetho</a>.
-    </p>
-    <div class="code">
-    {% highlight bash %}
-cd $STETHO_CHECKOUT
-
-# build the Android distribution Jar
-./gradlew assemble
-
-# copy over the relevant library files
-cp ...
-    {% endhighlight %}
-    </div>
 
     <div class="section_title">Contributions</div>
     <p>Use <a href="https://github.com/facebook/stetho/issues">Github issues</a> for requests.</p>
