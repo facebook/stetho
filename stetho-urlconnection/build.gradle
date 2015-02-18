@@ -17,4 +17,4 @@ dependencies {
     compile 'com.google.code.findbugs:jsr305:2.0.1'
 }
 
-apply from: '../release.gradle'
+apply from: rootProject.file('release.gradle')

@@ -33,6 +33,13 @@ afterEvaluate { project ->
         from android.sourceSets.main.java.srcDirs
     }
 
+    android.libraryVariants.all { variant ->
+        def name = variant.name.capitalize()
+        task "jar${name}"(type: Jar) {
+            from variant.javaCompile.destinationDir
+        }
+    }
+
     artifacts {
         archives androidJavadocJar
         archives androidSourcesJar
