@@ -43,7 +43,7 @@ compile 'com.facebook.stetho:stetho:1.0.0'
 or Maven:
 ```xml
 <dependency>
-  <groupId>com.facebook.stetho</groupid>
+  <groupId>com.facebook.stetho</groupId>
   <artifactId>stetho</artifactId>
   <version>1.0.0</version>
 </dependency>
