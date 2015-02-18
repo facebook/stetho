@@ -110,6 +110,7 @@ a.app_link {
 .logo.stetho {
   background-image: url(../images/stetho_logo_darktext.png);
   background-color: white;
+  background-repeat: no-repeat;
   position: absolute;
   left: -85px;
   top: 7px;
