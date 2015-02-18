@@ -82,7 +82,7 @@ additional hooks (most notably, network inspection).  See below for specific
 details on individual subsystems.
 
 ### Enable network inspection
-If you are using the popular [OkHttp](https://github.com/square/okio)
+If you are using the popular [OkHttp](https://github.com/square/okhttp)
 library at the 2.2.x+ release, you can use the
 [Interceptors](https://github.com/square/okhttp/wiki/Interceptors) system to
 automatically hook into your existing stack.  This is currently the simplest
