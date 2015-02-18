@@ -7,26 +7,26 @@ internals.
 
 ## Features
 
-### WebKit Inspector
-WebKit Inspector is the internal name of the Chrome Developer Tools feature.
-It is implemented using a client/server protocol which the Stetho software
+### Chrome DevTools UI
+The integration with the Chrome DevTools frontend is implemented 
+using a client/server protocol which  Stetho 
 provides for your application.  Once your application is integrated, simply
 navigate to `chrome://inspect` and click "Inspect" to get started!
 
-![Inspector Discovery Screenshot](https://github.com/facebook/stetho/raw/master/docs/images/inspector-discovery.png)
+![DevTools Discovery Screenshot](https://github.com/facebook/stetho/raw/master/docs/images/inspector-discovery.png)
 
 #### Network inspection
 Network inspection is possible with the full spectrum of Chrome Developer Tools features, including image preview, JSON response helpers, and even exporting traces to the HAR format.
 
-![Inspector Network Screenshot](https://github.com/facebook/stetho/raw/master/docs/images/inspector-network.png)
+![DevTools Network Screenshot](https://github.com/facebook/stetho/raw/master/docs/images/inspector-network.png)
 
 #### Database inspection
 SQLite databases can be visualized and interactively explored with full read/write capabilities.
 
-![Inspector WebSQL Screenshot](https://github.com/facebook/stetho/raw/master/docs/images/inspector-sqlite.png)
+![DevTools WebSQL Screenshot](https://github.com/facebook/stetho/raw/master/docs/images/inspector-sqlite.png)
 
 ### dumpapp
-Dumpapp extends beyond the Inspector UI features shown above to provide a much
+Dumpapp extends beyond the DevTools UI features shown above to provide a much
 more extensible, command-line interface to application components.  A default
 set of plugins is provided, but the real power of dumpapp is the ability to
 easily create your own!
