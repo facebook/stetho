@@ -94,6 +94,84 @@ dependencies {
     </p>
     <div class="image dumpapp-prefs"></div>
 
+    <div class="section_title">Integration</div>
+
+    <div class="section_subtitle">Set-up</div>
+
+    <p>
+    Integrating with Stetho is intended to be seamless and straightforward for most existing Android applications. There is a simple initialization step which occurs in your <code>Application</code> class:
+    </p>
+    <div class="code">
+    {% highlight java %}
+public class MyApplication extends Application {
+  public void onCreate() {
+    super.onCreate();
+    Stetho.initialize(
+      Stetho.newInitializerBuilder(this)
+        .enableDumpapp(
+            Stetho.defaultDumperPluginsProvider(this))
+        .enableWebKitInspector(
+            Stetho.defaultInspectorModulesProvider(this))
+        .build());
+  }
+}
+    {% endhighlight %}
+    </div>
+    <p>
+    This brings up most of the default configuration but does not enable some additional hooks (most notably, network inspection). See below for specific details on individual subsystems.
+    </p>
+
+    <div class="section_subtitle">Enable network inspection</div>
+
+    <p>
+    If you are using the popular <a href="http://square.github.io/okhttp/">OkHttp</a> library at the 2.2.x+ release, you can use the <a href="https://github.com/square/okhttp/wiki/Interceptors">Interceptors</a> system to automatically hook into your existing stack. This is currently the simplest and most straightforward way to enable network inspection:
+    </p>
+    <div class="code">
+    {% highlight java %}
+OkHttpClient client = new OkHttpClient();
+client.networkInterceptors().add(new StethoInterceptor());
+    {% endhighlight %}
+    </div>
+
+    <p>
+    If you are using <code>HttpURLConnection</code>, you can use <code>StethoURLConnectionManager</code> to assist with integration though you should be aware that there are some caveats with this approach. In particular, you must explicitly add <code>Accept-Encoding: gzip</code> to the request headers and manually handle compressed responses in order for Stetho to report compressed payload sizes.
+    </p>
+
+    <p>
+    See the <code>stetho-sample</code> project for more details.
+    </p>
+
+    <div class="section_subtitle">Custom dumpapp plugins</div>
+
+    <p>
+    Custom plugins are the preferred means of extending the dumpapp system and can be added easily during configuration. Simply replace your configuration step as such:
+    </p>
+
+    <div class="code">
+    {% highlight java %}
+Stetho.initialize(Stetho.newInitializerBuilder(context)
+    .enableDumpapp(new MyDumperPluginsProvider(context))
+    .build())
+
+private static class MyDumperPluginsProvider
+    implements DumperPluginsProvider {
+  public Iterable<DumperPlugin> get() {
+    ArrayList<DumperPlugin> plugins = new ArrayList<DumperPlugin>();
+    for (DumperPlugin defaultPlugin :
+        Stetho.defaultDumperPluginsProvider(mContext).get()) {
+      plugins.add(defaultPlugin);
+    }
+    plugins.add(new MyDumperPlugin());
+    return plugins;
+  }
+}
+   {% endhighlight %}
+    </div>
+
+    <p>
+    See the <code>stetho-sample</code> project for more details.
+    </p>
+
     <div class="section_title">Contributions</div>
     <p>Use <a href="https://github.com/facebook/stetho/issues">Github issues</a> for requests.</p>
     <p>We actively welcome pull requests; learn how to <a href="https://github.com/facebook/stetho/blob/master/CONTRIBUTING.md">contribute</a>.</p>
