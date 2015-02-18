@@ -38,3 +38,18 @@ dependencies {
 }
 
 apply from: rootProject.file('release.gradle')
+
+android.libraryVariants.all { variant ->
+    def name = variant.name.capitalize()
+    task "fatjar${name}"(type: Jar, dependsOn: "jar${name}") {
+       classifier = 'fatjar'
+       from variant.javaCompile.destinationDir
+       from {
+           configurations.compile.findAll {
+               it.getName() == 'commons-cli-1.2.jar'
+           }.collect {
+               it.isDirectory() ? it : zipTree(it)
+           }
+       }
+    }
+}
