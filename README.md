@@ -1,4 +1,5 @@
-# Stetho
+# Stetho [![Build Status](https://travis-ci.org/facebook/stetho.svg?branch=master)](https://travis-ci.org/facebook/stetho)
+
 Stetho is a sophisticated debug bridge for Android applications. When enabled,
 developers have access to the Chrome Developer Tools feature natively part of
 the Chrome desktop browser. Developers can also choose to enable the optional
