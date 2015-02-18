@@ -4,7 +4,7 @@ import com.facebook.stetho.inspector.network.DefaultResponseHandler;
 import com.facebook.stetho.inspector.network.NetworkEventReporter;
 import com.facebook.stetho.inspector.network.NetworkEventReporterImpl;
 import com.squareup.okhttp.*;
-import okio.BufferedSink;
+import okio.Buffer;
 import okio.BufferedSource;
 import okio.Okio;
 
@@ -141,15 +141,12 @@ public class StethoInterceptor implements Interceptor {
 
     private byte[] generateBody() throws IOException {
       RequestBody body = mRequest.body();
-      if (body != null) {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        BufferedSink sink = Okio.buffer(Okio.sink(out));
-        body.writeTo(sink);
-        sink.flush();
-        return out.toByteArray();
-      } else {
+      if (body == null) {
         return null;
       }
+      Buffer buffer = new Buffer();
+      body.writeTo(buffer);
+      return buffer.readByteArray();
     }
 
     @Override
