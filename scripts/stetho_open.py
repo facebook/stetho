@@ -42,12 +42,17 @@ def _find_only_stetho_socket(device):
     process_names = []
     for line in adb.sock.makefile():
       row = line.rstrip().split(' ')
-      if len(row) > 7:
-        socket_name = row[7]
-        if socket_name.startswith('@stetho_'):
-          last_stetho_socket_name = socket_name[1:]
-          process_names.append(
-              _parse_process_from_stetho_socket(socket_name))
+      if len(row) < 8:
+        continue
+      socket_name = row[7]
+      if not socket_name.startswith('@stetho_'):
+        continue
+      # Filter out entries that are not server sockets
+      if int(row[3], 16) != 0x10000 or int(row[5]) != 1:
+        continue
+      last_stetho_socket_name = socket_name[1:]
+      process_names.append(
+          _parse_process_from_stetho_socket(socket_name))
     if len(process_names) > 1:
       raise HumanReadableError(
           'Multiple stetho-enabled processes available:%s\n' % (
