@@ -27,9 +27,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * Implements a limited version of the WebKit Inspector WebSocket protocol (using JSON-RPC 2.0).
- * The most up-to-date documentation can be found in the WebKit source code:
- * <a href="https://github.com/WebKit/webkit/blob/master/Source/WebCore/inspector/protocol">https://github.com/WebKit/webkit/blob/master/Source/WebCore/inspector/protocol</a>
+ * Implements a limited version of the Chrome Debugger WebSocket protocol (using JSON-RPC 2.0).
+ * The most up-to-date documentation can be found in the Blink source code:
+ * <a href="https://code.google.com/p/chromium/codesearch#chromium/src/third_party/WebKit/Source/devtools/protocol.json&q=protocol.json&sq=package:chromium&type=cs">protocol.json</a>
  */
 public class ChromeDevtoolsServer implements SimpleEndpoint {
   private static final String TAG = "ChromeDevtoolsServer";
