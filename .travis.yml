@@ -8,3 +8,10 @@ android:
 branches:
   except:
     - gh-pages
+
+sudo: false
+
+cache:
+  directories:
+    - $HOME/.m2
+    - $HOME/.gradle
