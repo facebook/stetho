@@ -276,6 +276,8 @@ public class LocalSocketHttpServer {
             LogUtil.d("Binding server to " + address);
           }
           mServerSocket = new LocalServerSocket(address);
+          LogUtil.i("Listening on @" + address);
+          return;
         } catch (BindException be) {
           LogUtil.w(be, "Binding error, sleep 1 second ...");
           if (retries == 0)
