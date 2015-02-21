@@ -31,22 +31,13 @@
 
 package com.facebook.stetho.server;
 
-import java.io.IOException;
-import java.io.InterruptedIOException;
-import java.net.BindException;
-import java.net.SocketException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import android.annotation.SuppressLint;
 import android.net.LocalServerSocket;
 import android.net.LocalSocket;
 import android.util.Log;
-
 import com.facebook.stetho.common.LogUtil;
 import com.facebook.stetho.common.ProcessUtil;
 import com.facebook.stetho.common.Util;
-
 import org.apache.http.ConnectionClosedException;
 import org.apache.http.HttpException;
 import org.apache.http.HttpServerConnection;
@@ -56,17 +47,14 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.CoreProtocolPNames;
 import org.apache.http.params.HttpParams;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.BasicHttpProcessor;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpRequestHandlerRegistry;
-import org.apache.http.protocol.HttpService;
-import org.apache.http.protocol.ResponseConnControl;
-import org.apache.http.protocol.ResponseContent;
-import org.apache.http.protocol.ResponseDate;
-import org.apache.http.protocol.ResponseServer;
+import org.apache.http.protocol.*;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
+import java.io.InterruptedIOException;
+import java.net.BindException;
+import java.net.SocketException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class LocalSocketHttpServer {
 
@@ -171,12 +159,8 @@ public class LocalSocketHttpServer {
   private static String getDefaultAddress() throws IOException {
     return
         SOCKET_NAME_PREFIX +
-        tidyProcessName(ProcessUtil.getProcessName()) +
+        ProcessUtil.getProcessName() +
         SOCKET_NAME_SUFFIX;
-  }
-
-  private static String tidyProcessName(String processName) {
-    return processName.replaceAll("[\\\\\\.:]", "_");
   }
 
   private HttpParams createParams() {

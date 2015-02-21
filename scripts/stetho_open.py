@@ -85,13 +85,12 @@ def _parse_process_from_stetho_socket(socket_name):
   if len(parts) < 2 or parts[0] != '@stetho':
     raise Exception('Unexpected Stetho socket formatting: %s' % (socket_name))
   if parts[-2:] == [ 'devtools', 'remote' ]:
-    return '.'.join(parts[1:-2])
+    return '_'.join(parts[1:-2])
   else:
-    return '.'.join(parts[1:])
+    return '_'.join(parts[1:])
 
 def _format_process_as_stetho_socket(process):
-  filtered = process.replace('.', '_').replace(':', '_')
-  return 'stetho_%s_devtools_remote' % (filtered)
+  return 'stetho_%s_devtools_remote' % (process)
 
 class AdbSmartSocketClient(object):
   """Implements the smartsockets system defined by:
