@@ -11,6 +11,10 @@ branches:
 
 sudo: false
 
+# Delete gradle lock files to improve Travis-CI caching
+after_script:
+  - find $HOME/.gradle -name '*.lck' -or -name '*.lock' -exec rm -f {} \;
+
 cache:
   directories:
     - $HOME/.m2
