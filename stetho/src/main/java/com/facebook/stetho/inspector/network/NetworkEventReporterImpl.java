@@ -130,9 +130,9 @@ public class NetworkEventReporterImpl implements NetworkEventReporter {
       responseJSON.statusText = response.reasonPhrase();
       responseJSON.headers = formatHeadersAsJSON(response);
       String contentType = getContentType(response);
-      if (contentType != null) {
-        responseJSON.mimeType = getResourceTypeHelper().stripContentExtras(contentType);
-      }
+      responseJSON.mimeType = contentType != null ?
+          getResourceTypeHelper().stripContentExtras(contentType) :
+          "application/octet-stream";
       responseJSON.connectionReused = response.connectionReused();
       responseJSON.connectionId = response.connectionId();
       responseJSON.fromDiskCache = response.fromDiskCache();
@@ -141,9 +141,9 @@ public class NetworkEventReporterImpl implements NetworkEventReporter {
       receivedParams.frameId = "1";
       receivedParams.loaderId = "1";
       receivedParams.timestamp = stethoNow() / 1000.0;
-      if (contentType != null) {
-        receivedParams.type = getResourceTypeHelper().determineResourceType(contentType);
-      }
+      receivedParams.type = contentType != null ?
+          getResourceTypeHelper().determineResourceType(contentType) :
+          Page.ResourceType.OTHER;
       receivedParams.response = responseJSON;
       peerManager.sendNotificationToPeers("Network.responseReceived", receivedParams);
     }
