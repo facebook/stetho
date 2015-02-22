@@ -2,25 +2,28 @@
 
 package com.facebook.stetho.inspector.protocol.module;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import android.content.Context;
 import com.facebook.stetho.common.ProcessUtil;
-import com.facebook.stetho.inspector.console.CLog;
-import com.facebook.stetho.inspector.helper.ChromePeerManager;
 import com.facebook.stetho.inspector.jsonrpc.JsonRpcPeer;
 import com.facebook.stetho.inspector.jsonrpc.JsonRpcResult;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsMethod;
+import com.facebook.stetho.inspector.domstorage.SharedPreferencesHelper;
 import com.facebook.stetho.json.annotation.JsonProperty;
 import com.facebook.stetho.json.annotation.JsonValue;
 
 import org.json.JSONObject;
 
 public class Page implements ChromeDevtoolsDomain {
-  @SuppressWarnings("unused")
+  private final Context mContext;
+
   public Page(Context context) {
+    mContext = context;
   }
 
   @ChromeDevtoolsMethod
@@ -67,20 +70,55 @@ public class Page implements ChromeDevtoolsDomain {
   // Dog science...
   @ChromeDevtoolsMethod
   public JsonRpcResult getResourceTree(JsonRpcPeer peer, JSONObject params) {
-    Frame frame = new Frame();
-    frame.id = "1";
-    frame.parentId = null;
-    frame.loaderId = "1";
-    frame.name = "Stetho";
-    frame.url = "";
-    frame.securityOrigin = "";
-    frame.mimeType = "text/plain";
-    FrameResourceTree resourceTree = new FrameResourceTree();
-    resourceTree.frame = frame;
-    resourceTree.resources = Collections.emptyList();
+    // The DOMStorage module expects one key/value store per "security origin" which has a 1:1
+    // relationship with resource tree frames.
+    List<String> prefsTags = SharedPreferencesHelper.getSharedPreferenceTags(mContext);
+    Iterator<String> prefsTagsIter = prefsTags.iterator();
+
+    FrameResourceTree tree = createSimpleFrameResourceTree(
+        "1",
+        null /* parentId */,
+        "Stetho",
+        prefsTagsIter.hasNext() ? prefsTagsIter.next() : "");
+    if (tree.childFrames == null) {
+      tree.childFrames = new ArrayList<FrameResourceTree>();
+    }
+
+    int nextChildFrameId = 1;
+    while (prefsTagsIter.hasNext()) {
+      String frameId = "1." + (nextChildFrameId++);
+      String prefsTag = prefsTagsIter.next();
+      FrameResourceTree child = createSimpleFrameResourceTree(
+          frameId,
+          "1",
+          "Child #" + frameId,
+          prefsTag);
+      tree.childFrames.add(child);
+    }
+
     GetResourceTreeParams resultParams = new GetResourceTreeParams();
-    resultParams.frameTree = resourceTree;
+    resultParams.frameTree = tree;
     return resultParams;
+  }
+
+  private static FrameResourceTree createSimpleFrameResourceTree(
+      String id,
+      String parentId,
+      String name,
+      String securityOrigin) {
+    Frame frame = new Frame();
+    frame.id = id;
+    frame.parentId = parentId;
+    frame.loaderId = "1";
+    frame.name = name;
+    frame.url = "";
+    frame.securityOrigin = securityOrigin;
+    frame.mimeType = "text/plain";
+    FrameResourceTree tree = new FrameResourceTree();
+    tree.frame = frame;
+    tree.resources = Collections.emptyList();
+    tree.childFrames = null;
+    return tree;
   }
 
   @ChromeDevtoolsMethod
@@ -126,6 +164,7 @@ public class Page implements ChromeDevtoolsDomain {
     @JsonProperty(required = true)
     public Frame frame;
 
+    @JsonProperty
     public List<FrameResourceTree> childFrames;
 
     @JsonProperty(required = true)

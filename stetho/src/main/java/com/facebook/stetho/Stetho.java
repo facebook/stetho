@@ -106,7 +106,7 @@ public class Stetho {
         modules.add(new CSS());
         modules.add(new Debugger());
         modules.add(new DOM());
-        modules.add(new DOMStorage());
+        modules.add(new DOMStorage(context));
         modules.add(new HeapProfiler());
         modules.add(new Inspector());
         modules.add(new Network(context));
