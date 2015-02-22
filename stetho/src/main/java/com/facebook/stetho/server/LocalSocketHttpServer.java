@@ -31,9 +31,7 @@
 
 package com.facebook.stetho.server;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.InterruptedIOException;
 import java.net.BindException;
 import java.net.SocketException;
@@ -45,7 +43,7 @@ import android.net.LocalSocket;
 import android.util.Log;
 
 import com.facebook.stetho.common.LogUtil;
-import com.facebook.stetho.common.Utf8Charset;
+import com.facebook.stetho.common.ProcessUtil;
 import com.facebook.stetho.common.Util;
 
 import org.apache.http.ConnectionClosedException;
@@ -78,12 +76,6 @@ public class LocalSocketHttpServer {
    * Convince {@code chrome://inspect/devices} that we're "one of them" :)
    */
   private static final String SOCKET_NAME_SUFFIX = "_devtools_remote";
-
-  /**
-   * Maximum length allowed in {@code /proc/self/cmdline}.  Imposed to avoid a large buffer
-   * allocation during the init path.
-   */
-  private static final int CMDLINE_BUFFER_SIZE = 64;
 
   private static final AtomicInteger sThreadId = new AtomicInteger();
 
@@ -178,44 +170,14 @@ public class LocalSocketHttpServer {
   }
 
   private static String getDefaultAddress() throws IOException {
-    return SOCKET_NAME_PREFIX + getProcessName() + SOCKET_NAME_SUFFIX;
+    return
+        SOCKET_NAME_PREFIX +
+        tidyProcessName(ProcessUtil.getProcessName()) +
+        SOCKET_NAME_SUFFIX;
   }
 
-  private static String getProcessName() throws IOException {
-    byte[] cmdlineBuffer = new byte[CMDLINE_BUFFER_SIZE];
-
-    // Avoid using a Reader to not pick up a forced 16K buffer.  Silly java.io...
-    FileInputStream stream = new FileInputStream("/proc/self/cmdline");
-    boolean success = false;
-    try {
-      int n = stream.read(cmdlineBuffer);
-      success = true;
-      int endIndex = tidyProcessName(cmdlineBuffer, n);
-      return new String(cmdlineBuffer, 0, endIndex);
-    } finally {
-      Util.close(stream, !success);
-    }
-  }
-
-  private static int tidyProcessName(byte[] processName, int count) {
-    int i = 0;
-    OUTER:
-    for (; i < count; i++) {
-      switch (processName[i]) {
-        case '\\':
-        case '.':
-        case ':':
-          processName[i] = '_';
-          break;
-        case 0:
-        case ' ':
-        case '\r':
-        case '\n':
-        case '\t':
-          break OUTER;
-      }
-    }
-    return i;
+  private static String tidyProcessName(String processName) {
+    return processName.replaceAll("[\\\\\\.:]", "_");
   }
 
   private HttpParams createParams() {
