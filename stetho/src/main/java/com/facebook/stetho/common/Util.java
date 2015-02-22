@@ -7,8 +7,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import com.facebook.stetho.Stetho;
-
 public class Util {
   public static <T> T throwIfNull(T item) {
     if (item == null) {
@@ -56,5 +54,19 @@ public class Util {
         closeable.close();
       }
     }
+  }
+
+  public static void sleepUninterruptibly(long millis) {
+    long remaining = millis;
+    long startTime = System.currentTimeMillis();
+    do {
+      try {
+        Thread.sleep(remaining);
+        return;
+      } catch (InterruptedException e) {
+        long sleptFor = System.currentTimeMillis() - startTime;
+        remaining -= sleptFor;
+      }
+    } while (remaining > 0);
   }
 }
