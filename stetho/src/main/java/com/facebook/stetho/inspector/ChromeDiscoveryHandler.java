@@ -10,6 +10,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 
+import com.facebook.stetho.common.ProcessUtil;
 import com.facebook.stetho.common.Utf8Charset;
 import com.facebook.stetho.server.LocalSocketHttpServer;
 import com.facebook.stetho.server.SecureHttpRequestHandler;
@@ -117,7 +118,7 @@ public class ChromeDiscoveryHandler extends SecureHttpRequestHandler {
       JSONArray reply = new JSONArray();
       JSONObject page = new JSONObject();
       page.put("type", "app");
-      page.put("title", getAppLabel() + " (powered by Stetho)");
+      page.put("title", makeTitle());
       page.put("id", PAGE_ID);
       page.put("description", "");
 
@@ -136,6 +137,22 @@ public class ChromeDiscoveryHandler extends SecureHttpRequestHandler {
       mPageListResponse = createStringEntity("application/json", reply.toString());
     }
     setSuccessfulResponse(response, mPageListResponse);
+  }
+
+  private String makeTitle() {
+    StringBuilder b = new StringBuilder();
+    b.append(getAppLabel());
+
+    b.append(" (powered by Stetho)");
+
+    String processName = ProcessUtil.getProcessName();
+    int colonIndex = processName.indexOf(':');
+    if (colonIndex >= 0) {
+      String nonDefaultProcessName = processName.substring(colonIndex);
+      b.append(nonDefaultProcessName);
+    }
+
+    return b.toString();
   }
 
   private void handleActivate(HttpResponse response) throws UnsupportedEncodingException {
