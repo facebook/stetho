@@ -15,6 +15,7 @@
 
 import socket
 import struct
+import re
 
 def stetho_open(device=None, process=None):
   adb = _connect_to_device(device)
@@ -81,13 +82,10 @@ def _connect_to_device(device=None):
         'Failure to target device %s: %s' % (device, e.reason))
 
 def _parse_process_from_stetho_socket(socket_name):
-  parts = socket_name.split('_')
-  if len(parts) < 2 or parts[0] != '@stetho':
+  m = re.match("^\@stetho_(.+)_devtools_remote$", socket_name)
+  if m is None:
     raise Exception('Unexpected Stetho socket formatting: %s' % (socket_name))
-  if parts[-2:] == [ 'devtools', 'remote' ]:
-    return '_'.join(parts[1:-2])
-  else:
-    return '_'.join(parts[1:])
+  return m.group(1)
 
 def _format_process_as_stetho_socket(process):
   return 'stetho_%s_devtools_remote' % (process)
