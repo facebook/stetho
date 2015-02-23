@@ -32,15 +32,30 @@ apply from: rootProject.file('release.gradle')
 
 android.libraryVariants.all { variant ->
     def name = variant.name.capitalize()
-    task "fatjar${name}"(type: Jar, dependsOn: "jar${name}") {
-       classifier = 'fatjar'
-       from variant.javaCompile.destinationDir
-       from {
-           configurations.compile.findAll {
-               it.getName() == 'commons-cli-1.2.jar'
-           }.collect {
-               it.isDirectory() ? it : zipTree(it)
-           }
-       }
+
+    // Ugly kludge to rename license files in the bundled commons-cli
+    // dependency so that they do not appear to describe Stetho's license.
+    configurations.compile.each {
+        if (it.getName() == 'commons-cli-1.2.jar') {
+            def depJarPath = it.getPath()
+            task "tidyCommonsCli${name}"(type: Copy) {
+                from zipTree(depJarPath)
+                into "build/commons-cli-tidy-${name}"
+                rename 'LICENSE', 'commons-cli-LICENSE'
+                rename 'NOTICE', 'commons-cli-NOTICE'
+            }
+        }
+    }
+
+    task "metainf${name}"(type: Copy) {
+        from rootProject.file('LICENSE')
+        into "build/metainf-${name}/META-INF"
+    }
+
+    task "fatjar${name}"(type: Jar, dependsOn: [ "jar${name}", "tidyCommonsCli${name}", "metainf${name}" ]) {
+        classifier = 'fatjar'
+        from variant.javaCompile.destinationDir
+        from "build/commons-cli-tidy-${name}"
+        from "build/metainf-${name}"
     }
 }
