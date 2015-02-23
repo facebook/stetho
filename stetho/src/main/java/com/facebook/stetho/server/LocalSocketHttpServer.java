@@ -37,6 +37,7 @@ import java.io.InputStreamReader;
 import java.io.InterruptedIOException;
 import java.net.BindException;
 import java.net.SocketException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import android.annotation.SuppressLint;
@@ -67,10 +68,12 @@ import org.apache.http.protocol.ResponseContent;
 import org.apache.http.protocol.ResponseDate;
 import org.apache.http.protocol.ResponseServer;
 
+import javax.annotation.Nonnull;
+
 public class LocalSocketHttpServer {
 
   private static final String WORKDER_THREAD_NAME_PREFIX = "StethoWorker";
-  private static final int MAX_BIND_RETRIES = 3;
+  private static final int MAX_BIND_RETRIES = 2;
   private static final int TIME_BETWEEN_BIND_RETRIES_MS = 1000;
   private static final String SOCKET_NAME_PREFIX = "stetho_";
 
@@ -119,8 +122,7 @@ public class LocalSocketHttpServer {
    * If successful, this thread blocks forever or until {@link #stop} is called, whichever
    * happens first.
    *
-   * @throws IOException if address is not specified and we cannot read the process name from
-   *   /proc/self/cmdline.
+   * @throws IOException Thrown on failure to bind the socket.
    */
   public void run() throws IOException {
     synchronized (this) {
@@ -134,12 +136,9 @@ public class LocalSocketHttpServer {
     listenOnAddress(address);
   }
 
-  private void listenOnAddress(String address) {
-    bindToSocket(address);
-
-    if (mServerSocket == null) {
-      return;
-    }
+  private void listenOnAddress(String address) throws IOException {
+    mServerSocket = bindToSocket(address);
+    LogUtil.i("Listening on @" + address);
 
     HttpParams params = null;
     HttpService service = null;
@@ -266,28 +265,26 @@ public class LocalSocketHttpServer {
     } catch (IOException e) {}
   }
 
-  private void bindToSocket(String address) {
-    try {
-      int retries = MAX_BIND_RETRIES;
-      while (retries > 0) {
-        retries--;
-        try {
-          if (LogUtil.isLoggable(Log.DEBUG)) {
-            LogUtil.d("Binding server to " + address);
-          }
-          mServerSocket = new LocalServerSocket(address);
-          LogUtil.i("Listening on @" + address);
-          return;
-        } catch (BindException be) {
-          LogUtil.w(be, "Binding error, sleep 1 second ...");
-          if (retries == 0)
-            throw be;
-          Thread.sleep(TIME_BETWEEN_BIND_RETRIES_MS);
+  @Nonnull
+  private static LocalServerSocket bindToSocket(String address) throws IOException {
+    int retries = MAX_BIND_RETRIES;
+    IOException firstException = null;
+    do {
+      try {
+        if (LogUtil.isLoggable(Log.DEBUG)) {
+          LogUtil.d("Trying to bind to @" + address);
         }
+        return new LocalServerSocket(address);
+      } catch (BindException be) {
+        LogUtil.w(be, "Binding error, sleep " + TIME_BETWEEN_BIND_RETRIES_MS + " ms...");
+        if (firstException == null) {
+          firstException = be;
+        }
+        Util.sleepUninterruptibly(TIME_BETWEEN_BIND_RETRIES_MS);
       }
-    } catch (Exception e) {
-      LogUtil.e(e, "Could not bind to socket.");
-    }
+    } while (retries-- > 0);
+
+    throw firstException;
   }
 
   private static class WorkerThread extends Thread {
