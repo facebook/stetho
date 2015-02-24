@@ -1,10 +1,15 @@
 package com.facebook.stetho.inspector.domstorage;
 
 import android.content.Context;
+import org.json.JSONArray;
+import org.json.JSONException;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class SharedPreferencesHelper {
   private static final String PREFS_SUFFIX = ".xml";
@@ -31,9 +36,57 @@ public class SharedPreferencesHelper {
 
   public static String valueToString(Object value) {
     if (value != null) {
-      return value.toString();
+      if (value instanceof Set) {
+        JSONArray array = new JSONArray();
+        for (String entry : (Set<String>)value) {
+          array.put(entry);
+        }
+        return array.toString();
+      } else {
+        return value.toString();
+      }
     } else {
       return null;
     }
+  }
+
+  @Nullable
+  public static Object valueFromString(String newValue, Object existingValue)
+      throws IllegalArgumentException {
+    if (existingValue instanceof Integer) {
+      return Integer.parseInt(newValue);
+    } else if (existingValue instanceof Long) {
+      return Long.parseLong(newValue);
+    } else if (existingValue instanceof Float) {
+      return Float.parseFloat(newValue);
+    } else if (existingValue instanceof Boolean) {
+      return parseBoolean(newValue);
+    } else if (existingValue instanceof String) {
+      return newValue;
+    } else if (existingValue instanceof Set) {
+      try {
+        JSONArray obj = new JSONArray(newValue);
+        int objN = obj.length();
+        HashSet<String> set = new HashSet<String>(objN);
+        for (int i = 0; i < objN; i++) {
+          set.add(obj.getString(i));
+        }
+        return set;
+      } catch (JSONException e) {
+        throw new IllegalArgumentException(e);
+      }
+    } else {
+      throw new IllegalArgumentException(
+          "Unsupported type: " + existingValue.getClass().getName());
+    }
+  }
+
+  private static Boolean parseBoolean(String s) throws IllegalArgumentException {
+    if ("1".equals(s) || "true".equalsIgnoreCase(s)) {
+      return Boolean.TRUE;
+    } else if ("0".equals(s) || "false".equalsIgnoreCase(s)) {
+      return Boolean.FALSE;
+    }
+    throw new IllegalArgumentException("Expected boolean, got " + s);
   }
 }

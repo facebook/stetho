@@ -2,25 +2,23 @@
 
 package com.facebook.stetho.inspector.protocol.module;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.SharedPreferences;
-import com.facebook.stetho.common.LogUtil;
+import android.os.Build;
+import com.facebook.stetho.inspector.console.CLog;
 import com.facebook.stetho.inspector.domstorage.DOMStoragePeerManager;
 import com.facebook.stetho.inspector.domstorage.SharedPreferencesHelper;
 import com.facebook.stetho.inspector.jsonrpc.JsonRpcPeer;
 import com.facebook.stetho.inspector.jsonrpc.JsonRpcResult;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsMethod;
-
 import com.facebook.stetho.json.ObjectMapper;
 import com.facebook.stetho.json.annotation.JsonProperty;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class DOMStorage implements ChromeDevtoolsDomain {
   private final Context mContext;
@@ -78,12 +76,30 @@ public class DOMStorage implements ChromeDevtoolsDomain {
       SharedPreferences prefs = mContext.getSharedPreferences(
           storage.securityOrigin,
           Context.MODE_PRIVATE);
-      Object exitingValue = prefs.getAll().get(key);
-      SharedPreferences.Editor editor = prefs.edit();
-      if (!tryAssignByType(editor, key, value, exitingValue)) {
-        editor.putString(key, value);
+      Object existingValue = prefs.getAll().get(key);
+      if (existingValue == null) {
+        CLog.writeToConsole(
+            mDOMStoragePeerManager,
+            Console.MessageLevel.ERROR,
+            Console.MessageSource.STORAGE,
+            "Unsupported: cannot add new key " + key + " due to lack of type inference");
+      } else {
+        SharedPreferences.Editor editor = prefs.edit();
+        try {
+          assignByType(editor, key, SharedPreferencesHelper.valueFromString(value, existingValue));
+          editor.apply();
+        } catch (IllegalArgumentException e) {
+          CLog.writeToConsole(
+              mDOMStoragePeerManager,
+              Console.MessageLevel.ERROR,
+              Console.MessageSource.STORAGE,
+              String.format(Locale.US,
+                  "Type mismatch setting %s to %s (expected %s)",
+                  key,
+                  value,
+                  existingValue.getClass().getSimpleName()));
+        }
       }
-      editor.apply();
     }
   }
 
@@ -102,38 +118,31 @@ public class DOMStorage implements ChromeDevtoolsDomain {
     }
   }
 
-  private static boolean tryAssignByType(
+  private static void assignByType(
       SharedPreferences.Editor editor,
       String key,
-      String value,
-      @Nullable Object existingValue) {
-    try {
-      if (existingValue instanceof Integer) {
-        editor.putInt(key, Integer.parseInt(value));
-        return true;
-      } else if (existingValue instanceof Long) {
-        editor.putLong(key, Long.parseLong(value));
-        return true;
-      } else if (existingValue instanceof Float) {
-        editor.putFloat(key, Float.parseFloat(value));
-        return true;
-      } else if (existingValue instanceof Boolean) {
-        editor.putBoolean(key, parseBoolean(value));
-        return true;
-      }
-    } catch (NumberFormatException e) {
-      // Fall through...
+      Object value)
+      throws IllegalArgumentException {
+    if (value instanceof Integer) {
+      editor.putInt(key, (Integer)value);
+    } else if (value instanceof Long) {
+      editor.putLong(key, (Long)value);
+    } else if (value instanceof Float) {
+      editor.putFloat(key, (Float)value);
+    } else if (value instanceof Boolean) {
+      editor.putBoolean(key, (Boolean)value);
+    } else if (value instanceof String) {
+      editor.putString(key, (String)value);
+    } else if (value instanceof Set) {
+      putStringSet(editor, key, (Set<String>)value);
+    } else {
+      throw new IllegalArgumentException("Unsupported type=" + value.getClass().getName());
     }
-    return false;
   }
 
-  private static Boolean parseBoolean(String s) {
-    if ("1".equals(s) || "true".equalsIgnoreCase(s)) {
-      return Boolean.TRUE;
-    } else if ("0".equals(s) || "false".equalsIgnoreCase(s)) {
-      return Boolean.FALSE;
-    }
-    return null;
+  @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+  private static void putStringSet(SharedPreferences.Editor editor, String key, Set<String> value) {
+    editor.putStringSet(key, value);
   }
 
   public static class StorageId {
