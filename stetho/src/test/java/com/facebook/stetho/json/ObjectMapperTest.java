@@ -1,20 +1,8 @@
 package  com.facebook.stetho.json;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Objects;
-
 import android.os.Build;
-
 import com.facebook.stetho.json.annotation.JsonProperty;
 import com.facebook.stetho.json.annotation.JsonValue;
-
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Before;
@@ -22,6 +10,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Objects;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests for {@link ObjectMapper}
@@ -42,7 +39,6 @@ public class ObjectMapperTest {
     JsonPropertyString c = new JsonPropertyString();
     c.testString = "test";
     String expected = "{\"testString\":\"test\"}";
-
 
     JSONObject jsonObject = mObjectMapper.convertValue(c, JSONObject.class);
     String str = jsonObject.toString();
@@ -106,6 +102,39 @@ public class ObjectMapperTest {
 
     JSONObject jsonObject = mObjectMapper.convertValue(jpsl, JSONObject.class);
     String str = jsonObject.toString();
+
+    assertEquals(expected, str);
+  }
+
+  @Test
+  public void testSerializeMultitypedList() throws JSONException {
+    List<Object> list = new ArrayList<Object>();
+    list.add("foo");
+    list.add(Collections.singletonList("bar"));
+    JsonPropertyMultitypedList javaObj = new JsonPropertyMultitypedList();
+    javaObj.multitypedList = list;
+
+    String expected = "{\"multitypedList\":[\"foo\",[\"bar\"]]}";
+    JSONObject jsonObj = mObjectMapper.convertValue(javaObj, JSONObject.class);
+    String str = jsonObj.toString();
+
+    assertEquals(expected, str);
+  }
+
+  @Test
+  public void testSerializeListOfLists() throws JSONException {
+    List<List<String>> listOfLists = new ArrayList<List<String>>();
+    listOfLists.add(Collections.singletonList("foo"));
+    ArrayList<String> sublist2 = new ArrayList<String>();
+    sublist2.add("1");
+    sublist2.add("2");
+    listOfLists.add(sublist2);
+    JsonPropertyListOfLists javaObj = new JsonPropertyListOfLists();
+    javaObj.listOfLists = listOfLists;
+
+    String expected = "{\"listOfLists\":[[\"foo\"],[\"1\",\"2\"]]}";
+    JSONObject jsonObj = mObjectMapper.convertValue(javaObj, JSONObject.class);
+    String str = jsonObj.toString();
 
     assertEquals(expected, str);
   }
@@ -209,5 +238,15 @@ public class ObjectMapperTest {
     public String getValue() {
       return mValue;
     }
+  }
+
+  private static class JsonPropertyMultitypedList {
+    @JsonProperty
+    public List<Object> multitypedList;
+  }
+
+  private static class JsonPropertyListOfLists {
+    @JsonProperty
+    public List<List<String>> listOfLists;
   }
 }

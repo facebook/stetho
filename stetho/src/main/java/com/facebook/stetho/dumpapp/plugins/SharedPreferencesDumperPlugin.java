@@ -2,22 +2,23 @@
 
 package com.facebook.stetho.dumpapp.plugins;
 
-import javax.annotation.Nullable;
-
-import java.io.File;
-import java.io.PrintStream;
-import java.util.List;
-import java.util.Map;
-
-import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.text.TextUtils;
-
-import com.facebook.stetho.common.Util;
 import com.facebook.stetho.dumpapp.DumpUsageException;
 import com.facebook.stetho.dumpapp.DumperContext;
 import com.facebook.stetho.dumpapp.DumperPlugin;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.io.File;
+import java.io.PrintStream;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class SharedPreferencesDumperPlugin implements DumperPlugin {
 
@@ -55,18 +56,11 @@ public class SharedPreferencesDumperPlugin implements DumperPlugin {
    */
   private void doWrite(List<String> args) throws DumpUsageException {
     String usagePrefix = "Usage: prefs write <path> <key> <type> <value>, where type is one of: ";
-    int expectedCount = 4;
-    if (args.size() != expectedCount) {
-      throw new DumpUsageException(
-          Type.appendNamesList(new StringBuilder(usagePrefix), ", ").toString());
-    }
 
-    int index = 0;
-    String path = args.get(index++);
-    String key = args.get(index++);
-    String typeName = args.get(index++);
-    String value = args.get(index++);
-    Util.throwIfNot(index == expectedCount);
+    Iterator<String> argsIter = args.iterator();
+    String path = nextArg(argsIter, "Expected <path>");
+    String key = nextArg(argsIter, "Expected <key>");
+    String typeName = nextArg(argsIter, "Expected <type>");
 
     Type type = Type.of(typeName);
     if (type == null) {
@@ -79,23 +73,52 @@ public class SharedPreferencesDumperPlugin implements DumperPlugin {
 
     switch (type) {
       case BOOLEAN:
-        editor.putBoolean(key, Boolean.valueOf(value));
+        editor.putBoolean(key, Boolean.valueOf(nextArgValue(argsIter)));
         break;
       case INT:
-        editor.putInt(key, Integer.valueOf(value));
+        editor.putInt(key, Integer.valueOf(nextArgValue(argsIter)));
         break;
       case LONG:
-        editor.putLong(key, Long.valueOf(value));
+        editor.putLong(key, Long.valueOf(nextArgValue(argsIter)));
         break;
       case FLOAT:
-        editor.putFloat(key, Float.valueOf(value));
+        editor.putFloat(key, Float.valueOf(nextArgValue(argsIter)));
         break;
       case STRING:
-        editor.putString(key, value);
+        editor.putString(key, nextArgValue(argsIter));
+        break;
+      case SET:
+        putStringSet(editor, key, argsIter);
         break;
     }
 
     editor.commit();
+  }
+
+  @Nonnull
+  private static String nextArg(Iterator<String> iter, String messageIfNotPresent)
+      throws DumpUsageException {
+    if (!iter.hasNext()) {
+      throw new DumpUsageException(messageIfNotPresent);
+    }
+    return iter.next();
+  }
+
+  @Nonnull
+  private static String nextArgValue(Iterator<String> iter) throws DumpUsageException {
+    return nextArg(iter, "Expected <value>");
+  }
+
+  @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+  private static void putStringSet(
+      SharedPreferences.Editor editor,
+      String key,
+      Iterator<String> remainingArgs) {
+    HashSet<String> set = new HashSet<String>();
+    while (remainingArgs.hasNext()) {
+      set.add(remainingArgs.next());
+    }
+    editor.putStringSet(key, set);
   }
 
   /**
@@ -175,7 +198,8 @@ public class SharedPreferencesDumperPlugin implements DumperPlugin {
     INT("int"),
     LONG("long"),
     FLOAT("float"),
-    STRING("string");
+    STRING("string"),
+    SET("set");
 
     private final String name;
 
