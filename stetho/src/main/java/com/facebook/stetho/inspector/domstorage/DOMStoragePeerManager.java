@@ -2,14 +2,19 @@ package com.facebook.stetho.inspector.domstorage;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import com.facebook.stetho.inspector.console.CLog;
 import com.facebook.stetho.inspector.helper.ChromePeerManager;
 import com.facebook.stetho.inspector.helper.PeerRegistrationListener;
 import com.facebook.stetho.inspector.helper.PeersRegisteredListener;
+import com.facebook.stetho.inspector.protocol.module.Console;
 import com.facebook.stetho.inspector.protocol.module.DOMStorage;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class DOMStoragePeerManager extends ChromePeerManager {
   private final Context mContext;
@@ -17,6 +22,37 @@ public class DOMStoragePeerManager extends ChromePeerManager {
   public DOMStoragePeerManager(Context context) {
     mContext = context;
     setListener(mPeerListener);
+  }
+
+  public void signalItemRemoved(DOMStorage.StorageId storageId, String key) {
+    DOMStorage.DomStorageItemRemovedParams params =
+        new DOMStorage.DomStorageItemRemovedParams();
+    params.storageId = storageId;
+    params.key = key;
+    sendNotificationToPeers("DOMStorage.domStorageItemRemoved", params);
+  }
+
+  public void signalItemAdded(DOMStorage.StorageId storageId, String key, String value) {
+    DOMStorage.DomStorageItemAddedParams params =
+        new DOMStorage.DomStorageItemAddedParams();
+    params.storageId = storageId;
+    params.key = key;
+    params.newValue = value;
+    sendNotificationToPeers("DOMStorage.domStorageItemAdded", params);
+  }
+
+  public void signalItemUpdated(
+      DOMStorage.StorageId storageId,
+      String key,
+      String oldValue,
+      String newValue) {
+    DOMStorage.DomStorageItemUpdatedParams params =
+        new DOMStorage.DomStorageItemUpdatedParams();
+    params.storageId = storageId;
+    params.key = key;
+    params.oldValue = oldValue;
+    params.newValue = newValue;
+    sendNotificationToPeers("DOMStorage.domStorageItemUpdated", params);
   }
 
   private final PeerRegistrationListener mPeerListener = new PeersRegisteredListener() {
@@ -54,11 +90,20 @@ public class DOMStoragePeerManager extends ChromePeerManager {
     private final SharedPreferences mPrefs;
     private final DOMStorage.StorageId mStorageId;
 
+    /**
+     * Maintains a copy of the prefs data structure so that we can invoke
+     * {@code DOMStorage.domStorageItemUpdated}.  This method requires that we know the old
+     * value to perform updates.  Using {@code domStorageItemRemoved}/{@code Added} causes a UI
+     * glitch where the item is moved to the end of the list, unfortunately.
+     */
+    private final Map<String, Object> mCopy;
+
     public DevToolsSharedPreferencesListener(SharedPreferences prefs, String tag) {
       mPrefs = prefs;
       mStorageId = new DOMStorage.StorageId();
       mStorageId.securityOrigin = tag;
       mStorageId.isLocalStorage = true;
+      mCopy = prefsCopy(prefs.getAll());
     }
 
     public void unregister() {
@@ -67,21 +112,51 @@ public class DOMStoragePeerManager extends ChromePeerManager {
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-      DOMStorage.DomStorageItemRemovedParams removedParams =
-          new DOMStorage.DomStorageItemRemovedParams();
-      removedParams.storageId = mStorageId;
-      removedParams.key = key;
-      sendNotificationToPeers("DOMStorage.domStorageItemRemoved", removedParams);
-
       Map<String, ?> entries = sharedPreferences.getAll();
-      if (entries.containsKey(key)) {
-        DOMStorage.DomStorageItemAddedParams addedParams =
-            new DOMStorage.DomStorageItemAddedParams();
-        addedParams.storageId = mStorageId;
-        addedParams.key = key;
-        addedParams.newValue = SharedPreferencesHelper.valueToString(entries.get(key));
-        sendNotificationToPeers("DOMStorage.domStorageItemAdded", addedParams);
+      boolean existedBefore = mCopy.containsKey(key);
+      boolean existsNow = entries.containsKey(key);
+      Object newValue = existsNow ? entries.get(key) : null;
+      if (existedBefore && existsNow) {
+        signalItemUpdated(
+            mStorageId,
+            key,
+            SharedPreferencesHelper.valueToString(mCopy.get(key)),
+            SharedPreferencesHelper.valueToString(newValue));
+        mCopy.put(key, newValue);
+      } else if (existedBefore) {
+        signalItemRemoved(mStorageId, key);
+        mCopy.remove(key);
+      } else if (existsNow) {
+        signalItemAdded(
+            mStorageId,
+            key,
+            SharedPreferencesHelper.valueToString(newValue));
+        mCopy.put(key, newValue);
+      } else {
+        throw new RuntimeException("Prefs change detected for unknown key=" + key);
       }
     }
+  }
+
+  private static Map<String, Object> prefsCopy(Map<String, ?> src) {
+    HashMap<String, Object> dst = new HashMap<String, Object>(src.size());
+    for (Map.Entry<String, ?> entry : src.entrySet()) {
+      String key = entry.getKey();
+      Object value = entry.getValue();
+      if (value instanceof Set) {
+        dst.put(key, shallowCopy((Set<String>)value));
+      } else {
+        dst.put(key, value);
+      }
+    }
+    return dst;
+  }
+
+  private static <T> Set<T> shallowCopy(Set<T> src) {
+    HashSet<T> dst = new HashSet<T>();
+    for (T item : src) {
+      dst.add(item);
+    }
+    return dst;
   }
 }

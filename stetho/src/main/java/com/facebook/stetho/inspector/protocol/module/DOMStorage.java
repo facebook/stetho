@@ -9,6 +9,7 @@ import android.os.Build;
 import com.facebook.stetho.inspector.console.CLog;
 import com.facebook.stetho.inspector.domstorage.DOMStoragePeerManager;
 import com.facebook.stetho.inspector.domstorage.SharedPreferencesHelper;
+import com.facebook.stetho.inspector.jsonrpc.JsonRpcException;
 import com.facebook.stetho.inspector.jsonrpc.JsonRpcPeer;
 import com.facebook.stetho.inspector.jsonrpc.JsonRpcResult;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
@@ -18,7 +19,11 @@ import com.facebook.stetho.json.annotation.JsonProperty;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 public class DOMStorage implements ChromeDevtoolsDomain {
   private final Context mContext;
@@ -65,7 +70,8 @@ public class DOMStorage implements ChromeDevtoolsDomain {
   }
 
   @ChromeDevtoolsMethod
-  public void setDOMStorageItem(JsonRpcPeer peer, JSONObject params) throws JSONException {
+  public void setDOMStorageItem(JsonRpcPeer peer, JSONObject params)
+      throws JSONException, JsonRpcException {
     StorageId storage = mObjectMapper.convertValue(
         params.getJSONObject("storageId"),
         StorageId.class);
@@ -77,27 +83,42 @@ public class DOMStorage implements ChromeDevtoolsDomain {
           storage.securityOrigin,
           Context.MODE_PRIVATE);
       Object existingValue = prefs.getAll().get(key);
-      if (existingValue == null) {
+      try {
+        if (existingValue == null) {
+          throw new DOMStorageAssignmentException(
+              "Unsupported: cannot add new key " + key + " due to lack of type inference");
+        } else {
+          SharedPreferences.Editor editor = prefs.edit();
+          try {
+            assignByType(editor, key, SharedPreferencesHelper.valueFromString(value, existingValue));
+            editor.apply();
+          } catch (IllegalArgumentException e) {
+            throw new DOMStorageAssignmentException(
+                String.format(Locale.US,
+                    "Type mismatch setting %s to %s (expected %s)",
+                    key,
+                    value,
+                    existingValue.getClass().getSimpleName()));
+          }
+        }
+      } catch (DOMStorageAssignmentException e) {
         CLog.writeToConsole(
             mDOMStoragePeerManager,
             Console.MessageLevel.ERROR,
             Console.MessageSource.STORAGE,
-            "Unsupported: cannot add new key " + key + " due to lack of type inference");
-      } else {
-        SharedPreferences.Editor editor = prefs.edit();
-        try {
-          assignByType(editor, key, SharedPreferencesHelper.valueFromString(value, existingValue));
-          editor.apply();
-        } catch (IllegalArgumentException e) {
-          CLog.writeToConsole(
-              mDOMStoragePeerManager,
-              Console.MessageLevel.ERROR,
-              Console.MessageSource.STORAGE,
-              String.format(Locale.US,
-                  "Type mismatch setting %s to %s (expected %s)",
-                  key,
-                  value,
-                  existingValue.getClass().getSimpleName()));
+            e.getMessage());
+
+        // Force the DevTools UI to refresh with the old value again (it assumes that the set
+        // operation succeeded).  Note that we should be able to do this by throwing
+        // JsonRpcException but the UI doesn't respect setDOMStorageItem failure.
+        if (prefs.contains(key)) {
+          mDOMStoragePeerManager.signalItemUpdated(
+              storage,
+              key,
+              value,
+              SharedPreferencesHelper.valueToString(existingValue));
+        } else {
+          mDOMStoragePeerManager.signalItemRemoved(storage, key);
         }
       }
     }
@@ -194,5 +215,14 @@ public class DOMStorage implements ChromeDevtoolsDomain {
 
     @JsonProperty(required = true)
     public String newValue;
+  }
+
+  /**
+   * Exception thrown internally when we fail to honor {@link #setDOMStorageItem}.
+   */
+  private static class DOMStorageAssignmentException extends Exception {
+    public DOMStorageAssignmentException(String message) {
+      super(message);
+    }
   }
 }
