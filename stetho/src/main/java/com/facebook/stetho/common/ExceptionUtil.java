@@ -14,6 +14,4 @@ public class ExceptionUtil {
     propagateIfInstanceOf(t, RuntimeException.class);
     throw new RuntimeException(t);
   }
-
-
 }
