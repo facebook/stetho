@@ -23,7 +23,7 @@ import com.facebook.stetho.inspector.jsonrpc.PendingRequestCallback;
  * to the peer to have them appear in the inspector UI.  This class simplifies managing those
  * enabled peers for each functionality domain.
  */
-public abstract class ChromePeerManager {
+public class ChromePeerManager {
   private static final String TAG = "ChromePeerManager";
 
   /**
