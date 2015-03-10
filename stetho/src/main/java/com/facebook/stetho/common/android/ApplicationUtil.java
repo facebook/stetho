@@ -14,8 +14,6 @@ import java.util.List;
 import java.util.Map;
 
 public class ApplicationUtil {
-  private static final String TAG = "ApplicationUtil";
-
   private ApplicationUtil() {
   }
 
@@ -23,7 +21,7 @@ public class ApplicationUtil {
     try {
       return getAllActivitiesHack();
     } catch (Exception e) {
-      LogUtil.w(TAG, e, "Cannot retrieve list of Activity instances. UI inspection may not work!");
+      LogUtil.w(e, "Cannot retrieve list of Activity instances. UI inspection may not work!");
       return Collections.emptyList();
     }
   }

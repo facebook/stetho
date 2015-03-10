@@ -21,8 +21,6 @@ import java.util.List;
 import java.util.Map;
 
 final class ApplicationDescriptor extends ChainedDescriptor<Application> {
-  private static final String TAG = "ApplicationDescriptor";
-
   private final Map<Application, ElementContext> mElementToContextMap =
       Collections.synchronizedMap(new IdentityHashMap<Application, ElementContext>());
 
@@ -64,7 +62,7 @@ final class ApplicationDescriptor extends ChainedDescriptor<Application> {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
       return new ElementContextICS();
     } else {
-      LogUtil.w(TAG, "Running on pre-ICS: must manually reload inspector when Activity changes");
+      LogUtil.w("Running on pre-ICS: must manually reload inspector when Activity changes");
       return new ElementContextPreICS();
     }
   }
