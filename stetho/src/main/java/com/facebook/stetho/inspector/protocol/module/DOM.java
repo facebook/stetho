@@ -221,10 +221,23 @@ public class DOM implements ChromeDevtoolsDomain {
 
     @Override
     public void onChildRemoved(Object parentElement, Object childElement) {
-      ChildNodeRemovedEvent message = new ChildNodeRemovedEvent();
-      message.parentNodeId = mObjectIdMapper.getIdForObject(parentElement);
-      message.nodeId = mObjectIdMapper.getIdForObject(childElement);
-      mPeerManager.sendNotificationToPeers("DOM.childNodeRemoved", message);
+      Integer parentNodeId = mObjectIdMapper.getIdForObject(parentElement);
+      Integer childNodeId = mObjectIdMapper.getIdForObject(childElement);
+
+      if (parentNodeId == null || childNodeId == null) {
+        LogUtil.d(
+            "DOM.onChildRemoved() called for a non-mapped node: "
+                + "parentElement=(nodeId=%s, %s), childElement=(nodeId=%s, %s)",
+            parentNodeId,
+            parentElement,
+            childNodeId,
+            childElement);
+      } else {
+        ChildNodeRemovedEvent message = new ChildNodeRemovedEvent();
+        message.parentNodeId = parentNodeId;
+        message.nodeId = childNodeId;
+        mPeerManager.sendNotificationToPeers("DOM.childNodeRemoved", message);
+      }
 
       removeElementTree(childElement);
     }

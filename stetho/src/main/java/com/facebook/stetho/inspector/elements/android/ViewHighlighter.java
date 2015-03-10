@@ -19,14 +19,12 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 
 abstract class ViewHighlighter {
-  private static final String TAG = "ViewHighlighter";
-
   public static ViewHighlighter newInstance() {
     // TODO: find ways to do highlighting on older versions too
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
       return new OverlayHighlighter();
     } else {
-      LogUtil.w(TAG, "Running on pre-JBMR2: View highlighting is not supported");
+      LogUtil.w("Running on pre-JBMR2: View highlighting is not supported");
       return new NoopHighlighter();
     }
   }
