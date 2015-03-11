@@ -1,3 +1,5 @@
+// Copyright 2015-present Facebook. All Rights Reserved.
+
 package com.facebook.stetho;
 
 import com.facebook.stetho.inspector.database.DefaultDatabaseFilesProvider;
@@ -26,6 +28,7 @@ import com.facebook.stetho.inspector.protocol.module.Console;
 import com.facebook.stetho.inspector.protocol.module.DOM;
 import com.facebook.stetho.inspector.protocol.module.DOMStorage;
 import com.facebook.stetho.inspector.protocol.module.Database;
+import com.facebook.stetho.inspector.protocol.module.DatabaseConstants;
 import com.facebook.stetho.inspector.protocol.module.Debugger;
 import com.facebook.stetho.inspector.protocol.module.HeapProfiler;
 import com.facebook.stetho.inspector.protocol.module.Inspector;
@@ -115,7 +118,7 @@ public class Stetho {
         modules.add(new Profiler());
         modules.add(new Runtime());
         modules.add(new Worker());
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+        if (Build.VERSION.SDK_INT >= DatabaseConstants.MIN_API_LEVEL) {
           modules.add(new Database(context, new DefaultDatabaseFilesProvider(context)));
         }
         return modules;
