@@ -2,7 +2,6 @@
 
 package com.facebook.stetho.inspector.elements;
 
-public final class NodeAttribute {
-  public String name;
-  public String value;
+public interface AttributeAccumulator {
+  public void add(String name, String value);
 }

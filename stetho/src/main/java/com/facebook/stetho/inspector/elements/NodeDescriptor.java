@@ -1,3 +1,5 @@
+// Copyright 2004-present Facebook. All Rights Reserved.
+
 package com.facebook.stetho.inspector.elements;
 
 import javax.annotation.Nullable;
@@ -20,7 +22,5 @@ public interface NodeDescriptor {
 
   public Object getChildAt(Object element, int index);
 
-  public int getAttributeCount(Object element);
-
-  public void copyAttributeAt(Object element, int index, NodeAttribute outAttribute);
+  public void copyAttributes(Object element, AttributeAccumulator attributes);
 }

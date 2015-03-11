@@ -7,8 +7,8 @@ import android.text.TextWatcher;
 import android.widget.TextView;
 
 import com.facebook.stetho.common.Util;
+import com.facebook.stetho.inspector.elements.AttributeAccumulator;
 import com.facebook.stetho.inspector.elements.ChainedDescriptor;
-import com.facebook.stetho.inspector.elements.NodeAttribute;
 
 import java.util.Collections;
 import java.util.IdentityHashMap;
@@ -33,22 +33,10 @@ final class TextViewDescriptor extends ChainedDescriptor<TextView> {
   }
 
   @Override
-  protected int onGetAttributeCount(TextView element) {
-    return (element.getText().length() == 0) ? 0 : 1;
-  }
-
-  @Override
-  protected void onCopyAttributeAt(TextView element, int index, NodeAttribute outAttribute) {
-    if (index != 0) {
-      throw new IndexOutOfBoundsException();
-    }
-
+  protected void onCopyAttributes(TextView element, AttributeAccumulator attributes) {
     CharSequence text = element.getText();
-    if (text.length() == 0) {
-      throw new IndexOutOfBoundsException();
-    } else {
-      outAttribute.name = TEXT_ATTRIBUTE_NAME;
-      outAttribute.value = text.toString();
+    if (text.length() != 0) {
+      attributes.add(TEXT_ATTRIBUTE_NAME, text.toString());
     }
   }
 
