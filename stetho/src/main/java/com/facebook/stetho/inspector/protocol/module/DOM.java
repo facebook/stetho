@@ -6,8 +6,8 @@ import android.graphics.Color;
 
 import com.facebook.stetho.common.LogUtil;
 import com.facebook.stetho.common.Util;
+import com.facebook.stetho.inspector.elements.AttributeAccumulator;
 import com.facebook.stetho.inspector.elements.DOMProvider;
-import com.facebook.stetho.inspector.elements.NodeAttribute;
 import com.facebook.stetho.inspector.elements.NodeDescriptor;
 import com.facebook.stetho.inspector.elements.NodeType;
 import com.facebook.stetho.inspector.helper.ChromePeerManager;
@@ -105,21 +105,8 @@ public class DOM implements ChromeDevtoolsDomain {
     node.children = getChildNodesForElement(element);
     node.childNodeCount = node.children.size();
 
-    int attributeCount = descriptor.getAttributeCount(element);
-    if (attributeCount > 0) {
-      node.attributes = new ArrayList<String>(attributeCount * 2);
-
-      NodeAttribute attribute = new NodeAttribute();
-      for (int i = 0; i < attributeCount; ++i) {
-        descriptor.copyAttributeAt(element, i, attribute);
-
-        node.attributes.add(attribute.name);
-        node.attributes.add(attribute.value);
-
-        attribute.name = null;
-        attribute.value = null;
-      }
-    }
+    node.attributes = new ArrayList<String>();
+    descriptor.copyAttributes(element, new AttributeListAccumulator(node.attributes));
 
     return node;
   }
@@ -169,6 +156,20 @@ public class DOM implements ChromeDevtoolsDomain {
 
       mDOMProvider.dispose();
       mDOMProvider = null;
+    }
+  }
+
+  private static final class AttributeListAccumulator implements AttributeAccumulator {
+    private final List<String> mList;
+
+    public AttributeListAccumulator(List<String> list) {
+      mList = Util.throwIfNull(list);
+    }
+
+    @Override
+    public void add(String name, String value) {
+      mList.add(name);
+      mList.add(value);
     }
   }
 

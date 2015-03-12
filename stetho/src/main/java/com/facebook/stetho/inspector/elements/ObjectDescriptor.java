@@ -42,12 +42,6 @@ public final class ObjectDescriptor extends Descriptor {
   }
 
   @Override
-  public int getAttributeCount(Object element) {
-    return 0;
-  }
-
-  @Override
-  public void copyAttributeAt(Object element, int index, NodeAttribute outAttribute) {
-    throw new IndexOutOfBoundsException();
+  public void copyAttributes(Object element, AttributeAccumulator attributes) {
   }
 }
