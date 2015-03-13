@@ -2,6 +2,7 @@
 
 package com.facebook.stetho.inspector.protocol.module;
 
+import com.facebook.stetho.inspector.database.DatabaseFilesProvider;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -38,8 +39,22 @@ public class Database implements ChromeDevtoolsDomain {
   private final DatabasePeerManager mDatabasePeerManager;
   private final ObjectMapper mObjectMapper;
 
+  /**
+   * Constructs the object with the default {@link DatabasePeerManager}.
+   * @param context the context
+   */
+  @Deprecated
   public Database(Context context) {
     mDatabasePeerManager = new DatabasePeerManager(context);
+    mObjectMapper = new ObjectMapper();
+  }
+
+  /**
+   * @param context the context
+   * @param databaseFilesProvider a database files provider
+   */
+  public Database(Context context, DatabaseFilesProvider databaseFilesProvider) {
+    mDatabasePeerManager = new DatabasePeerManager(context, databaseFilesProvider);
     mObjectMapper = new ObjectMapper();
   }
 

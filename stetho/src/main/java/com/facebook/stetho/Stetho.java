@@ -1,5 +1,6 @@
 package com.facebook.stetho;
 
+import com.facebook.stetho.inspector.database.DefaultDatabaseFilesProvider;
 import javax.annotation.Nullable;
 
 import java.io.IOException;
@@ -115,7 +116,7 @@ public class Stetho {
         modules.add(new Runtime());
         modules.add(new Worker());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-          modules.add(new Database(context));
+          modules.add(new Database(context, new DefaultDatabaseFilesProvider(context)));
         }
         return modules;
       }
