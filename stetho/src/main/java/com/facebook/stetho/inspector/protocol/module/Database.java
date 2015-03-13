@@ -5,6 +5,7 @@ package com.facebook.stetho.inspector.protocol.module;
 import com.facebook.stetho.inspector.database.DatabaseFilesProvider;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import android.annotation.TargetApi;
@@ -85,10 +86,36 @@ public class Database implements ChromeDevtoolsDomain {
       return mDatabasePeerManager.executeSQL(request.databaseId, request.query,
           new DatabasePeerManager.ExecuteResultHandler<ExecuteSQLResponse>() {
         @Override
-        public ExecuteSQLResponse handleResult(Cursor result) throws SQLiteException {
+        public ExecuteSQLResponse handleRawQuery() throws SQLiteException {
+          ExecuteSQLResponse response = new ExecuteSQLResponse();
+          // This is done because the inspector UI likes to delete rows if you give them no
+          // name/value list
+          response.columnNames = Arrays.asList("success");
+          response.values = Arrays.asList((Object) "true");
+          return response;
+        }
+
+        @Override
+        public ExecuteSQLResponse handleSelect(Cursor result) throws SQLiteException {
           ExecuteSQLResponse response = new ExecuteSQLResponse();
           response.columnNames = Arrays.asList(result.getColumnNames());
           response.values = flattenRows(result, MAX_EXECUTE_RESULTS);
+          return response;
+        }
+
+        @Override
+        public ExecuteSQLResponse handleInsert(long insertedId) throws SQLiteException {
+          ExecuteSQLResponse response = new ExecuteSQLResponse();
+          response.columnNames = Arrays.asList("ID of last inserted row");
+          response.values = Arrays.asList((Object) insertedId);
+          return response;
+        }
+
+        @Override
+        public ExecuteSQLResponse handleUpdateDelete(int count) throws SQLiteException {
+          ExecuteSQLResponse response = new ExecuteSQLResponse();
+          response.columnNames = Arrays.asList("Modified rows");
+          response.values = Arrays.asList((Object) count);
           return response;
         }
       });
