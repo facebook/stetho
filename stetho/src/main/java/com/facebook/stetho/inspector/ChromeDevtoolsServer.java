@@ -132,7 +132,16 @@ public class ChromeDevtoolsServer implements SimpleEndpoint {
       response.result = result;
       response.error = error;
       JSONObject jsonObject = mObjectMapper.convertValue(response, JSONObject.class);
-      String responseString = jsonObject.toString();
+      String responseString;
+      try {
+        responseString = jsonObject.toString();
+      } catch (OutOfMemoryError e) {
+        // JSONStringer can cause an OOM when the Json to handle is too big.
+        response.result = null;
+        response.error = mObjectMapper.convertValue(e.getMessage(), JSONObject.class);
+        jsonObject = mObjectMapper.convertValue(response, JSONObject.class);
+        responseString = jsonObject.toString();
+      }
       peer.getWebSocket().sendText(responseString);
     }
   }
