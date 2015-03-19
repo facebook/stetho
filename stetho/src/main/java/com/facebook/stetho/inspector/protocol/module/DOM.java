@@ -84,15 +84,15 @@ public class DOM implements ChromeDevtoolsDomain {
   public void highlightNode(JsonRpcPeer peer, JSONObject params) {
     HighlightNodeRequest request = mObjectMapper.convertValue(params, HighlightNodeRequest.class);
     if (request.nodeId == null) {
-      LogUtil.w("highlightNode was not given a nodeId; JS objectId is not supported");
+      LogUtil.w("DOM.highlightNode was not given a nodeId; JS objectId is not supported");
     } else {
-      Object element = mObjectIdMapper.getObjectForId(request.nodeId);
-      mDOMProvider.highlightElement(
-          element,
-          request.highlightConfig.contentColor.getColor(),
-          request.highlightConfig.paddingColor.getColor(),
-          request.highlightConfig.borderColor.getColor(),
-          request.highlightConfig.marginColor.getColor());
+      RGBAColor contentColor = request.highlightConfig.contentColor;
+      if (contentColor == null) {
+        LogUtil.w("DOM.highlightNode was not given a color to highlight with");
+      } else {
+        Object element = mObjectIdMapper.getObjectForId(request.nodeId);
+        mDOMProvider.highlightElement(element, contentColor.getColor());
+      }
     }
   }
 
@@ -336,15 +336,6 @@ public class DOM implements ChromeDevtoolsDomain {
   private static class HighlightConfig {
     @JsonProperty
     public RGBAColor contentColor;
-
-    @JsonProperty
-    public RGBAColor paddingColor;
-
-    @JsonProperty
-    public RGBAColor borderColor;
-
-    @JsonProperty
-    public RGBAColor marginColor;
   }
 
   private static class RGBAColor {

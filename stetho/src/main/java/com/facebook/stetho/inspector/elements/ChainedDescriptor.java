@@ -9,14 +9,22 @@ import javax.annotation.Nullable;
 public abstract class ChainedDescriptor<E> extends Descriptor {
   private Descriptor mSuper;
 
-  // This is used by DescriptorMap to hook us up to whatever handles E's super class
+  // This is used by DescriptorMap to hook us up to whatever handles E's super class.
+  // This method is idempotent in the sense that once you call it with a specific
+  // reference you must either 1) never call it again, or 2) call it again with that
+  // same reference.
   final void setSuper(Descriptor superDescriptor) {
     Util.throwIfNull(superDescriptor);
-    Util.throwIfNotNull(mSuper);
-    mSuper = superDescriptor;
+
+    if (superDescriptor != mSuper) {
+      if (mSuper != null) {
+        throw new IllegalStateException();
+      }
+      mSuper = superDescriptor;
+    }
   }
 
-  protected final Descriptor getSuper() {
+  public final Descriptor getSuper() {
     return mSuper;
   }
 

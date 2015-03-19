@@ -12,7 +12,7 @@ import com.facebook.stetho.inspector.elements.ChainedDescriptor;
 
 import javax.annotation.Nullable;
 
-final class ViewDescriptor extends ChainedDescriptor<View> {
+final class ViewDescriptor extends ChainedDescriptor<View> implements HighlightableDescriptor {
   private static final String ID_ATTRIBUTE_NAME = "id";
 
   @Override
@@ -87,5 +87,10 @@ final class ViewDescriptor extends ChainedDescriptor<View> {
     }
 
     return idString;
+  }
+
+  @Override
+  public View getViewForHighlighting(Object element) {
+    return (View)element;
   }
 }

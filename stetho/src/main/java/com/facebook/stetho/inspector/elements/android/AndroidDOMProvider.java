@@ -9,13 +9,16 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.TextView;
 
+import com.facebook.stetho.common.LogUtil;
+import com.facebook.stetho.common.Util;
+import com.facebook.stetho.inspector.elements.ChainedDescriptor;
 import com.facebook.stetho.inspector.elements.DOMProvider;
 import com.facebook.stetho.inspector.elements.Descriptor;
 import com.facebook.stetho.inspector.elements.DescriptorMap;
 import com.facebook.stetho.inspector.elements.NodeDescriptor;
 import com.facebook.stetho.inspector.elements.ObjectDescriptor;
 
-final class AndroidDOMProvider implements DOMProvider {
+final class AndroidDOMProvider implements DOMProvider, AndroidDescriptorHost {
   private final Application mApplication;
   private final DescriptorMap mDescriptorMap;
   private final ViewHighlighter mHighlighter;
@@ -27,18 +30,20 @@ final class AndroidDOMProvider implements DOMProvider {
     mDescriptorMap = new DescriptorMap()
         .beginInit()
         .register(Activity.class, new ActivityDescriptor())
-        .register(Application.class, new ApplicationDescriptor())
+        .register(Application.class, new ApplicationDescriptor());
+    FragmentDescriptor.register(mDescriptorMap)
         .register(Object.class, new ObjectDescriptor())
         .register(TextView.class, new TextViewDescriptor())
         .register(View.class, new ViewDescriptor())
         .register(ViewGroup.class, new ViewGroupDescriptor())
         .register(Window.class, new WindowDescriptor())
-        .setListener(new DescriptorListener())
+        .setHost(this)
         .endInit();
 
     mHighlighter = ViewHighlighter.newInstance();
   }
 
+  // DOMProvider implementation
   @Override
   public void dispose() {
     mHighlighter.clearHighlight();
@@ -56,22 +61,16 @@ final class AndroidDOMProvider implements DOMProvider {
 
   @Override
   public NodeDescriptor getNodeDescriptor(Object element) {
-    return (element == null) ? null : mDescriptorMap.get(element.getClass());
+    return getDescriptor(element);
   }
 
   @Override
-  public void highlightElement(
-      Object element,
-      int contentColor,
-      int paddingColor,
-      int borderColor,
-      int marginColor) {
-    if (!(element instanceof View)) {
+  public void highlightElement(Object element, int color) {
+    View highlightingView = getHighlightingView(element);
+    if (highlightingView == null) {
       mHighlighter.clearHighlight();
-    }
-    else {
-      final View view = (View)element;
-      mHighlighter.setHighlightedView(view, contentColor, paddingColor, borderColor, marginColor);
+    } else {
+      mHighlighter.setHighlightedView(highlightingView, color);
     }
   }
 
@@ -80,26 +79,56 @@ final class AndroidDOMProvider implements DOMProvider {
     mHighlighter.clearHighlight();
   }
 
-  // Forwards notifications from Descriptor to DOM
-  private class DescriptorListener implements Descriptor.Listener {
-    @Override
-    public void onAttributeModified(Object element, String name, String value) {
-      mListener.onAttributeModified(element, name, value);
+  // Descriptor.Host implementation
+  @Override
+  public Descriptor getDescriptor(Object element) {
+    return (element == null) ? null : mDescriptorMap.get(element.getClass());
+  }
+
+  @Override
+  public void onAttributeModified(Object element, String name, String value) {
+    mListener.onAttributeModified(element, name, value);
+  }
+
+  @Override
+  public void onAttributeRemoved(Object element, String name) {
+    mListener.onAttributeRemoved(element, name);
+  }
+
+  @Override
+  public void onChildInserted(Object parentElement, Object previousElement, Object childElement) {
+    mListener.onChildInserted(parentElement, previousElement, childElement);
+  }
+
+  @Override
+  public void onChildRemoved(Object parentElement, Object childElement) {
+    mListener.onChildRemoved(parentElement, childElement);
+  }
+
+  // AndroidDescriptorHost implementation
+  @Override
+  public View getHighlightingView(Object element) {
+    if (element == null) {
+      return null;
     }
 
-    @Override
-    public void onAttributeRemoved(Object element, String name) {
-      mListener.onAttributeRemoved(element, name);
+    View highlightingView = null;
+    Class<?> theClass = element.getClass();
+    Descriptor lastDescriptor = null;
+    while (highlightingView == null && theClass != null) {
+      Descriptor descriptor = mDescriptorMap.get(theClass);
+      if (descriptor == null) {
+        return null;
+      }
+
+      if (descriptor != lastDescriptor && descriptor instanceof HighlightableDescriptor) {
+        highlightingView = ((HighlightableDescriptor)descriptor).getViewForHighlighting(element);
+      }
+
+      lastDescriptor = descriptor;
+      theClass = theClass.getSuperclass();
     }
 
-    @Override
-    public void onChildInserted(Object parentElement, Object previousElement, Object childElement) {
-      mListener.onChildInserted(parentElement, previousElement, childElement);
-    }
-
-    @Override
-    public void onChildRemoved(Object parentElement, Object childElement) {
-      mListener.onChildRemoved(parentElement, childElement);
-    }
+    return highlightingView;
   }
 }
