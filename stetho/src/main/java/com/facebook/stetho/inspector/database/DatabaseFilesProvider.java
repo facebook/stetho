@@ -7,10 +7,19 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-package com.facebook.stetho.server;
+package com.facebook.stetho.inspector.database;
 
-public class PeerAuthorizationException extends Exception {
-  public PeerAuthorizationException(String message) {
-    super(message);
-  }
+import java.io.File;
+import java.util.List;
+
+/**
+ * Provides a {@link List} of database files.
+ */
+public interface DatabaseFilesProvider {
+
+  /**
+   * Returns a {@link List} of database files.
+   */
+  List<File> getDatabaseFiles();
+
 }

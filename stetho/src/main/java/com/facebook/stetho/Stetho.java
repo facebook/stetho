@@ -1,5 +1,17 @@
+/*
+ * Copyright (c) 2014-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ */
+//
+// Copyright 2015-present Facebook. All Rights Reserved.
+
 package com.facebook.stetho;
 
+import com.facebook.stetho.inspector.database.DefaultDatabaseFilesProvider;
 import javax.annotation.Nullable;
 
 import java.io.IOException;
@@ -27,6 +39,7 @@ import com.facebook.stetho.inspector.protocol.module.Console;
 import com.facebook.stetho.inspector.protocol.module.DOM;
 import com.facebook.stetho.inspector.protocol.module.DOMStorage;
 import com.facebook.stetho.inspector.protocol.module.Database;
+import com.facebook.stetho.inspector.protocol.module.DatabaseConstants;
 import com.facebook.stetho.inspector.protocol.module.Debugger;
 import com.facebook.stetho.inspector.protocol.module.HeapProfiler;
 import com.facebook.stetho.inspector.protocol.module.Inspector;
@@ -108,7 +121,7 @@ public class Stetho {
         modules.add(new CSS());
         modules.add(new Debugger());
         modules.add(new DOM(new AndroidDOMProviderFactory((Application)context.getApplicationContext())));
-        modules.add(new DOMStorage());
+        modules.add(new DOMStorage(context));
         modules.add(new HeapProfiler());
         modules.add(new Inspector());
         modules.add(new Network(context));
@@ -116,8 +129,8 @@ public class Stetho {
         modules.add(new Profiler());
         modules.add(new Runtime());
         modules.add(new Worker());
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-          modules.add(new Database(context));
+        if (Build.VERSION.SDK_INT >= DatabaseConstants.MIN_API_LEVEL) {
+          modules.add(new Database(context, new DefaultDatabaseFilesProvider(context)));
         }
         return modules;
       }

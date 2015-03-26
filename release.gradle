@@ -35,7 +35,7 @@ afterEvaluate { project ->
 
     android.libraryVariants.all { variant ->
         def name = variant.name.capitalize()
-        task "jar${name}"(type: Jar) {
+        task "jar${name}"(type: Jar, dependsOn: variant.javaCompile) {
             from variant.javaCompile.destinationDir
         }
     }
@@ -43,6 +43,7 @@ afterEvaluate { project ->
     artifacts {
         archives androidJavadocJar
         archives androidSourcesJar
+        archives jarRelease
     }
 
     version = VERSION_NAME

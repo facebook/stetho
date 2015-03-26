@@ -1,9 +1,20 @@
+/*
+ * Copyright (c) 2014-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ */
+//
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 package com.facebook.stetho.inspector.protocol.module;
 
+import com.facebook.stetho.inspector.database.DatabaseFilesProvider;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import android.annotation.TargetApi;
@@ -38,8 +49,22 @@ public class Database implements ChromeDevtoolsDomain {
   private final DatabasePeerManager mDatabasePeerManager;
   private final ObjectMapper mObjectMapper;
 
+  /**
+   * Constructs the object with the default {@link DatabasePeerManager}.
+   * @param context the context
+   */
+  @Deprecated
   public Database(Context context) {
     mDatabasePeerManager = new DatabasePeerManager(context);
+    mObjectMapper = new ObjectMapper();
+  }
+
+  /**
+   * @param context the context
+   * @param databaseFilesProvider a database files provider
+   */
+  public Database(Context context, DatabaseFilesProvider databaseFilesProvider) {
+    mDatabasePeerManager = new DatabasePeerManager(context, databaseFilesProvider);
     mObjectMapper = new ObjectMapper();
   }
 
@@ -70,10 +95,36 @@ public class Database implements ChromeDevtoolsDomain {
       return mDatabasePeerManager.executeSQL(request.databaseId, request.query,
           new DatabasePeerManager.ExecuteResultHandler<ExecuteSQLResponse>() {
         @Override
-        public ExecuteSQLResponse handleResult(Cursor result) throws SQLiteException {
+        public ExecuteSQLResponse handleRawQuery() throws SQLiteException {
+          ExecuteSQLResponse response = new ExecuteSQLResponse();
+          // This is done because the inspector UI likes to delete rows if you give them no
+          // name/value list
+          response.columnNames = Arrays.asList("success");
+          response.values = Arrays.asList((Object) "true");
+          return response;
+        }
+
+        @Override
+        public ExecuteSQLResponse handleSelect(Cursor result) throws SQLiteException {
           ExecuteSQLResponse response = new ExecuteSQLResponse();
           response.columnNames = Arrays.asList(result.getColumnNames());
           response.values = flattenRows(result, MAX_EXECUTE_RESULTS);
+          return response;
+        }
+
+        @Override
+        public ExecuteSQLResponse handleInsert(long insertedId) throws SQLiteException {
+          ExecuteSQLResponse response = new ExecuteSQLResponse();
+          response.columnNames = Arrays.asList("ID of last inserted row");
+          response.values = Arrays.asList((Object) insertedId);
+          return response;
+        }
+
+        @Override
+        public ExecuteSQLResponse handleUpdateDelete(int count) throws SQLiteException {
+          ExecuteSQLResponse response = new ExecuteSQLResponse();
+          response.columnNames = Arrays.asList("Modified rows");
+          response.values = Arrays.asList((Object) count);
           return response;
         }
       });

@@ -1,3 +1,12 @@
+/*
+ * Copyright (c) 2014-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ */
+//
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 package com.facebook.stetho.inspector.protocol.module;
@@ -64,9 +73,16 @@ public class Network implements ChromeDevtoolsDomain {
   }
 
   private GetResponseBodyResponse readResponseBody(String requestId)
-      throws IOException {
+      throws IOException, JsonRpcException {
     GetResponseBodyResponse response = new GetResponseBodyResponse();
-    ResponseBodyData bodyData = mResponseBodyFileManager.readFile(requestId);
+    ResponseBodyData bodyData;
+    try {
+      bodyData = mResponseBodyFileManager.readFile(requestId);
+    } catch (OutOfMemoryError e) {
+      throw new JsonRpcException(new JsonRpcError(JsonRpcError.ErrorCode.INTERNAL_ERROR,
+          e.toString(),
+          null /* data */));
+    }
     response.body = bodyData.data;
     response.base64Encoded = bodyData.base64Encoded;
     return response;

@@ -1,26 +1,38 @@
+/*
+ * Copyright (c) 2014-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ */
+//
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 package com.facebook.stetho.inspector.database;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
+import android.database.sqlite.SQLiteStatement;
 
 import com.facebook.stetho.common.Util;
 import com.facebook.stetho.inspector.helper.ChromePeerManager;
 import com.facebook.stetho.inspector.helper.PeerRegistrationListener;
 import com.facebook.stetho.inspector.jsonrpc.JsonRpcPeer;
 import com.facebook.stetho.inspector.protocol.module.Database;
+import com.facebook.stetho.inspector.protocol.module.DatabaseConstants;
 
 @ThreadSafe
 public class DatabasePeerManager extends ChromePeerManager {
@@ -30,18 +42,39 @@ public class DatabasePeerManager extends ChromePeerManager {
   };
 
   private final Context mContext;
+  private final DatabaseFilesProvider mDatabaseFilesProvider;
 
+  /**
+   * Constructs the object with a {@link DatabaseFilesProvider} that supplies the database files
+   * from {@link Context#databaseList()}.
+   *
+   * @param context the context
+   * @deprecated use the other {@linkplain DatabasePeerManager#DatabasePeerManager(Context,
+   * DatabaseFilesProvider) constructor} and pass in the {@linkplain DefaultDatabaseFilesProvider
+   * default provider}.
+   */
+  @Deprecated
   public DatabasePeerManager(Context context) {
+    this(context, new DefaultDatabaseFilesProvider(context));
+  }
+
+  /**
+   * @param context the context
+   * @param databaseFilesProvider a database file name provider
+   */
+  public DatabasePeerManager(Context context, DatabaseFilesProvider databaseFilesProvider) {
     mContext = context;
+    mDatabaseFilesProvider = databaseFilesProvider;
     setListener(mPeerRegistrationListener);
   }
 
   private void bootstrapNewPeer(JsonRpcPeer peer) {
-    Iterable<String> tidiedList = tidyDatabaseList(mContext.databaseList());
-    for (String databaseName : tidiedList) {
+    List<File> potentialDatabaseFiles = mDatabaseFilesProvider.getDatabaseFiles();
+    Iterable<File> tidiedList = tidyDatabaseList(potentialDatabaseFiles);
+    for (File database : tidiedList) {
       Database.DatabaseObject databaseParams = new Database.DatabaseObject();
-      databaseParams.id = databaseName;
-      databaseParams.name = databaseName;
+      databaseParams.id = database.getPath();
+      databaseParams.name = database.getName();
       databaseParams.domain = mContext.getPackageName();
       databaseParams.version = "N/A";
       Database.AddDatabaseEvent eventParams = new Database.AddDatabaseEvent();
@@ -56,17 +89,18 @@ public class DatabasePeerManager extends ChromePeerManager {
    * that this only removes the database if it is true that it shadows another database lacking
    * the uninteresting suffix.
    *
-   * @param databaseFilenames Raw list of database filenames.
+   * @param databaseFiles Raw list of database files.
    * @return Tidied list with shadow databases removed.
    */
   // @VisibleForTesting
-  static List<String> tidyDatabaseList(String[] databaseFilenames) {
-    Set<String> originalAsSet = new HashSet<String>(Arrays.asList(databaseFilenames));
-    List<String> tidiedList = new ArrayList<String>();
-    for (String databaseFilename : databaseFilenames) {
+  static List<File> tidyDatabaseList(List<File> databaseFiles) {
+    Set<File> originalAsSet = new HashSet<File>(databaseFiles);
+    List<File> tidiedList = new ArrayList<File>();
+    for (File databaseFile : databaseFiles) {
+      String databaseFilename = databaseFile.getPath();
       String sansSuffix = removeSuffix(databaseFilename, UNINTERESTING_FILENAME_SUFFIXES);
-      if (sansSuffix.equals(databaseFilename) || !originalAsSet.contains(sansSuffix)) {
-        tidiedList.add(databaseFilename);
+      if (sansSuffix.equals(databaseFilename) || !originalAsSet.contains(new File(sansSuffix))) {
+        tidiedList.add(databaseFile);
       }
     }
     return tidiedList;
@@ -107,17 +141,67 @@ public class DatabasePeerManager extends ChromePeerManager {
     Util.throwIfNull(handler);
     SQLiteDatabase database = openDatabase(databaseName);
     try {
-      Cursor cursor = database.rawQuery(query, null);
-      try {
-        return handler.handleResult(cursor);
-      } finally {
-        cursor.close();
+      String firstWord = getFirstWord(query);
+
+      if (firstWord.equalsIgnoreCase("UPDATE") || firstWord.equalsIgnoreCase("DELETE")) {
+        return executeUpdateDelete(database, query, handler);
+      } else if (firstWord.equalsIgnoreCase("INSERT")) {
+        return executeInsert(database, query, handler);
+      } else if (firstWord.equalsIgnoreCase("SELECT")) {
+        return executeSelect(database, query, handler);
+      } else {
+        return executeRawQuery(database, query, handler);
       }
+
     } finally {
       database.close();
     }
   }
 
+  private static String getFirstWord(String s) {
+    s.trim();
+    int firstSpace = s.indexOf(' ');
+    return firstSpace >= 0 ? s.substring(0, firstSpace) : s;
+  }
+
+  @TargetApi(DatabaseConstants.MIN_API_LEVEL)
+  private <T> T executeUpdateDelete(
+      SQLiteDatabase database,
+      String query,
+      ExecuteResultHandler<T> handler) {
+    SQLiteStatement statement = database.compileStatement(query);
+    int count = statement.executeUpdateDelete();
+    return handler.handleUpdateDelete(count);
+  }
+
+  private <T> T executeInsert(
+      SQLiteDatabase database,
+      String query,
+      ExecuteResultHandler<T> handler) {
+    SQLiteStatement statement = database.compileStatement(query);
+    long count = statement.executeInsert();
+    return handler.handleInsert(count);
+  }
+
+  private <T> T executeSelect(
+      SQLiteDatabase database,
+      String query,
+      ExecuteResultHandler<T> handler) {
+    Cursor cursor = database.rawQuery(query, null);
+    try {
+      return handler.handleSelect(cursor);
+    } finally {
+      cursor.close();
+    }
+  }
+
+  private <T> T executeRawQuery(
+      SQLiteDatabase database,
+      String query,
+      ExecuteResultHandler<T> handler) {
+    database.execSQL(query);
+    return handler.handleRawQuery();
+  }
   private SQLiteDatabase openDatabase(String databaseName) throws SQLiteException {
     Util.throwIfNull(databaseName);
     File databaseFile = mContext.getDatabasePath(databaseName);
@@ -129,7 +213,13 @@ public class DatabasePeerManager extends ChromePeerManager {
   }
 
   public interface ExecuteResultHandler<T> {
-    public T handleResult(Cursor result) throws SQLiteException;
+    public T handleRawQuery() throws SQLiteException;
+
+    public T handleSelect(Cursor result) throws SQLiteException;
+
+    public T handleInsert(long insertedId) throws SQLiteException;
+
+    public T handleUpdateDelete(int count) throws SQLiteException;
   }
 
   private final PeerRegistrationListener mPeerRegistrationListener =

@@ -7,16 +7,16 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 //
-// Copyright 2004-present Facebook. All Rights Reserved.
+// Copyright 2015-present Facebook. All Rights Reserved.
 
-package com.facebook.stetho.inspector.jsonrpc;
+package com.facebook.stetho.inspector.protocol.module;
 
-/**
- * @see JsonRpcPeer#registerDisconnectReceiver(DisconnectReceiver)
- */
-public interface DisconnectReceiver {
+import android.os.Build;
+
+public interface DatabaseConstants {
+
   /**
-   * Invoked when a WebSocket peer disconnects.
+   * Minimum API version required to use the {@link Database}.
    */
-  public void onDisconnect();
+  public static final int MIN_API_LEVEL = Build.VERSION_CODES.HONEYCOMB;
 }

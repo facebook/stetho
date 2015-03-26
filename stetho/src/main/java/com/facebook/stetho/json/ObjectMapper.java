@@ -1,3 +1,12 @@
+/*
+ * Copyright (c) 2014-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ */
+
 package com.facebook.stetho.json;
 
 import javax.annotation.Nullable;
@@ -10,7 +19,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.IllegalFormatCodePointException;
 import java.util.List;
 
 import com.facebook.stetho.common.ExceptionUtil;
@@ -96,7 +104,9 @@ public class ObjectMapper {
         field.set(instance, getValueForField(field, value));
       } catch (IllegalArgumentException e) {
         throw new IllegalArgumentException(
-            "Field: " + field.getName() + " type " + setValue.getClass().getName(), e);
+            "Class: " + type.getSimpleName() + " " +
+            "Field: " + field.getName() + " type " + setValue.getClass().getName(),
+            e);
       }
     }
     return instance;
@@ -227,9 +237,14 @@ public class ObjectMapper {
         // AutoBox here ...
         Object value = fields[i].get(fromValue);
         Class clazz = fields[i].getType();
+        if (value != null) {
+          clazz = value.getClass();
+        }
         String name = fields[i].getName();
         if (property.required() && value == null) {
           value = JSONObject.NULL;
+        } else if (value == JSONObject.NULL) {
+          // Leave it as null in this case.
         } else {
           value = getJsonValue(value, clazz, fields[i]);
         }
@@ -246,7 +261,7 @@ public class ObjectMapper {
       // if you pass a null "id"
       return null;
     }
-    if (clazz == List.class) {
+    if (List.class.isAssignableFrom(clazz)) {
       return convertListToJsonArray(value);
     }
     // Finally check to see if there is a JsonValue present
