@@ -23,7 +23,7 @@ afterEvaluate { project ->
         classpath += files(android.bootClasspath)
     }
 
-    task androidJavadocJar(type: Jar) {
+    task androidJavadocJar(type: Jar, dependsOn: androidJavadoc) {
         classifier = 'javadoc'
         from androidJavadoc.destinationDir
     }
