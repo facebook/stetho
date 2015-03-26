@@ -6,7 +6,6 @@ import android.app.Activity;
 import android.view.View;
 
 import com.facebook.stetho.common.ReflectionUtil;
-import com.facebook.stetho.common.LogUtil;
 import com.facebook.stetho.common.Util;
 
 import java.lang.reflect.Field;

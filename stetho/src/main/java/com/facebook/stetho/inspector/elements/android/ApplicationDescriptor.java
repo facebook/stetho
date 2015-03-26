@@ -43,7 +43,7 @@ final class ApplicationDescriptor extends ChainedDescriptor<Application> {
 
   @Override
   protected NodeType onGetNodeType(Application element) {
-    return NodeType.DOCUMENT_NODE;
+    return NodeType.ELEMENT_NODE;
   }
 
   @Override
