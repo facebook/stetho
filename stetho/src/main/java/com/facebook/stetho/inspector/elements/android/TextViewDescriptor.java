@@ -66,9 +66,9 @@ final class TextViewDescriptor extends ChainedDescriptor<TextView> {
     @Override
     public void afterTextChanged(Editable s) {
       if (s.length() == 0) {
-        getListener().onAttributeRemoved(mElement, TEXT_ATTRIBUTE_NAME);
+        getHost().onAttributeRemoved(mElement, TEXT_ATTRIBUTE_NAME);
       } else {
-        getListener().onAttributeModified(mElement, TEXT_ATTRIBUTE_NAME, s.toString());
+        getHost().onAttributeModified(mElement, TEXT_ATTRIBUTE_NAME, s.toString());
       }
     }
   }

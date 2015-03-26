@@ -109,7 +109,7 @@ final class ApplicationDescriptor extends ChainedDescriptor<Application> {
         @Override
         public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
           mActivities.add(0, activity);
-          getListener().onChildInserted(mElement, null, activity);
+          getHost().onChildInserted(mElement, null, activity);
         }
 
         @Override
@@ -135,7 +135,7 @@ final class ApplicationDescriptor extends ChainedDescriptor<Application> {
         @Override
         public void onActivityDestroyed(Activity activity) {
           mActivities.remove(activity);
-          getListener().onChildRemoved(mElement, activity);
+          getHost().onChildRemoved(mElement, activity);
         }
       };
 

@@ -7,10 +7,12 @@ import com.facebook.stetho.common.Util;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 public final class DescriptorMap {
   private final Map<Class<?>, Descriptor> mMap = new IdentityHashMap<Class<?>, Descriptor>();
   private boolean mIsInitializing;
-  private Descriptor.Listener mListener;
+  private Descriptor.Host mHost;
 
   public DescriptorMap beginInit() {
     Util.throwIf(mIsInitializing);
@@ -18,62 +20,72 @@ public final class DescriptorMap {
     return this;
   }
 
-  public DescriptorMap register(Class<?> elementClass, Descriptor nodeDescriptor) {
+  public DescriptorMap register(Class<?> elementClass, Descriptor descriptor) {
     Util.throwIfNull(elementClass);
-    Util.throwIfNull(nodeDescriptor);
+    Util.throwIfNull(descriptor);
+    Util.throwIf(descriptor.isInitialized());
     Util.throwIfNot(mIsInitializing);
 
+    // Cannot register two descriptors for one class
     if (mMap.containsKey(elementClass)) {
       throw new UnsupportedOperationException();
     }
 
-    mMap.put(elementClass, nodeDescriptor);
+    // Cannot reuse one descriptor for two classes
+    if (mMap.containsValue(descriptor)) {
+      throw new UnsupportedOperationException();
+    }
+
+    mMap.put(elementClass, descriptor);
     return this;
   }
 
-  public DescriptorMap setListener(Descriptor.Listener listener) {
-    Util.throwIfNull(listener);
+  public DescriptorMap setHost(Descriptor.Host host) {
+    Util.throwIfNull(host);
     Util.throwIfNot(mIsInitializing);
-    Util.throwIfNotNull(mListener);
+    Util.throwIfNotNull(mHost);
 
-    mListener = listener;
+    mHost = host;
 
     return this;
   }
 
   public DescriptorMap endInit() {
     Util.throwIfNot(mIsInitializing);
-    Util.throwIfNull(mListener);
-
-    for (final Class<?> elementClass : mMap.keySet()) {
-      final Descriptor nodeDescriptor = mMap.get(elementClass);
-
-      if (nodeDescriptor instanceof ChainedDescriptor) {
-        final ChainedDescriptor<?> chainedNodeDescriptor = (ChainedDescriptor<?>)nodeDescriptor;
-        Class<?> superClass = elementClass.getSuperclass();
-        Descriptor superNodeDescriptor = getImpl(superClass);
-        chainedNodeDescriptor.setSuper(superNodeDescriptor);
-      }
-
-      nodeDescriptor.setListener(mListener);
-    }
+    Util.throwIfNull(mHost);
 
     mIsInitializing = false;
+
+    for (final Class<?> elementClass : mMap.keySet()) {
+      final Descriptor descriptor = mMap.get(elementClass);
+
+      if (descriptor instanceof ChainedDescriptor) {
+        final ChainedDescriptor<?> chainedDescriptor = (ChainedDescriptor<?>) descriptor;
+        Class<?> superClass = elementClass.getSuperclass();
+        Descriptor superDescriptor = getImpl(superClass);
+        chainedDescriptor.setSuper(superDescriptor);
+      }
+
+      descriptor.initialize(mHost);
+    }
+
     return this;
   }
 
+  @Nullable
   public Descriptor get(Class<?> elementClass) {
     Util.throwIfNull(elementClass);
     Util.throwIf(mIsInitializing);
     return getImpl(elementClass);
   }
 
+  @Nullable
   private Descriptor getImpl(final Class<?> elementClass) {
     Class<?> theClass = elementClass;
     while (theClass != null) {
-      Descriptor nodeDescriptor = mMap.get(theClass);
-      if (nodeDescriptor != null) {
-        return nodeDescriptor;
+      Descriptor descriptor = mMap.get(theClass);
+      if (descriptor != null) {
+        return descriptor;
       }
 
       theClass = theClass.getSuperclass();
