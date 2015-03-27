@@ -1,3 +1,8 @@
+repositories {
+    // See dependencies below.
+    mavenLocal()
+}
+
 apply plugin: 'com.android.application'
 
 android {
@@ -11,10 +16,41 @@ android {
         versionCode 1
         versionName "1.0"
     }
+
+    buildTypes {
+        // release target excludes Stetho for illustration purposes.
+        // See dependencies for instructions on how Stetho developers
+        // can test this.
+        release {
+            debuggable false
+            signingConfig signingConfigs.debug
+        }
+    }
 }
 
 dependencies {
-    compile project(':stetho')
-    compile project(':stetho-urlconnection')
+    debugCompile project(':stetho')
+    debugCompile project(':stetho-urlconnection')
+
+    // We must use Maven dependency resolution to demonstrate our usage
+    // of optional dependencies to include stetho-urlconnection but not
+    // the full blown stetho.  For most projects, of course the simpler
+    // way to express this is:
+    //
+    //   dependencies {
+    //     debugCompile 'com.facebook.stetho:stetho:<VERSION>'
+    //     compile 'com.facebook.stetho:stetho-urlconnection:<VERSION>'
+    //   }
+    //
+    // For Stetho developers, to verify locally that things are working
+    // properly, you must install the latest version to ~/.m2/repository as
+    // such:
+    //
+    //   ./gradlew installArchives
+    //
+    // Then uncomment the Maven style dependency and comment the project one:
+    //releaseCompile "com.facebook.stetho:stetho-urlconnection:${VERSION_NAME}"
+    releaseCompile project(':stetho-urlconnection')
+
     compile 'com.google.code.findbugs:jsr305:2.0.1'
 }

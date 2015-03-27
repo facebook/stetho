@@ -14,4 +14,5 @@
   <string name="pref_list_dialog_title">Choices</string>
   <string name="pref_change_message">%1$s is now \'%2$s\'</string>
   <string name="apod_title">APOD Listing</string>
+  <string name="stetho_missing">Stetho missing in %s build!</string>
 </resources>
