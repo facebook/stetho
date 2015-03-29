@@ -131,8 +131,7 @@ public class CrashDumperPlugin implements DumperPlugin {
       Thread crashThread = new Thread(new ThrowRunnable(t));
       crashThread.start();
 
-      CountDownLatch impossibleLatch = new CountDownLatch(1);
-      Util.awaitUninterruptibly(impossibleLatch);
+      Util.joinUninterruptibly(crashThread);
     } catch (
         ClassNotFoundException |
         ClassCastException |
@@ -143,7 +142,7 @@ public class CrashDumperPlugin implements DumperPlugin {
     } catch (InvocationTargetException e) {
       // This means that the method invoked actually threw, independent of reflection.  Best
       // reflect that as a normal unchecked exception in dumpapp output.
-      ExceptionUtil.propagate(e.getCause());
+      throw ExceptionUtil.propagate(e.getCause());
     }
   }
 

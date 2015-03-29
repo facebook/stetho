@@ -80,10 +80,10 @@ public class Util {
     } while (remaining > 0);
   }
 
-  public static void awaitUninterruptibly(CountDownLatch latch) {
+  public static void joinUninterruptibly(Thread t) {
     while (true) {
       try {
-        latch.await();
+        t.join();
         return;
       } catch (InterruptedException e) {
         // Keep going...
