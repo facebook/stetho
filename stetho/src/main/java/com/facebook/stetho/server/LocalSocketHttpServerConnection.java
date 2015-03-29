@@ -147,5 +147,15 @@ public class LocalSocketHttpServerConnection extends AbstractHttpServerConnectio
         HttpParams params) throws IOException {
       init(socket.getOutputStream(), bufferSize, params);
     }
+
+    @Override
+    public void flush() throws IOException {
+      // Do not call through to super.flush() to fix a serious throughput issue due to a
+      // polling/sleep based implementation of LocalSocketImpl#flush.  This is apparently done to
+      // guarantee that after flush is called the write buffer has been fully drained but we don't
+      // need or expect this guarantee since our buffering strategy is entirely at the HTTP
+      // level.
+      flushBuffer();
+    }
   }
 }
