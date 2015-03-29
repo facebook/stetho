@@ -114,8 +114,6 @@ public class CrashDumperPlugin implements DumperPlugin {
 
   private void doUncaughtException(Iterator<String> argsIter) throws DumpException {
     String throwableClassString = ArgsHelper.nextOptionalArg(argsIter, OPTION_THROW_DEFAULT);
-
-
     try {
       Class<? extends Throwable> throwableClass =
           (Class<? extends Throwable>)Class.forName(throwableClassString);
