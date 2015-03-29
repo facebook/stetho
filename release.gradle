@@ -17,6 +17,29 @@ def getRepositoryPassword() {
     return hasProperty('repositoryPassword') ? property('repositoryPassword') : ""
 }
 
+def postProcessPom(def pom) {
+    applyOptionalDeps(pom, getOptionalDeps())
+}
+
+// Hack to modify the resulting pom's dependencies to use
+// <optional>true</optional> where appropriate.
+def applyOptionalDeps(def pom, def optionalDeps) {
+    pom.dependencies.each { dep ->
+        def artifactLabel = dep.groupId + ':' + dep.artifactId
+        if (optionalDeps.contains(artifactLabel)) {
+            dep.optional = true
+        }
+    }
+}
+
+def getOptionalDeps() {
+    if (hasProperty('POM_OPTIONAL_DEPS')) {
+        return property('POM_OPTIONAL_DEPS').split(',') as Set
+    } else {
+        return []
+    }
+}
+
 afterEvaluate { project ->
     task androidJavadoc(type: Javadoc) {
         source = android.sourceSets.main.java.srcDirs
@@ -68,6 +91,9 @@ afterEvaluate { project ->
 
             }
 
+            pom.whenConfigured { pom ->
+                postProcessPom(pom)
+            }
             pom.project {
                 name POM_NAME
                 artifactId POM_ARTIFACT_ID
@@ -104,6 +130,9 @@ afterEvaluate { project ->
         repositories {
             mavenDeployer {
                 repository url: "file://${System.properties['user.home']}/.m2/repository"
+                pom.whenConfigured { pom ->
+                    postProcessPom(pom)
+                }
             }
         }
     }
