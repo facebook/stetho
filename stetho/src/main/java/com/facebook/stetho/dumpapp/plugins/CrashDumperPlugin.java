@@ -113,61 +113,63 @@ public class CrashDumperPlugin implements DumperPlugin {
   }
 
   private void doUncaughtException(Iterator<String> argsIter) throws DumpException {
-    String throwableClass = ArgsHelper.nextOptionalArg(argsIter, OPTION_THROW_DEFAULT);
+    String throwableClassString = ArgsHelper.nextOptionalArg(argsIter, OPTION_THROW_DEFAULT);
+
+
     try {
-      Thread crashThread = new Thread(
-          new ThrowRunnable(
-              (Class<? extends Throwable>)Class.forName(throwableClass)));
+      Class<? extends Throwable> throwableClass =
+          (Class<? extends Throwable>)Class.forName(throwableClassString);
+      Throwable t;
+      Constructor<? extends Throwable> ctorWithMessage =
+          tryGetDeclaredConstructor(throwableClass, String.class);
+      if (ctorWithMessage != null) {
+        t = ctorWithMessage.newInstance("Uncaught exception triggered by Stetho");
+      } else {
+        Constructor<? extends Throwable> ctorParameterless =
+            throwableClass.getDeclaredConstructor();
+        t = ctorParameterless.newInstance();
+      }
+
+      Thread crashThread = new Thread(new ThrowRunnable(t));
       crashThread.start();
 
       CountDownLatch impossibleLatch = new CountDownLatch(1);
       Util.awaitUninterruptibly(impossibleLatch);
-    } catch (NoSuchMethodException | ClassNotFoundException | ClassCastException e) {
+    } catch (
+        ClassNotFoundException |
+        ClassCastException |
+        NoSuchMethodException |
+        IllegalAccessException |
+        InstantiationException e) {
       throw new DumpException("Invalid supplied Throwable class: " + e);
+    } catch (InvocationTargetException e) {
+      // This means that the method invoked actually threw, independent of reflection.  Best
+      // reflect that as a normal unchecked exception in dumpapp output.
+      ExceptionUtil.propagate(e.getCause());
+    }
+  }
+
+  @Nullable
+  private static <T> Constructor<? extends T> tryGetDeclaredConstructor(
+      Class<T> clazz,
+      Class<?>... parameterTypes) {
+    try {
+      return clazz.getDeclaredConstructor(parameterTypes);
+    } catch (NoSuchMethodException e) {
+      return null;
     }
   }
 
   private static class ThrowRunnable implements Runnable {
-    @Nullable
-    private final Constructor<? extends Throwable> mDetailMessageConstructor;
+    private final Throwable mThrowable;
 
-    private final Constructor<? extends Throwable> mParameterlessConstructor;
-
-    public ThrowRunnable(Class<? extends Throwable> throwableClass) throws NoSuchMethodException {
-      mDetailMessageConstructor = tryGetDeclaredConstructor(throwableClass, String.class);
-      mParameterlessConstructor = throwableClass.getDeclaredConstructor();
-    }
-
-    @Nullable
-    private static <T> Constructor<? extends T> tryGetDeclaredConstructor(
-        Class<T> clazz,
-        Class<?>... parameterTypes) {
-      try {
-        return clazz.getDeclaredConstructor(parameterTypes);
-      } catch (NoSuchMethodException e) {
-        return null;
-      }
+    public ThrowRunnable(Throwable t) {
+      mThrowable = t;
     }
 
     @Override
     public void run() {
-      try {
-        Throwable t = createThrowable();
-        ExceptionUtil.<Error>sneakyThrow(t);
-      } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-        // Hehe, ok whatever :)
-        ExceptionUtil.<Error>sneakyThrow(e);
-      }
-    }
-
-    private Throwable createThrowable()
-        throws IllegalAccessException, InvocationTargetException, InstantiationException {
-      if (mDetailMessageConstructor != null) {
-        return mDetailMessageConstructor.newInstance(
-            "Uncaught exception triggered by Stetho");
-      } else {
-        return mParameterlessConstructor.newInstance();
-      }
+      ExceptionUtil.<Error>sneakyThrow(mThrowable);
     }
   }
 }
