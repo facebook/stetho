@@ -15,6 +15,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.concurrent.CountDownLatch;
 
 public class Util {
   public static <T> T throwIfNull(T item) {
@@ -77,5 +78,16 @@ public class Util {
         remaining -= sleptFor;
       }
     } while (remaining > 0);
+  }
+
+  public static void joinUninterruptibly(Thread t) {
+    while (true) {
+      try {
+        t.join();
+        return;
+      } catch (InterruptedException e) {
+        // Keep going...
+      }
+    }
   }
 }
