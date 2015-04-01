@@ -85,7 +85,9 @@ public class ObjectIdMapper {
   }
 
   public int size() {
-    return mObjectToIdMap.size();
+    synchronized (mSync) {
+      return mObjectToIdMap.size();
+    }
   }
 
   protected void onMapped(Object object, int id) {

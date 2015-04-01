@@ -158,9 +158,6 @@ public class DOM implements ChromeDevtoolsDomain {
 
     @Override
     protected synchronized void onLastPeerUnregistered() {
-      Object rootElement = mDOMProvider.getRootElement();
-      removeElementTree(rootElement);
-
       mObjectIdMapper.clear();
 
       mDOMProvider.dispose();
