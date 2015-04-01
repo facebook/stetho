@@ -19,6 +19,8 @@ public interface DOMProvider {
 
   public void hideHighlight();
 
+  public void setInspectModeEnabled(boolean enabled);
+
   public static interface Factory {
     DOMProvider create();
   }
@@ -41,5 +43,8 @@ public interface DOMProvider {
     public void onChildRemoved(
         Object parentElement,
         Object childElement);
+
+    public void onInspectRequested(
+        Object element);
   }
 }
