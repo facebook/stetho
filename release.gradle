@@ -17,6 +17,59 @@ def getRepositoryPassword() {
     return hasProperty('repositoryPassword') ? property('repositoryPassword') : ""
 }
 
+def configureStethoPom(def pom) {
+    pom.whenConfigured {
+        applyOptionalDeps it, getOptionalDeps()
+    }
+    pom.project {
+        name POM_NAME
+        artifactId POM_ARTIFACT_ID
+        packaging POM_PACKAGING
+        description 'Stetho Debugging Platform for Android'
+        url 'https://github.com/facebook/stetho'
+
+        scm {
+            url 'https://github.com/facebook/stetho.git'
+            connection 'scm:git:https://github.com/facebook/stetho.git'
+            developerConnection 'scm:git:git@github.com:facebook/stetho.git'
+        }
+
+        licenses {
+            license {
+                name 'BSD License'
+                url 'https://github.com/facebook/stetho/blob/master/LICENSE'
+                distribution 'repo'
+            }
+        }
+
+        developers {
+            developer {
+                id 'facebook'
+                name 'Facebook'
+            }
+        }
+    }
+}
+
+// Hack to modify the resulting pom's dependencies to use
+// <optional>true</optional> where appropriate.
+def applyOptionalDeps(def pom, def optionalDeps) {
+    pom.dependencies.each { dep ->
+        def artifactLabel = dep.groupId + ':' + dep.artifactId
+        if (optionalDeps.contains(artifactLabel)) {
+            dep.optional = true
+        }
+    }
+}
+
+def getOptionalDeps() {
+    if (hasProperty('POM_OPTIONAL_DEPS')) {
+        return property('POM_OPTIONAL_DEPS').split(',') as Set
+    } else {
+        return []
+    }
+}
+
 afterEvaluate { project ->
     task androidJavadoc(type: Javadoc) {
         source = android.sourceSets.main.java.srcDirs
@@ -68,34 +121,7 @@ afterEvaluate { project ->
 
             }
 
-            pom.project {
-                name POM_NAME
-                artifactId POM_ARTIFACT_ID
-                packaging POM_PACKAGING
-                description 'Stetho Debugging Platform for Android'
-                url 'https://github.com/facebook/stetho'
-
-                scm {
-                    url 'https://github.com/facebook/stetho.git'
-                    connection 'scm:git:https://github.com/facebook/stetho.git'
-                    developerConnection 'scm:git:git@github.com:facebook/stetho.git'
-                }
-
-                licenses {
-                    license {
-                        name 'BSD License'
-                        url 'https://github.com/facebook/stetho/blob/master/LICENSE'
-                        distribution 'repo'
-                    }
-                }
-
-                developers {
-                    developer {
-                        id 'facebook'
-                        name 'Facebook'
-                    }
-                }
-            }
+            configureStethoPom pom
         }
     }
 
@@ -104,6 +130,7 @@ afterEvaluate { project ->
         repositories {
             mavenDeployer {
                 repository url: "file://${System.properties['user.home']}/.m2/repository"
+                configureStethoPom pom
             }
         }
     }
