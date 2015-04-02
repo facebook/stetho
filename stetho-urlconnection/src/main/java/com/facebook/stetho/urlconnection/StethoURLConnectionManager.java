@@ -31,19 +31,23 @@ import java.net.HttpURLConnection;
  */
 @NotThreadSafe
 public class StethoURLConnectionManager {
-  private static boolean sIsStethoPresent = isStethoPresent();
+  private static final boolean sIsStethoPresent;
 
-  private static boolean isStethoPresent() {
+  static {
+    boolean isStethoPresent = false;
     try {
       Class.forName("com.facebook.stetho.Stetho");
-      return true;
+      isStethoPresent = true;
     } catch (ClassNotFoundException e) {
-      return false;
     }
+    sIsStethoPresent = isStethoPresent;
   }
 
+  @Nullable
   private final Holder mHolder;
 
+  // Holder hides StethoURLConnectionManagerImpl from the class verifier as per:
+  // http://en.wikipedia.org/wiki/Initialization-on-demand_holder_idiom
   private static class Holder {
     private final StethoURLConnectionManagerImpl impl;
 
@@ -61,7 +65,7 @@ public class StethoURLConnectionManager {
   }
 
   public boolean isStethoEnabled() {
-    return isStethoPresent() && mHolder.impl.isStethoActive();
+    return mHolder != null && mHolder.impl.isStethoActive();
   }
 
   /**
@@ -76,7 +80,7 @@ public class StethoURLConnectionManager {
   public void preConnect(
       HttpURLConnection connection,
       @Nullable SimpleRequestEntity requestEntity) {
-    if (isStethoPresent()) {
+    if (mHolder != null) {
       mHolder.impl.preConnect(connection, requestEntity);
     }
   }
@@ -91,7 +95,7 @@ public class StethoURLConnectionManager {
    *     throws.
    */
   public void postConnect() throws IOException {
-    if (isStethoPresent()) {
+    if (mHolder != null) {
       mHolder.impl.postConnect();
     }
   }
@@ -103,7 +107,7 @@ public class StethoURLConnectionManager {
    * @param ex Relay the exception that was thrown from {@link java.net.HttpURLConnection}
    */
   public void httpExchangeFailed(IOException ex) {
-    if (isStethoPresent()) {
+    if (mHolder != null) {
       mHolder.impl.httpExchangeFailed(ex);
     }
   }
@@ -124,7 +128,7 @@ public class StethoURLConnectionManager {
    * @return The filtering stream which is to be read after this method is called.
    */
   public InputStream interpretResponseStream(@Nullable InputStream responseStream) {
-    if (isStethoPresent()) {
+    if (mHolder != null) {
       return mHolder.impl.interpretResponseStream(responseStream);
     } else {
       return responseStream;
@@ -144,7 +148,7 @@ public class StethoURLConnectionManager {
   @Deprecated
   @Nullable
   public Object getStethoHook() {
-    if (isStethoPresent()) {
+    if (mHolder != null) {
       return mHolder.impl.getStethoHook();
     } else {
       return null;
@@ -158,7 +162,7 @@ public class StethoURLConnectionManager {
    */
   @Nullable
   public String getStethoRequestId() {
-    if (isStethoPresent()) {
+    if (mHolder != null) {
       return mHolder.impl.getStethoRequestId();
     } else {
       return null;
