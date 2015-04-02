@@ -99,7 +99,6 @@ final class ApplicationDescriptor extends ChainedDescriptor<Application> {
     @Override
     public void hook(Application element) {
       mElement = Util.throwIfNull(element);
-      mActivities = new ArrayList<Activity>();
 
       // TODO: tree diffing will remove the need to even worry about installing this callback,
       //       which will then allow ~realtime updates for pre-ICS. for now, pre-ICS will just
@@ -141,7 +140,7 @@ final class ApplicationDescriptor extends ChainedDescriptor<Application> {
 
       mElement.registerActivityLifecycleCallbacks(mCallbacks);
 
-      mActivities = ApplicationUtil.getAllActivities();
+      mActivities = new ArrayList<Activity>(ApplicationUtil.getAllActivities());
     }
 
     @Override

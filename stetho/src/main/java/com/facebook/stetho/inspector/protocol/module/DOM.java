@@ -163,6 +163,11 @@ public class DOM implements ChromeDevtoolsDomain {
   }
 
   private void removeElementTree(Object element) {
+    if (!mObjectIdMapper.containsObject(element)) {
+      LogUtil.w("DOM.removeElementTree() called for a non-mapped node: element=%s", element);
+      return;
+    }
+
     NodeDescriptor descriptor = mDOMProvider.getNodeDescriptor(element);
     int childCount = descriptor.getChildCount(element);
     for (int i = 0; i < childCount; ++i) {

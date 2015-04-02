@@ -4,7 +4,6 @@ package com.facebook.stetho.inspector.helper;
 
 import android.util.SparseArray;
 
-import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
@@ -36,6 +35,18 @@ public class ObjectIdMapper {
       int id = idToObjectMap.keyAt(i);
       Object object = idToObjectMap.valueAt(i);
       onUnmapped(object, id);
+    }
+  }
+
+  public boolean containsId(int id) {
+    synchronized (mSync) {
+      return mIdToObjectMap.get(id) != null;
+    }
+  }
+
+  public boolean containsObject(Object object) {
+    synchronized (mSync) {
+      return mObjectToIdMap.containsKey(object);
     }
   }
 
