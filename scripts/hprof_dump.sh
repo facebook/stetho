@@ -18,7 +18,7 @@ fi
 TEMPFILE="${OUTFILE}-dalvik.tmp"
 
 echo "Generating hprof on device (this can take a while)..."
-$DUMPAPP hprof - > ${TEMPFILE}
+$DUMPAPP "$@" hprof - > ${TEMPFILE}
 
 echo "Converting $TEMPFILE to standard format..."
 hprof-conv $TEMPFILE $OUTFILE
