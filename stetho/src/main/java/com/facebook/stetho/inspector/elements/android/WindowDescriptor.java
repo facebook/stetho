@@ -10,12 +10,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 
 import com.facebook.stetho.common.LogUtil;
 import com.facebook.stetho.inspector.elements.ChainedDescriptor;
+import com.facebook.stetho.inspector.elements.Descriptor;
 
 import java.util.Collections;
 import java.util.IdentityHashMap;
@@ -49,15 +51,25 @@ final class WindowDescriptor extends ChainedDescriptor<Window> implements Highli
     View decorView = element.peekDecorView();
     if (decorView == null) {
       throw new IndexOutOfBoundsException();
-    } else {
-      return decorView;
     }
+
+    registerDecorView(decorView);
+    return decorView;
   }
 
   @Override
   public View getViewForHighlighting(Object element) {
     Window window = (Window)element;
     return window.peekDecorView();
+  }
+
+  private void registerDecorView(View decorView) {
+    if (decorView instanceof ViewGroup) {
+      Descriptor descriptor = getHost().getDescriptor(decorView);
+      if (descriptor instanceof ViewGroupDescriptor) {
+        ((ViewGroupDescriptor)descriptor).registerDecorView((ViewGroup)decorView);
+      }
+    }
   }
 
   // TODO: We're probably going to switch to another way of determining structural
@@ -189,6 +201,7 @@ final class WindowDescriptor extends ChainedDescriptor<Window> implements Highli
       if (mDecorView == null) {
         mDecorView = mWindow.peekDecorView();
         if (mDecorView != null) {
+          registerDecorView(mDecorView);
           getHost().onChildInserted(mWindow, null, mDecorView);
           // TODO: once we have the decorView, we don't need to worry about further changes (AFAIK).
           //       but since we're going to do something else for this (tree diffing), I don't
