@@ -9,6 +9,8 @@ public interface DOMProvider {
 
   public void dispose();
 
+  public boolean postAndWait(Runnable r);
+
   @Nullable
   public Object getRootElement();
 
