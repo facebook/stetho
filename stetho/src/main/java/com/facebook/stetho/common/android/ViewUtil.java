@@ -2,9 +2,11 @@
 
 package com.facebook.stetho.common.android;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.PointF;
+import android.os.Build;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
@@ -18,6 +20,18 @@ public final class ViewUtil {
   private ViewUtil() {
   }
 
+  private static boolean isHittable(View view) {
+    if (view.getVisibility() != View.VISIBLE) {
+      return false;
+    }
+
+    if (ViewCompat.getInstance().getAlpha(view) < 0.001f) {
+      return false;
+    }
+
+    return true;
+  }
+
   @Nullable
   public static View hitTest(View view, float x, float y) {
     return hitTest(view, x, y, null /* viewSelector */);
@@ -25,40 +39,59 @@ public final class ViewUtil {
 
   // x,y are in view's local coordinate space (relative to its own top/left)
   @Nullable
-  public static View hitTest(View view, float x, float y, @Nullable Predicate<View> viewSelector) {
+  public static View hitTest(
+      View view,
+      float x,
+      float y,
+      @Nullable Predicate<View> viewSelector) {
+    View result = hitTestImpl(view, x, y, viewSelector, false);
+    if (result == null) {
+      result = hitTestImpl(view, x, y, viewSelector, true);
+    }
+    return result;
+  }
+
+  private static View hitTestImpl(
+      View view,
+      float x,
+      float y,
+      @Nullable Predicate<View> viewSelector,
+      boolean allowViewGroupResult) {
+    if (!isHittable(view)) {
+      return null;
+    }
+
     if (!ViewUtil.pointInView(view, x, y)) {
       return null;
     }
 
-    if (!(view instanceof ViewGroup)) {
+    if (viewSelector != null && !viewSelector.apply(view)) {
       return null;
+    }
+
+    if (!(view instanceof ViewGroup)) {
+      return view;
     }
 
     final ViewGroup viewGroup = (ViewGroup)view;
 
     // TODO: get list of Views that are sorted in Z- and draw-order, e.g. buildOrderedChildList()
-    for (int i = viewGroup.getChildCount() - 1; i >= 0; --i) {
-      final View child = viewGroup.getChildAt(i);
-
-      if (child.getVisibility() != View.VISIBLE) {
-        continue;
-      }
-
-      if (viewSelector != null && !viewSelector.apply(child)) {
-        continue;
-      }
-
+    if (viewGroup.getChildCount() > 0) {
       PointF localPoint = new PointF();
-      if (ViewUtil.isTransformedPointInView(viewGroup, child, x, y, localPoint)) {
-        if (child instanceof ViewGroup) {
-          return hitTest(child, localPoint.x, localPoint.y, viewSelector);
-        } else {
-          return child;
+
+      for (int i = viewGroup.getChildCount() - 1; i >= 0; --i) {
+        final View child = viewGroup.getChildAt(i);
+
+        if (ViewUtil.isTransformedPointInView(viewGroup, child, x, y, localPoint)) {
+          View childResult = hitTest(child, localPoint.x, localPoint.y, viewSelector);
+          if (childResult != null) {
+            return childResult;
+          }
         }
       }
     }
 
-    return viewGroup;
+    return allowViewGroupResult ? viewGroup : null;
   }
 
   public static boolean pointInView(View view, float localX, float localY) {
@@ -113,5 +146,35 @@ public final class ViewUtil {
     }
 
     return null;
+  }
+
+  private static class ViewCompat {
+    private static final ViewCompat sInstance;
+    static {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+        sInstance = new ViewCompatHoneycomb();
+      } else {
+        sInstance = new ViewCompat();
+      }
+    }
+
+    public static ViewCompat getInstance() {
+      return sInstance;
+    }
+
+    protected ViewCompat() {
+    }
+
+    public float getAlpha(View view) {
+      return 1.0f;
+    }
+
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    private static class ViewCompatHoneycomb extends ViewCompat {
+      @Override
+      public float getAlpha(View view) {
+        return view.getAlpha();
+      }
+    }
   }
 }
