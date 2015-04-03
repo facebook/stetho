@@ -13,23 +13,29 @@ import android.content.res.Resources;
 import com.facebook.stetho.common.LogUtil;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class ResourcesUtil {
   private ResourcesUtil() {
   }
 
   @Nonnull
-  public static String getIdStringQuietly(Object idContext, Resources r, int resourceId) {
+  public static String getIdStringQuietly(Object idContext, @Nullable Resources r, int resourceId) {
     try {
       return getIdString(r, resourceId);
     } catch (Resources.NotFoundException e) {
-      String idString = "#" + Integer.toHexString(resourceId);
+      String idString = getFallbackIdString(resourceId);
       LogUtil.w("Unknown identifier encountered on " + idContext + ": " + idString);
       return idString;
     }
   }
 
-  public static String getIdString(Resources r, int resourceId) throws Resources.NotFoundException {
+  public static String getIdString(@Nullable Resources r, int resourceId)
+      throws Resources.NotFoundException {
+    if (r == null) {
+      return getFallbackIdString(resourceId);
+    }
+
     String prefix;
     String prefixSeparator;
     switch (getResourcePackageId(resourceId)) {
@@ -57,6 +63,10 @@ public class ResourcesUtil {
     sb.append(entryName);
 
     return sb.toString();
+  }
+
+  private static String getFallbackIdString(int resourceId) {
+    return "#" + Integer.toHexString(resourceId);
   }
 
   private static int getResourcePackageId(int id) {
