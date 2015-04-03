@@ -1,40 +1,12 @@
 # Stetho [![Build Status](https://travis-ci.org/facebook/stetho.svg?branch=master)](https://travis-ci.org/facebook/stetho)
 
-Stetho is a sophisticated debug bridge for Android applications. When enabled,
+[Stetho](https://facebook.github.io/stetho) is a sophisticated debug bridge for Android applications. When enabled,
 developers have access to the Chrome Developer Tools feature natively part of
 the Chrome desktop browser. Developers can also choose to enable the optional
 `dumpapp` tool which offers a powerful command-line interface to application
 internals.
 
-## Features
-
-### Chrome DevTools UI
-The integration with the Chrome DevTools frontend is implemented 
-using a client/server protocol which  Stetho 
-provides for your application.  Once your application is integrated, simply
-navigate to `chrome://inspect` and click "Inspect" to get started!
-
-![DevTools Discovery Screenshot](https://github.com/facebook/stetho/raw/master/docs/images/inspector-discovery.png)
-
-#### Network inspection
-Network inspection is possible with the full spectrum of Chrome Developer Tools features, including image preview, JSON response helpers, and even exporting traces to the HAR format.
-
-![DevTools Network Screenshot](https://github.com/facebook/stetho/raw/master/docs/images/inspector-network.png)
-
-#### Database inspection
-SQLite databases can be visualized and interactively explored with full read/write capabilities.
-
-![DevTools WebSQL Screenshot](https://github.com/facebook/stetho/raw/master/docs/images/inspector-sqlite.png)
-
-### dumpapp
-Dumpapp extends beyond the DevTools UI features shown above to provide a much
-more extensible, command-line interface to application components.  A default
-set of plugins is provided, but the real power of dumpapp is the ability to
-easily create your own!
-
-![dumpapp prefs Screenshot](https://github.com/facebook/stetho/raw/master/docs/images/dumpapp-prefs.png)
-
-## Integration
+## Set-up
 
 ### Download
 Download [the latest JARs](https://github.com/facebook/stetho/releases/latest) or grab via Gradle:
@@ -60,7 +32,7 @@ or:
 compile 'com.facebook.stetho:stetho-urlconnection:1.0.1'
 ```
 
-### Set-up
+### Putting it together
 Integrating with Stetho is intended to be seamless and straightforward for
 most existing Android applications.  There is a simple initialization step
 which occurs in your `Application` class:
