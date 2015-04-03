@@ -22,5 +22,6 @@ public interface APODContract {
     public static final String TITLE = "title";
     public static final String DESCRIPTION_TEXT = "description_text";
     public static final String DESCRIPTION_IMAGE_URL = "description_image_url";
+    public static final String LARGE_IMAGE_URL = "large_image_url";
   }
 }

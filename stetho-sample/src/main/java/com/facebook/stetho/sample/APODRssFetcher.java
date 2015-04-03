@@ -9,25 +9,25 @@
 
 package com.facebook.stetho.sample;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.OperationApplicationException;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.RemoteException;
-import android.text.Html;
 import android.util.Log;
 import android.util.Xml;
-
+import com.facebook.stetho.common.Utf8Charset;
+import com.facebook.stetho.common.Util;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
+
+import javax.annotation.Nullable;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 public class APODRssFetcher {
   private static final String TAG = "APODRssFetcher";
@@ -53,7 +53,9 @@ public class APODRssFetcher {
     public void onResponse(Networker.HttpResponse result) {
       if (result.statusCode == 200) {
         try {
-          parseAndStore(result.body);
+          List<RssItem> rssItems = parseRss(result.body);
+          List<ApodItem> apodItems = decorateRssItemsWithLinkImages(rssItems);
+          store(apodItems);
         } catch (XmlPullParserException e) {
           Log.e(TAG, "Parse error", e);
         } catch (OperationApplicationException e) {
@@ -73,23 +75,46 @@ public class APODRssFetcher {
       // Show in Stetho :)
     }
 
-    private void parseAndStore(byte[] body)
-        throws
-            XmlPullParserException,
-            RemoteException,
-            OperationApplicationException,
-            IOException {
+    private List<RssItem> parseRss(byte[] body) throws IOException, XmlPullParserException {
       XmlPullParser parser = Xml.newPullParser();
       parser.setInput(new ByteArrayInputStream(body), "UTF-8");
       List<RssItem> items = new RssParser(parser).parse();
       Log.d(TAG, "Fetched " + items.size() + " items");
 
+      return items;
+    }
+
+    public List<ApodItem> decorateRssItemsWithLinkImages(List<RssItem> rssItems) {
+      ArrayList<ApodItem> apodItems = new ArrayList<>(rssItems.size());
+      final CountDownLatch fetchLinkLatch = new CountDownLatch(rssItems.size());
+      for (RssItem rssItem : rssItems) {
+        final ApodItem apodItem = new ApodItem();
+        apodItem.rssItem = rssItem;
+        fetchLinkPage(rssItem.link, new PageScrapedCallback() {
+          @Override
+          public void onPageScraped(@Nullable List<String> imageUrls) {
+            apodItem.largeImageUrl = imageUrls != null && !imageUrls.isEmpty()
+                ? imageUrls.get(0)
+                : null;
+            fetchLinkLatch.countDown();
+          }
+        });
+        apodItems.add(apodItem);
+      }
+
+      // Wait for all link fetches to complete, despite running them in parallel...
+      Util.awaitUninterruptibly(fetchLinkLatch);
+
+      return apodItems;
+    }
+
+    private void store(List<ApodItem> items) throws RemoteException, OperationApplicationException {
       ArrayList<ContentProviderOperation> operations = new ArrayList<ContentProviderOperation>();
       operations.add(
           ContentProviderOperation.newDelete(APODContract.CONTENT_URI)
               .build());
-      for (RssItem item : items) {
-        Log.d(TAG, "Add item: " + item.title);
+      for (ApodItem item : items) {
+        Log.d(TAG, "Add item: " + item.rssItem.title);
         operations.add(
             ContentProviderOperation.newInsert(APODContract.CONTENT_URI)
                 .withValues(convertItemToValues(item))
@@ -99,42 +124,70 @@ public class APODRssFetcher {
       mContentResolver.applyBatch(APODContract.AUTHORITY, operations);
     }
 
-    private ContentValues convertItemToValues(RssItem item) {
+    private ContentValues convertItemToValues(ApodItem item) {
       ContentValues values = new ContentValues();
-      values.put(APODContract.Columns.TITLE, item.title);
+      values.put(APODContract.Columns.TITLE, item.rssItem.title);
 
-      ExtractImageGetter imageGetter = new ExtractImageGetter();
-      String strippedText = Html.fromHtml(
-          item.description,
-          imageGetter,
-          null /* tagHandler */)
-          .toString();
+      ArrayList<String> imageUrls = new ArrayList<>();
+      String strippedText = HtmlScraper.parseWithImageTags(
+          item.rssItem.description,
+          null /* origin */,
+          imageUrls);
 
       // Hack to remove some strange non-printing character at the start...
       strippedText = strippedText.substring(1).trim();
-      List<String> imageUrls = imageGetter.getSources();
       String imageUrl = !imageUrls.isEmpty() ? imageUrls.get(0) : null;
 
       values.put(APODContract.Columns.DESCRIPTION_IMAGE_URL, imageUrl);
       values.put(APODContract.Columns.DESCRIPTION_TEXT, strippedText);
+      values.put(APODContract.Columns.LARGE_IMAGE_URL, item.largeImageUrl);
 
       return values;
     }
   };
 
-  private static class ExtractImageGetter implements Html.ImageGetter {
-    private final ArrayList<String> mSources = new ArrayList<String>();
+  private void fetchLinkPage(String linkUrl, PageScrapedCallback callback) {
+    String originUrl = getOriginUri(Uri.parse(linkUrl)).toString();
+    Networker.HttpRequest request = Networker.HttpRequest.newBuilder()
+        .friendlyName("fetchLinkPage")
+        .method(Networker.HttpMethod.GET)
+        .url(linkUrl)
+        .build();
+    Networker.get().submit(request, new PageScrapeNetworkCallback(originUrl, callback));
+  }
 
-    @Override
-    public Drawable getDrawable(String source) {
-      mSources.add(source);
+  private static Uri getOriginUri(Uri uri) {
+    Uri.Builder b = uri.buildUpon();
+    b.encodedPath(null);
 
-      // Dummy drawable.
-      return new ColorDrawable(Color.TRANSPARENT);
+    List<String> segments = uri.getPathSegments();
+    for (int i = 0; i < segments.size() - 1; i++) {
+      b.appendEncodedPath(segments.get(i));
     }
 
-    public List<String> getSources() {
-      return mSources;
+    return b.build();
+  }
+
+  private static class PageScrapeNetworkCallback implements Networker.Callback {
+    @Nullable private final String mOrigin;
+    private final PageScrapedCallback mDelegate;
+
+    public PageScrapeNetworkCallback(@Nullable String origin, PageScrapedCallback delegate) {
+      mOrigin = origin;
+      mDelegate = delegate;
+    }
+
+    @Override
+    public void onResponse(Networker.HttpResponse result) {
+      ArrayList<String> imageUrls = new ArrayList<>();
+      String htmlText = Utf8Charset.decodeUTF8(result.body);
+      HtmlScraper.parseWithImageTags(htmlText, mOrigin, imageUrls);
+      mDelegate.onPageScraped(imageUrls);
+    }
+
+    @Override
+    public void onFailure(IOException e) {
+      mDelegate.onPageScraped(null /* imageUrls */);
     }
   }
 
@@ -181,6 +234,8 @@ public class APODRssFetcher {
           item.title = readTextFromTag("title");
         } else if (name.equals("description")) {
           item.description = readTextFromTag("description");
+        } else if (name.equals("link")) {
+          item.link = readTextFromTag("link");
         } else {
           skip();
         }
@@ -225,5 +280,19 @@ public class APODRssFetcher {
   private static class RssItem {
     public String title;
     public String description;
+    public String link;
+  }
+
+  private static class ApodItem {
+    public RssItem rssItem;
+    @Nullable public String largeImageUrl;
+  }
+
+  private interface PageScrapedCallback {
+    /**
+     * @param imageUrls Image URLs that were scraped or null if the page could not be fetched or
+     *     parsed.
+     */
+    public void onPageScraped(@Nullable List<String> imageUrls);
   }
 }

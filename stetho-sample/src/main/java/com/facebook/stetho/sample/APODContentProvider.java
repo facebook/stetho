@@ -99,7 +99,7 @@ public class APODContentProvider extends ContentProvider {
 
   private static class APODSQLiteOpenHelper extends SQLiteOpenHelper {
     private static final String DB_NAME = "apod.db";
-    private static final int DB_VERSION = 1;
+    private static final int DB_VERSION = 2;
 
     public APODSQLiteOpenHelper(Context context) {
       super(context, DB_NAME, null /* factory */, DB_VERSION);
@@ -112,7 +112,8 @@ public class APODContentProvider extends ContentProvider {
               APODContract.Columns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
               APODContract.Columns.TITLE + " TEXT, " +
               APODContract.Columns.DESCRIPTION_IMAGE_URL + " TEXT, " +
-              APODContract.Columns.DESCRIPTION_TEXT + " TEXT " +
+              APODContract.Columns.DESCRIPTION_TEXT + " TEXT, " +
+              APODContract.Columns.LARGE_IMAGE_URL + " TEXT " +
               ")");
     }
 
