@@ -281,7 +281,7 @@ final class AndroidDOMProvider implements DOMProvider, AndroidDescriptorHost {
       public boolean onTouchEvent(MotionEvent event) {
         if (getParent() instanceof View) {
           final View parent = (View)getParent();
-          View view = ViewUtil.hitTestTouch(parent, event.getX(), event.getY(), mViewSelector);
+          View view = ViewUtil.hitTest(parent, event.getX(), event.getY(), mViewSelector);
 
           if (event.getAction() != MotionEvent.ACTION_CANCEL) {
             if (view != null) {
