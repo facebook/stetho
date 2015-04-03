@@ -7,6 +7,7 @@ import android.view.View;
 import com.facebook.stetho.common.LogUtil;
 import com.facebook.stetho.common.android.FragmentAccessor;
 import com.facebook.stetho.common.android.FragmentApi;
+import com.facebook.stetho.common.android.ResourcesUtil;
 import com.facebook.stetho.inspector.elements.AttributeAccumulator;
 import com.facebook.stetho.inspector.elements.ChainedDescriptor;
 import com.facebook.stetho.inspector.elements.DescriptorMap;
@@ -41,7 +42,10 @@ final class FragmentDescriptor
 
     int id = accessor.getId(element);
     if (id != FragmentAccessor.NO_ID) {
-      String value = "0x" + Integer.toHexString(id);
+      String value = ResourcesUtil.getIdStringQuietly(
+          element,
+          accessor.getResources(element),
+          id);
       attributes.add(ID_ATTRIBUTE_NAME, value);
     }
 

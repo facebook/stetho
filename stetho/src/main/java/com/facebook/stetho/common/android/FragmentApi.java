@@ -3,6 +3,7 @@
 package com.facebook.stetho.common.android;
 
 import android.app.Activity;
+import android.content.res.Resources;
 import android.view.View;
 
 import com.facebook.stetho.common.ReflectionUtil;
@@ -136,6 +137,7 @@ public final class FragmentApi {
     private final Field mFieldMChildFragmentManager;
 
     private final Method mMethodGetFragmentManager;
+    private final Method mMethodGetResources;
     private final Method mMethodGetId;
     private final Method mMethodGetTag;
     private final Method mMethodGetView;
@@ -151,6 +153,7 @@ public final class FragmentApi {
       }
 
       mMethodGetFragmentManager = ReflectionUtil.getMethod(fragmentClass, "getFragmentManager");
+      mMethodGetResources = ReflectionUtil.getMethod(fragmentClass, "getResources");
       mMethodGetId = ReflectionUtil.getMethod(fragmentClass, "getId");
       mMethodGetTag = ReflectionUtil.getMethod(fragmentClass, "getTag");
       mMethodGetView = ReflectionUtil.getMethod(fragmentClass, "getView");
@@ -159,6 +162,11 @@ public final class FragmentApi {
     @Override
     public Object getFragmentManager(Object fragment) {
       return ReflectionUtil.invokeMethod(mMethodGetFragmentManager, fragment);
+    }
+
+    @Override
+    public Resources getResources(Object fragment) {
+      return (Resources)ReflectionUtil.invokeMethod(mMethodGetResources, fragment);
     }
 
     @Override
