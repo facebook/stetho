@@ -149,6 +149,17 @@ a.app_link {
   top: 7px;
 }
 
+.image.inspector-elements {
+  background-image: url(../images/inspector-elements.png);
+  width: 587px;
+  height: 383px;
+  display: block;
+  background-size: 587px 383px;
+  position: relative;
+  left: 0px;
+  top: 7px;
+}
+
 .image.dumpapp-prefs {
   background-image: url(../images/dumpapp-prefs.png);
   width: 507px;
