@@ -6,6 +6,10 @@ the Chrome desktop browser. Developers can also choose to enable the optional
 `dumpapp` tool which offers a powerful command-line interface to application
 internals.
 
+Once you complete the set-up instructions below, just start your app and point
+your laptop browser to `chrome://inspect`.  Click the "Inspect" button to
+begin.
+
 ## Set-up
 
 ### Download
