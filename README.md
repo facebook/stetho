@@ -74,6 +74,8 @@ responses in order for Stetho to report compressed payload sizes.
 
 See the `stetho-sample` project for more details.
 
+## Going further
+
 ### Custom dumpapp plugins
 Custom plugins are the preferred means of extending the `dumpapp` system and
 can be added easily during configuration.  Simply replace your configuration
