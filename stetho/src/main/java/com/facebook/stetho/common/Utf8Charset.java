@@ -26,4 +26,8 @@ public class Utf8Charset {
       throw new RuntimeException(e);
     }
   }
+
+  public static String decodeUTF8(byte[] bytes) {
+    return new String(bytes, INSTANCE);
+  }
 }

@@ -96,4 +96,15 @@ public class Util {
       }
     }
   }
+
+  public static void awaitUninterruptibly(CountDownLatch latch) {
+    while (true) {
+      try {
+        latch.await();
+        return;
+      } catch (InterruptedException e) {
+        // Keep going...
+      }
+    }
+  }
 }
