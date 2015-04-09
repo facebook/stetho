@@ -11,7 +11,6 @@ package com.facebook.stetho.sample;
 
 import java.util.ArrayList;
 
-import android.app.Application;
 import android.content.Context;
 
 import com.facebook.stetho.DumperPluginsProvider;
@@ -45,6 +44,7 @@ public class SampleDebugApplication extends SampleApplication {
         plugins.add(defaultPlugin);
       }
       plugins.add(new HelloWorldDumperPlugin());
+      plugins.add(new APODDumperPlugin(mContext.getContentResolver()));
       return plugins;
     }
   }
