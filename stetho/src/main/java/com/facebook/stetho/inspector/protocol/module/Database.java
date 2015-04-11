@@ -25,8 +25,10 @@ import android.os.Build;
 
 import com.facebook.stetho.common.Util;
 import com.facebook.stetho.inspector.database.DatabasePeerManager;
+import com.facebook.stetho.inspector.jsonrpc.JsonRpcException;
 import com.facebook.stetho.inspector.jsonrpc.JsonRpcPeer;
 import com.facebook.stetho.inspector.jsonrpc.JsonRpcResult;
+import com.facebook.stetho.inspector.jsonrpc.protocol.JsonRpcError;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsMethod;
 import com.facebook.stetho.json.ObjectMapper;
@@ -79,12 +81,21 @@ public class Database implements ChromeDevtoolsDomain {
   }
 
   @ChromeDevtoolsMethod
-  public JsonRpcResult getDatabaseTableNames(JsonRpcPeer peer, JSONObject params) {
+  public JsonRpcResult getDatabaseTableNames(JsonRpcPeer peer, JSONObject params)
+      throws JsonRpcException {
     GetDatabaseTableNamesRequest request = mObjectMapper.convertValue(params,
         GetDatabaseTableNamesRequest.class);
-    GetDatabaseTableNamesResponse response = new GetDatabaseTableNamesResponse();
-    response.tableNames = mDatabasePeerManager.getDatabaseTableNames(request.databaseId);
-    return response;
+    try {
+      GetDatabaseTableNamesResponse response = new GetDatabaseTableNamesResponse();
+      response.tableNames = mDatabasePeerManager.getDatabaseTableNames(request.databaseId);
+      return response;
+    } catch (SQLiteException e) {
+      throw new JsonRpcException(
+          new JsonRpcError(
+              JsonRpcError.ErrorCode.INVALID_REQUEST,
+              e.toString(),
+              null /* data */));
+    }
   }
 
   @ChromeDevtoolsMethod
