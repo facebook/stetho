@@ -11,6 +11,7 @@ package com.facebook.stetho.inspector.domstorage;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import com.facebook.stetho.common.LogUtil;
 import com.facebook.stetho.inspector.console.CLog;
 import com.facebook.stetho.inspector.helper.ChromePeerManager;
 import com.facebook.stetho.inspector.helper.PeerRegistrationListener;
@@ -142,7 +143,9 @@ public class DOMStoragePeerManager extends ChromePeerManager {
             SharedPreferencesHelper.valueToString(newValue));
         mCopy.put(key, newValue);
       } else {
-        throw new RuntimeException("Prefs change detected for unknown key=" + key);
+        // This can happen due to the async nature of the onSharedPreferenceChanged callback.  A
+        // rapid put/remove as two separate commits on a background thread would cause this.
+        LogUtil.i("Detected rapid put/remove of %s", key);
       }
     }
   }
