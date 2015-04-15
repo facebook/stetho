@@ -1,0 +1,7 @@
+Project: ScrollMonitor
+Version: 1.0.12 
+Release date: 01-20-2015
+Website: https://github.com/sakabako/scrollMonitor
+License: MIT
+Description: The PHP OpenID library lets you enable OpenID authentication on sites built using PHP. It features the OpenID consumer, Store implementations, and an OpenID server.
+Changes: Made a change to remove magic_quotes which HPHP doesn't support.

@@ -1,0 +1,14 @@
+<nav class='toc'>
+  {% assign groups = site.docs | sort: "section_order" | group_by: "section" %}
+  <section>
+    {% for group in groups %}
+    {% assign items = group.items | sort: "order" %}
+    <h3>{{ group.name }}</h3>
+    <ul>
+      {% for doc in items %}
+      <li><a{% if doc.title == page.title %} class="active"{% endif %} href="{{ doc.url }}">{{ doc.title }}</a></li>
+      {% endfor %}
+    </ul>
+    {% endfor %}
+  </section>
+</nav>

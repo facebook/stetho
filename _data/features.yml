@@ -1,0 +1,20 @@
+- title: Chrome DevTools
+  text: The integration with the Chrome DevTools frontend is implemented using a client/server protocol which the Stetho software provides for your application. Once your application is integrated, simply navigate to `chrome://inspect` and click "Inspect" to get started!
+  image: images/inspector-discovery.png
+
+- title: Network Inspection
+  text: Network inspection is possible with the full spectrum of Chrome Developer Tools features, including image preview, JSON response helpers, and even exporting traces to the HAR format.
+  image: images/inspector-network.png
+
+- title: Database Inspection
+  text: SQLite databases can be visualized and interactively explored with full read/write capabilities.
+  image: images/inspector-sqlite.png
+
+- title: View Hierarchy
+  text: View hierarchy support for ICS (API 15) and up! Lots of goodies such as <fragment> instances virtually placed in the hierarchy, view highlighting, and the ability to tap on a view to jump to its position in the hierarchy.
+  image: images/inspector-elements.png
+
+- title: dumpapp
+  text: Dumpapp extends beyond the DevTools UI features shown above to provide a much more extensible, command-line interface to application components. A default set of plugins is provided, but the real power of dumpapp is the ability to easily create your own!
+  image: images/dumpapp-prefs.png
+  

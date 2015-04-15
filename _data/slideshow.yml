@@ -1,0 +1,14 @@
+- id: image1
+  src: static/slideshow/image1.png
+  tooltip: Example Tooltip
+  link: 
+  
+- id: image2
+  src: static/slideshow/image2.png
+  tooltip: Example Tooltip
+  link: /docs/
+  
+- id: image3
+  src: static/slideshow/image3.png
+  tooltip: Example Tooltip
+  link: 
