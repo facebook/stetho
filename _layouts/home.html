@@ -2,23 +2,9 @@
 <html>
   {% include head.html %}
   <body>    
-    {% include nav.html %}
+    {% include nav.html alwayson=true %}
     <div class="navPusher">
       {% include header.html %}
-      <script src="external/scrollMonitor/scrollMonitor.js"></script>
-      <script type="text/javascript">
-        var myElement = document.getElementById("project_title");
-        var header = document.getElementById("fixed_header");
-
-        var elementWatcher = scrollMonitor.create( myElement );
-
-        elementWatcher.enterViewport(function() {
-          header.classList.remove('visible');
-        });
-        elementWatcher.exitViewport(function() {
-          header.classList.add('visible');
-        });
-      </script>
       <div class="mainContainer">
         <div id="main_wrap" class="wrapper mainWrapper">
           {{ content }}
