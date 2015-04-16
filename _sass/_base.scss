@@ -303,6 +303,17 @@ a.blockButton {
     &:last-of-type:not(.slideshowBlock) {
       margin-bottom: 50px;
     }
+    
+    &.allShareBlock {
+      .pluginBlock {
+        margin: 0 12px;
+        width: auto;
+        
+        &.fb-like {
+          top: -5px;
+        }
+      }
+    }
   }
 }
 
@@ -326,6 +337,16 @@ a.blockButton {
   
       &.marginsmall {
         margin: 1vh 0;
+      }
+    }
+    
+    .allShareBlock {
+      margin: -12px;
+      padding: 1vh 0;
+      
+      .pluginBlock {
+        margin: 12px;
+        padding: 0;
       }
     }
     

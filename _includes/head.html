@@ -6,7 +6,6 @@
 	<meta property="og:url" content="{{ page.url | replace:'index.html','' | prepend: site.baseurl | prepend: site.url }}" />
 	<meta property="og:site_name" content="{{ site.title }}"/>
 	<meta property="og:title" content="{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}" />
-	<meta property="og:app_id" content="{{ site.fbappid }}" />
 	<meta property="og:image" content="{{ site.url }}{{ site.baseurl }}/static/og_image.png" />
 	<meta property="og:description" content="{% if page.excerpt %}{{ page.excerpt | strip_html | strip_newlines | truncate: 160 }}{% else %}{{ site.description }}{% endif %}" />
 

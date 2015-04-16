@@ -1,4 +1,6 @@
-<div class="fb-like pluginBlock" data-layout="button_count" data-action="like" data-show-faces="true" data-share="true"></div>
+<div class="fb-page pluginBlock" data-href="https://www.facebook.com/{{ include.button_href }}" data-hide-cover="false" data-show-facepile="false" data-show-posts="false">
+  <div class="fb-xfbml-parse-ignore"><blockquote cite="https://www.facebook.com/{{ include.button_href }}"><a href="https://www.facebook.com/{{ include.button_href }}">{{ include.button_text }}</a></blockquote></div>
+</div>
 <script>
   window.fbAsyncInit = function() {
   FB.init({

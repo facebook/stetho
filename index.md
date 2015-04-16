@@ -4,6 +4,7 @@ id: home
 ---
 
 ## Download
+
 {% include ui/button.html button_href="https://github.com/facebook/stetho/releases/download/v1.1.0/stetho-1.1.0-fatjar.jar" button_text="Download v1.1.0" margin="small" align="center" %}
 
 Alternatively you can include Stetho from Maven Central via Gradle or Maven. 
@@ -102,6 +103,8 @@ private static class MyDumperPluginsProvider
 }
 ```
 
+See the stetho-sample project for more details. 
+
 ### Contributions
 Use [Github issues](https://github.com/facebook/stetho/issues) for requests. We actively welcome pull requests; learn how to [contribute](https://github.com/facebook/stetho/blob/master/CONTRIBUTING.md).
 
@@ -111,3 +114,5 @@ Changes are tracked as [Github releases](https://github.com/facebook/stetho/rele
 ###License  
 
 Stetho is [BSD-licensed](https://github.com/facebook/stetho/blob/master/LICENSE). We also provide an additional [patent grant](https://github.com/facebook/stetho/blob/master/PATENTS).
+
+{% include plugins/all_share.html %}
