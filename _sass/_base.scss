@@ -306,6 +306,11 @@ a.blockButton {
   }
 }
 
+.center {
+  display: block;
+  text-align: center;
+}
+
 .mainContainer {
   background: $secondary-bg;
   overflow: auto;
@@ -318,6 +323,10 @@ a.blockButton {
     
     .blockButton {
       margin: 4vh 0;
+  
+      &.marginsmall {
+        margin: 1vh 0;
+      }
     }
     
     a {

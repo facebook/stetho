@@ -4,10 +4,7 @@ id: home
 ---
 
 ## Download
-
-<center>
-{% include ui/button.html button_href="https://github.com/facebook/stetho/releases/download/v1.1.0/stetho-1.1.0-fatjar.jar" button_text="Download v1.1.0" %}
-</center>
+{% include ui/button.html button_href="https://github.com/facebook/stetho/releases/download/v1.1.0/stetho-1.1.0-fatjar.jar" button_text="Download v1.1.0" margin="small" align="center" %}
 
 Alternatively you can include Stetho from Maven Central via Gradle or Maven. 
 
