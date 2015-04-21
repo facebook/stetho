@@ -41,6 +41,7 @@ final class ActivityDescriptor
       Window window = activity.getWindow();
       return host.getHighlightingView(window);
     }
+
     return null;
   }
 }

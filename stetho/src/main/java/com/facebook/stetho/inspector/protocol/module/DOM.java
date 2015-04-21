@@ -14,6 +14,7 @@ package com.facebook.stetho.inspector.protocol.module;
 import android.graphics.Color;
 
 import com.facebook.stetho.common.LogUtil;
+import com.facebook.stetho.common.UncheckedCallable;
 import com.facebook.stetho.common.Util;
 import com.facebook.stetho.inspector.elements.AttributeAccumulator;
 import com.facebook.stetho.inspector.elements.DOMProvider;
@@ -29,7 +30,6 @@ import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsMethod;
 import com.facebook.stetho.json.ObjectMapper;
 import com.facebook.stetho.json.annotation.JsonProperty;
-import com.facebook.stetho.json.annotation.JsonValue;
 
 import org.json.JSONObject;
 
@@ -72,44 +72,50 @@ public class DOM implements ChromeDevtoolsDomain {
   public JsonRpcResult getDocument(JsonRpcPeer peer, JSONObject params) {
     final GetDocumentResponse result = new GetDocumentResponse();
 
-    mDOMProvider.postAndWait(new Runnable() {
-       @Override
-       public void run() {
-         Object rootElement = mDOMProvider.getRootElement();
-         if (rootElement != null) {
-           result.root = createNodeForElement(rootElement);
-         }
-       }
-     });
+    result.root = mDOMProvider.postAndWait(new UncheckedCallable<Node>() {
+      @Override
+      public Node call() {
+        Object rootElement = mDOMProvider.getRootElement();
+        return (rootElement == null) ? null : createNodeForElement(rootElement);
+      }
+    });
 
     return result;
   }
 
   @ChromeDevtoolsMethod
   public void highlightNode(JsonRpcPeer peer, JSONObject params) {
-    HighlightNodeRequest request = mObjectMapper.convertValue(params, HighlightNodeRequest.class);
+    final HighlightNodeRequest request = mObjectMapper.convertValue(params, HighlightNodeRequest.class);
     if (request.nodeId == null) {
       LogUtil.w("DOM.highlightNode was not given a nodeId; JS objectId is not supported");
-    } else {
-      final RGBAColor contentColor = request.highlightConfig.contentColor;
-      if (contentColor == null) {
-        LogUtil.w("DOM.highlightNode was not given a color to highlight with");
-      } else {
-        final Object element = mObjectIdMapper.getObjectForId(request.nodeId);
-
-        mDOMProvider.postAndWait(new Runnable() {
-          @Override
-          public void run() {
-            mDOMProvider.highlightElement(element, contentColor.getColor());
-          }
-        });
-      }
+      return;
     }
+
+    final RGBAColor contentColor = request.highlightConfig.contentColor;
+    if (contentColor == null) {
+      LogUtil.w("DOM.highlightNode was not given a color to highlight with");
+      return;
+    }
+
+    mDOMProvider.postAndWait(new Runnable() {
+      @Override
+      public void run() {
+        Object element = mObjectIdMapper.getObjectForId(request.nodeId);
+        if (element != null) {
+          mDOMProvider.highlightElement(element, contentColor.getColor());
+        }
+      }
+    });
   }
 
   @ChromeDevtoolsMethod
   public void hideHighlight(JsonRpcPeer peer, JSONObject params) {
-    mDOMProvider.hideHighlight();
+    mDOMProvider.postAndWait(new Runnable() {
+      @Override
+      public void run() {
+        mDOMProvider.hideHighlight();
+      }
+    });
   }
 
   @ChromeDevtoolsMethod
@@ -135,14 +141,21 @@ public class DOM implements ChromeDevtoolsDomain {
 
   @ChromeDevtoolsMethod
   public void setInspectModeEnabled(JsonRpcPeer peer, JSONObject params) {
-    SetInspectModeEnabledRequest request = mObjectMapper.convertValue(
+    final SetInspectModeEnabledRequest request = mObjectMapper.convertValue(
         params,
         SetInspectModeEnabledRequest.class);
 
-    mDOMProvider.setInspectModeEnabled(request.enabled);
+    mDOMProvider.postAndWait(new Runnable() {
+      @Override
+      public void run() {
+        mDOMProvider.setInspectModeEnabled(request.enabled);
+      }
+    });
   }
 
   private Node createNodeForElement(Object element) {
+    mDOMProvider.verifyThreadAccess();
+
     NodeDescriptor descriptor = mDOMProvider.getNodeDescriptor(element);
 
     Node node = new Node();
@@ -162,6 +175,8 @@ public class DOM implements ChromeDevtoolsDomain {
   }
 
   private List<Node> getChildNodesForElement(Object element) {
+    mDOMProvider.verifyThreadAccess();
+
     NodeDescriptor descriptor = mDOMProvider.getNodeDescriptor(element);
     int childNodeCount = descriptor.getChildCount(element);
 
@@ -181,6 +196,8 @@ public class DOM implements ChromeDevtoolsDomain {
   }
 
   private void removeElementTree(Object element) {
+    mDOMProvider.verifyThreadAccess();
+
     if (!mObjectIdMapper.containsObject(element)) {
       LogUtil.w("DOM.removeElementTree() called for a non-mapped node: element=%s", element);
       return;
@@ -192,6 +209,7 @@ public class DOM implements ChromeDevtoolsDomain {
       Object childElement = descriptor.getChildAt(element, i);
       removeElementTree(childElement);
     }
+
     mObjectIdMapper.removeObject(element);
   }
 
@@ -199,7 +217,12 @@ public class DOM implements ChromeDevtoolsDomain {
     @Override
     protected synchronized void onFirstPeerRegistered() {
       mDOMProvider = mDOMProviderFactory.create();
-      mDOMProvider.setListener(new ProviderListener());
+      mDOMProvider.postAndWait(new Runnable() {
+        @Override
+        public void run() {
+          mDOMProvider.setListener(new ProviderListener());
+        }
+      });
     }
 
     @Override
@@ -208,10 +231,10 @@ public class DOM implements ChromeDevtoolsDomain {
         @Override
         public void run() {
           mObjectIdMapper.clear();
+          mDOMProvider.dispose();
         }
       });
 
-      mDOMProvider.dispose();
       mDOMProvider = null;
     }
   }
@@ -233,12 +256,16 @@ public class DOM implements ChromeDevtoolsDomain {
   private final class DOMObjectIdMapper extends ObjectIdMapper {
     @Override
     protected void onMapped(Object object, int id) {
+      mDOMProvider.verifyThreadAccess();
+
       NodeDescriptor descriptor = mDOMProvider.getNodeDescriptor(object);
       descriptor.hook(object);
     }
 
     @Override
     protected void onUnmapped(Object object, int id) {
+      mDOMProvider.verifyThreadAccess();
+
       NodeDescriptor descriptor = mDOMProvider.getNodeDescriptor(object);
       descriptor.unhook(object);
     }
@@ -247,6 +274,8 @@ public class DOM implements ChromeDevtoolsDomain {
   private final class ProviderListener implements DOMProvider.Listener {
     @Override
     public void onAttributeModified(Object element, String name, String value) {
+      mDOMProvider.verifyThreadAccess();
+
       AttributeModifiedEvent message = new AttributeModifiedEvent();
       message.nodeId = mObjectIdMapper.getIdForObject(element);
       message.name = name;
@@ -256,6 +285,8 @@ public class DOM implements ChromeDevtoolsDomain {
 
     @Override
     public void onAttributeRemoved(Object element, String name) {
+      mDOMProvider.verifyThreadAccess();
+
       AttributeRemovedEvent message = new AttributeRemovedEvent();
       message.nodeId = mObjectIdMapper.getIdForObject(element);
       message.name = name;
@@ -264,6 +295,8 @@ public class DOM implements ChromeDevtoolsDomain {
 
     @Override
     public void onChildInserted(Object parentElement, Object previousElement, Object childElement) {
+      mDOMProvider.verifyThreadAccess();
+
       ChildNodeInsertedEvent message = new ChildNodeInsertedEvent();
       message.parentNodeId = mObjectIdMapper.getIdForObject(parentElement);
 
@@ -279,6 +312,8 @@ public class DOM implements ChromeDevtoolsDomain {
 
     @Override
     public void onChildRemoved(Object parentElement, Object childElement) {
+      mDOMProvider.verifyThreadAccess();
+
       Integer parentNodeId = mObjectIdMapper.getIdForObject(parentElement);
       Integer childNodeId = mObjectIdMapper.getIdForObject(childElement);
 
@@ -302,6 +337,8 @@ public class DOM implements ChromeDevtoolsDomain {
 
     @Override
     public void onInspectRequested(Object element) {
+      mDOMProvider.verifyThreadAccess();
+
       Integer nodeId = mObjectIdMapper.getIdForObject(element);
       if (nodeId == null) {
         LogUtil.d(
