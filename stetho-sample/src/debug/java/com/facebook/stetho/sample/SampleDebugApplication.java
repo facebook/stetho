@@ -13,21 +13,28 @@ import java.util.ArrayList;
 
 import android.content.Context;
 
+import android.os.SystemClock;
+import android.util.Log;
 import com.facebook.stetho.DumperPluginsProvider;
 import com.facebook.stetho.Stetho;
 import com.facebook.stetho.dumpapp.DumperPlugin;
 
 public class SampleDebugApplication extends SampleApplication {
+  private static final String TAG = "SampleDebugApplication";
+
   @Override
   public void onCreate() {
     super.onCreate();
 
+    long startTime = SystemClock.elapsedRealtime();
     final Context context = this;
     Stetho.initialize(
         Stetho.newInitializerBuilder(context)
             .enableDumpapp(new SampleDumperPluginsProvider(context))
             .enableWebKitInspector(Stetho.defaultInspectorModulesProvider(context))
             .build());
+    long elapsed = SystemClock.elapsedRealtime() - startTime;
+    Log.i(TAG, "Stetho initialized in " + elapsed + " ms");
   }
 
   private static class SampleDumperPluginsProvider implements DumperPluginsProvider {

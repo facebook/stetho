@@ -34,6 +34,7 @@ import com.facebook.stetho.dumpapp.StreamingDumpappHandler;
 import com.facebook.stetho.dumpapp.plugins.SharedPreferencesDumperPlugin;
 import com.facebook.stetho.inspector.ChromeDevtoolsServer;
 import com.facebook.stetho.inspector.ChromeDiscoveryHandler;
+import com.facebook.stetho.inspector.elements.android.ActivityTracker;
 import com.facebook.stetho.inspector.elements.android.AndroidDOMConstants;
 import com.facebook.stetho.inspector.elements.android.AndroidDOMProviderFactory;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
@@ -90,6 +91,15 @@ public class Stetho {
    * even low-end hardware without noticeably affecting performance.
    */
   public static void initialize(final Initializer initializer) {
+    // Hook activity tracking so that after Stetho is attached we can figure out what
+    // activities are present.
+    boolean isTrackingActivities = ActivityTracker.get().beginTrackingIfPossible(
+        (Application)initializer.mContext.getApplicationContext());
+    if (!isTrackingActivities) {
+      LogUtil.w("Automatic activity tracking not available on this API level, caller must invoke " +
+          "ActivityTracker methods manually!");
+    }
+
     Thread listener = new Thread(LISTENER_THREAD_NAME) {
       @Override
       public void run() {
