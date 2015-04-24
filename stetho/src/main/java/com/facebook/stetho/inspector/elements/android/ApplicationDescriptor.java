@@ -17,6 +17,8 @@ final class ApplicationDescriptor extends ChainedDescriptor<Application> {
   private final Map<Application, ElementContext> mElementToContextMap =
       Collections.synchronizedMap(new IdentityHashMap<Application, ElementContext>());
 
+  private final ActivityTracker mActivityTracker = ActivityTracker.get();
+
   private ElementContext getContext(Application element) {
     return mElementToContextMap.get(element);
   }
@@ -53,7 +55,6 @@ final class ApplicationDescriptor extends ChainedDescriptor<Application> {
 
   private class ElementContext {
     private final Application mElement;
-    private final ActivityTracker mActivityTracker = ActivityTracker.get();
 
     public ElementContext(Application element) {
       mElement = element;
