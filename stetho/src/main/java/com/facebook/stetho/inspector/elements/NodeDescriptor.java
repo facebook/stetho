@@ -2,9 +2,11 @@
 
 package com.facebook.stetho.inspector.elements;
 
+import com.facebook.stetho.common.ThreadBound;
+
 import javax.annotation.Nullable;
 
-public interface NodeDescriptor {
+public interface NodeDescriptor extends ThreadBound {
   public void hook(Object element);
 
   public void unhook(Object element);

@@ -2,6 +2,8 @@
 
 package com.facebook.stetho.inspector.elements;
 
+import com.facebook.stetho.common.ThreadBound;
+import com.facebook.stetho.common.UncheckedCallable;
 import com.facebook.stetho.common.Util;
 
 import javax.annotation.Nullable;
@@ -26,7 +28,27 @@ public abstract class Descriptor implements NodeDescriptor {
     return mHost;
   }
 
-  public interface Host {
+  @Override
+  public final boolean checkThreadAccess() {
+    return getHost().checkThreadAccess();
+  }
+
+  @Override
+  public final void verifyThreadAccess() {
+    getHost().verifyThreadAccess();
+  }
+
+  @Override
+  public final <V> V postAndWait(UncheckedCallable<V> c) {
+    return getHost().postAndWait(c);
+  }
+
+  @Override
+  public final void postAndWait(Runnable r) {
+    getHost().postAndWait(r);
+  }
+
+  public interface Host extends ThreadBound {
     @Nullable
     public Descriptor getDescriptor(@Nullable Object element);
 

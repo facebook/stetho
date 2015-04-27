@@ -2,14 +2,14 @@
 
 package com.facebook.stetho.inspector.elements;
 
+import com.facebook.stetho.common.ThreadBound;
+
 import javax.annotation.Nullable;
 
-public interface DOMProvider {
+public interface DOMProvider extends ThreadBound {
   public void setListener(Listener listener);
 
   public void dispose();
-
-  public boolean postAndWait(Runnable r);
 
   @Nullable
   public Object getRootElement();
