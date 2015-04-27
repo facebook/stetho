@@ -6,7 +6,7 @@
 
 
 // Our variables
-$base-font-family:  "Segoe UI", "Lucida Grande", sans-serif;
+$base-font-family:  "Segoe UI", Helvetica, sans-serif;
 $header-font-family:  "Gotham Rounded A", "Gotham Rounded B", 'Helvetica Neue', Arial, sans-serif;
 $base-font-size:    16px;
 $small-font-size:   $base-font-size * 0.875;
@@ -25,7 +25,7 @@ $nav-text:          {{ site.color.navtext }};
 $footer-bg:         #1F242A;
 $link-color:        {{ site.color.link }};
 
-$header-height: 24px;
+$header-height: 34px;
 $header-ptop: 10px;
 $header-pbot: 8px;
 
