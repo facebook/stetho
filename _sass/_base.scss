@@ -25,26 +25,28 @@ a {
 h1, h2, h3, h4 {
   font-family: $header-font-family;
 }
-    
-ol {
-  list-style: numeric;
-}
 
-ul {
-  list-style: disc;
-}
-
-ol, ul {
-  padding-left: 24px;
-  
-  li {
-    padding-bottom: 4px;
-    padding-left: 6px;
+.navPusher {
+  ol {
+    list-style: decimal;
   }
-}
 
-strong {
-  font-weight: bold;
+  ul {
+    list-style: disc;
+  }
+
+  ol, ul {
+    padding-left: 24px;
+    
+    li {
+      padding-bottom: 4px;
+      padding-left: 6px;
+    }
+  }
+
+  strong {
+    font-weight: bold;
+  }
 }
 
 .fixedHeaderContainer {
@@ -77,7 +79,7 @@ strong {
     text-align: left;
     
     img {
-      height: 20px;
+      height: 30px;
       margin-right: 10px;
     }
 
@@ -88,7 +90,7 @@ strong {
       letter-spacing: -0.02em;
       line-height: 18px;
       position: relative;
-      top: -4px;
+      top: -9px;
     }
   }
   
@@ -106,7 +108,8 @@ strong {
       
       .navSlideout {
         cursor: pointer;
-        font-size: 20px;
+        font-size: 24px;
+        padding-top: 2px;
         -webkit-transition: -webkit-transform 0.3s;
         transition: transform 0.3s;
         
@@ -358,11 +361,18 @@ a.blockButton {
       }
     }
     
+    h1 {
+      font-size: 300%;
+      line-height: 1em;
+      padding: 1.4em 0 1em;
+      text-align: center;
+    }
+    
     h2 {
       font-size: 250%;
       line-height: 1em;
       padding: 1.4em 0 1em;
-      text-align: center;
+      text-align: left;
     }
     
     h3 {
@@ -376,24 +386,89 @@ a.blockButton {
     }
     
     nav.toc {
+      position: relative;
       section {
         background: $primary-bg;
         color: $header-text;
-        margin-bottom: 6vh;
-        padding: 24px;
+        margin-bottom: 2vh;
+        padding: 12px 24px;
+          
+        .navGroup {
+          h3 {
+            display: none;
+          }
+          
+          &:not(.navGroupActive) {
+            display: none;
+          }
+        }
+      }
+      
+      .toggleNav {
+        position: relative;
+      }
+              
+      .navToggle {
+        background: $primary-bg;
+        color: $header-text;
+        height: 24px;
+        position: absolute;
+        right: 24px;
+        text-align: center;
+        top: 20px;
+        width: 24px;
+        
+        i {
+          cursor: pointer;
+          -webkit-transition: -webkit-transform 0.5s;
+          transition: transform 0.5s;
+        }
+        
+        &.navToggleActive i {
+          transform: rotate(180deg); 
+          -webkit-transform: rotate(180deg);
+        }
+      }
+        
+      .toggleNavActive {
+        section {
+          .navGroup {
+            display: block;
+            
+            h3 {
+              display: block;
+            }
+             
+            ul li {
+              display: block;
+            }
+          }
+            
+          ul li {
+            display: block;
+            padding-bottom: 4px;
+          }
+        }
       }
       
       h3 {
         font-size: 125%;
+        padding-right: 24px;
         padding-top: 0.4em;
       }
       
       ul {
         padding-left: 0;
+        padding-right: 24px;
         
         li {
           list-style-type: none;
+          padding-bottom: 0;
           padding-left: 0;
+          
+          &:not(.navListItemActive) {
+            display: none;
+          }
           
           a {
             border-bottom: none;
@@ -410,7 +485,7 @@ a.blockButton {
               border-left: 4px solid $nav-text;
             }
             
-            &.active {
+            &.navItemActive {
               border-left: 4px solid $header-text;
             }
           }
@@ -420,7 +495,7 @@ a.blockButton {
     
     .post {
       background: #fff;
-      padding: 6vw;
+      padding: 6vw 6vw 8vh;
       position: relative;
       
       a {
@@ -434,12 +509,12 @@ a.blockButton {
     
       h2 {
         border-bottom: 4px solid $primary-bg;
-        font-size: 180%;
+        font-size: 130%;
       }
       
       h3 {
         border-bottom: 1px solid $primary-bg;
-        font-size: 120%;
+        font-size: 110%;
       }
       
       .authorPhoto {
@@ -454,16 +529,24 @@ a.blockButton {
       }
       
       .post-header {
-        padding: 1em 0;
+        padding: 0 0 1em;
         text-align: center;
       
         h1 {
-          font-size: 250%;
+          font-size: 150%;
           line-height: 1em;
+          padding: 0.4em 0 0;
           
           a {
             border: none;
           }
+        }
+        
+        .post-authorName {
+          color: $primary-bg;
+          font-family: $header-font-family;
+          margin-top: -2vw;
+          text-align: center;
         }
         
         .post-meta {
@@ -503,6 +586,10 @@ a.blockButton {
           &:hover {
             background-color: $secondary-bg;
             color: $text;
+          }
+          
+          .pagerLabel {
+            display: inline;
           }
           
           .pagerTitle {
@@ -643,10 +730,22 @@ a.blockButton {
           padding-bottom: 0.2vh;
           padding-top: 0;
         }
+        
+        .navToggle {
+          top: 12px;
+        }
       }
       
       .post {
-        padding: 4vw;
+        padding: 4vw 4vw 4em;
+        
+        h2 {
+          font-size: 180%;
+        }
+        
+        h3 {
+          font-size: 120%;
+        }
         
         .post-header {
           padding: 1em 0;
@@ -654,6 +753,9 @@ a.blockButton {
   
         .docPagination {
           a {
+            .pagerLabel {
+              display: none;
+            }
             .pagerTitle {
               display: inline;
             }
@@ -671,7 +773,7 @@ a.blockButton {
       nav {
         padding: 0 1em;
         position: relative;
-        top: -4px;
+        top: -9px;
         
         ul {
           margin: 0 -0.4em;
@@ -712,21 +814,56 @@ a.blockButton {
       nav.toc {
         box-sizing: border-box;
         display: inline-block;
-        border-right: 4vh solid $secondary-bg;
-        width: 300px;
+        border-right: 12px solid $secondary-bg;
+        width: 285px;
         vertical-align: top;
+        
+        .navToggle {
+          display: none;
+        }
+        
+        .toggleNav {
+          section {
+            .navGroup {
+              display: block;
+              
+              h3 {
+                display: block;
+              }
+              
+              ul li {
+                display: block;
+              }
+            }
+            
+            ul li {
+              display: block;
+              padding-bottom: 4px;
+            }
+          }
+        }
+        ul li a {
+          font-size: 14px;
+          padding-bottom: 0.1vh;
+        }
       }
       
       .post {
         box-sizing: border-box;
         display: inline-block;
-        padding: 2vw;
-        width: 595px;
+        padding: 2vw 24px 4em;
+        width: 590px;
+      
+        .post-header {        
+          h1 {
+            font-size: 250%;
+          }
+        }
       }
       
       .posts {
         display: inline-block;
-        width: 595px;
+        width: 590px;
         
         .post {
           margin-bottom: 4vh;
@@ -736,3 +873,50 @@ a.blockButton {
     }
   }
 }
+
+@media only screen and (min-width: 1040px) { 
+  .mainContainer {
+    .mainWrapper {
+      nav.toc {
+        width: 300px;
+      }
+    }
+  }
+}
+
+@media only screen and (min-width: 1200px) {
+  .fixedHeaderContainer {
+    header {
+      max-width: 1100px;
+    }
+  }
+  
+  .wrapper {
+    max-width: 1100px;
+  }
+
+  .mainContainer .mainWrapper {
+    .post, .posts {
+      width: 760px;
+    }
+  }
+}
+
+@media only screen and (min-width: 1500px) {
+  .fixedHeaderContainer {
+    header {
+      max-width: 1400px;
+    }
+  }
+  
+  .wrapper {
+    max-width: 1400px;
+  }
+
+  .mainContainer .mainWrapper {
+    .post, .posts {
+      width: 1060px;
+    }
+  }
+}
+
