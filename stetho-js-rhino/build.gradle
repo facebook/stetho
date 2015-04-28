@@ -1,0 +1,26 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 21
+    buildToolsVersion "21.1.2"
+
+    defaultConfig {
+        minSdkVersion 9
+        targetSdkVersion 21
+        versionCode 1
+        versionName "1.0"
+    }
+
+    lintOptions {
+        // Rhino has references to awt and swing
+        disable 'InvalidPackage'
+    }
+}
+
+dependencies {
+    compile project(':stetho')
+    compile 'com.google.code.findbugs:jsr305:2.0.1'
+    compile 'org.mozilla:rhino:1.7.6'
+}
+
+apply from: rootProject.file('release.gradle')
