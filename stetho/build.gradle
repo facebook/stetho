@@ -19,7 +19,7 @@ dependencies {
     compile 'commons-cli:commons-cli:1.2'
     compile 'com.google.code.findbugs:jsr305:2.0.1'
 
-    provided 'com.android.support:appcompat-v7:22.0.0'
+    compile 'com.android.support:appcompat-v7:22.0.0'
 
     testCompile 'junit:junit:4.12'
     testCompile('org.robolectric:robolectric:2.4') {
