@@ -13,6 +13,7 @@ package com.facebook.stetho.inspector.protocol.module;
 
 import android.annotation.SuppressLint;
 
+import com.facebook.stetho.inspector.console.ConsolePeerManager;
 import com.facebook.stetho.inspector.jsonrpc.JsonRpcPeer;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsMethod;
@@ -27,10 +28,12 @@ public class Console implements ChromeDevtoolsDomain {
 
   @ChromeDevtoolsMethod
   public void enable(JsonRpcPeer peer, JSONObject params) {
+    ConsolePeerManager.getOrCreateInstance().addPeer(peer);
   }
 
   @ChromeDevtoolsMethod
   public void disable(JsonRpcPeer peer, JSONObject params) {
+    ConsolePeerManager.getOrCreateInstance().removePeer(peer);
   }
 
   @SuppressLint({ "UsingDefaultJsonDeserializer", "EmptyJsonPropertyUse" })
