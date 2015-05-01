@@ -26,6 +26,7 @@ import com.facebook.stetho.inspector.helper.PeersRegisteredListener;
 import com.facebook.stetho.inspector.jsonrpc.JsonRpcException;
 import com.facebook.stetho.inspector.jsonrpc.JsonRpcPeer;
 import com.facebook.stetho.inspector.jsonrpc.JsonRpcResult;
+import com.facebook.stetho.inspector.jsonrpc.protocol.JsonRpcError;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsMethod;
 import com.facebook.stetho.json.ObjectMapper;
@@ -123,13 +124,20 @@ public class DOM implements ChromeDevtoolsDomain {
       throws JsonRpcException {
     ResolveNodeRequest request = mObjectMapper.convertValue(params, ResolveNodeRequest.class);
     Object object = mObjectIdMapper.getObjectForId(request.nodeId);
+    if (object == null) {
+      throw new JsonRpcException(
+          new JsonRpcError(
+              JsonRpcError.ErrorCode.INVALID_PARAMS,
+              "No known nodeId=" + request.nodeId,
+              null /* data */));
+    }
 
     int mappedObjectId = Runtime.mapObject(peer, object);
 
     Runtime.RemoteObject remoteObject = new Runtime.RemoteObject();
     remoteObject.type = Runtime.ObjectType.OBJECT;
     remoteObject.subtype = Runtime.ObjectSubType.NODE;
-    remoteObject.className = remoteObject.getClass().getName();
+    remoteObject.className = object.getClass().getName();
     remoteObject.value = null; // not a primitive
     remoteObject.description = null; // not sure what this does...
     remoteObject.objectId = String.valueOf(mappedObjectId);
