@@ -9,12 +9,6 @@
 
 package com.facebook.stetho.inspector.console;
 
-/**
- * Allows callers to specify their own Console tab REPL for the DevTools UI.  This is part of
- * early support for a possible optionally included default implementation for Android.
- * <p />
- * Experimental API.  Depend on it at your own risk...
- */
 public interface RuntimeRepl {
   public Object evaluate(String expression) throws Exception;
 }
