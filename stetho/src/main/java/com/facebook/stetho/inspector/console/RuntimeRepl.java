@@ -10,5 +10,5 @@
 package com.facebook.stetho.inspector.console;
 
 public interface RuntimeRepl {
-  public Object evaluate(String expression) throws Exception;
+  public Object evaluate(String expression) throws Throwable;
 }
