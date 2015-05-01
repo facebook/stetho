@@ -29,7 +29,7 @@ public final class FragmentCompatUtil {
 
     // Try the support library version if it is present and the activity is FragmentActivity.
     if (supportLib != null &&
-        supportLib.getFragmentActivityClass() == activity.getClass()) {
+        supportLib.getFragmentActivityClass().isInstance(activity)) {
       Object fragment = findFragmentForViewInActivity(supportLib, activity, view);
       if (fragment != null) {
         return fragment;
