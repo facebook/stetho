@@ -4,3 +4,4 @@
 *.iml
 .DS_Store
 /build
+/.project
