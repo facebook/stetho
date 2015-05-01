@@ -15,25 +15,25 @@ begin.
 ### Download
 Download [the latest JARs](https://github.com/facebook/stetho/releases/latest) or grab via Gradle:
 ```groovy
-compile 'com.facebook.stetho:stetho:1.1.0'
+compile 'com.facebook.stetho:stetho:1.1.1'
 ```
 or Maven:
 ```xml
 <dependency>
   <groupId>com.facebook.stetho</groupId>
   <artifactId>stetho</artifactId>
-  <version>1.1.0</version>
+  <version>1.1.1</version>
 </dependency>
 ```
 
 Only the main `stetho` dependency is strictly required, however you may also wish to use one of the network helpers:
 
 ```groovy
-compile 'com.facebook.stetho:stetho-okhttp:1.1.0'
+compile 'com.facebook.stetho:stetho-okhttp:1.1.1'
 ```
 or:
 ```groovy
-compile 'com.facebook.stetho:stetho-urlconnection:1.1.0'
+compile 'com.facebook.stetho:stetho-urlconnection:1.1.1'
 ```
 
 ### Putting it together
