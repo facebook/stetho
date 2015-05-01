@@ -43,6 +43,11 @@ final class FragmentCompatFramework
   }
 
   @Override
+  public Class<Activity> getFragmentActivityClass() {
+    return Activity.class;
+  }
+
+  @Override
   public FragmentAccessorFrameworkHoneycomb forFragment() {
     return sFragmentAccessor;
   }
