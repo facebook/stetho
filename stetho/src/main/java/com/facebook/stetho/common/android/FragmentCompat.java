@@ -69,6 +69,7 @@ public abstract class FragmentCompat<
   }
 
   public abstract Class<FRAGMENT> getFragmentClass();
+  public abstract Class<FRAGMENT_ACTIVITY> getFragmentActivityClass();
   public abstract FragmentAccessor<FRAGMENT, FRAGMENT_MANAGER> forFragment();
   public abstract FragmentManagerAccessor<FRAGMENT_MANAGER, FRAGMENT> forFragmentManager();
   public abstract FragmentActivityAccessor<FRAGMENT_ACTIVITY, FRAGMENT_MANAGER> forFragmentActivity();

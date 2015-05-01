@@ -33,6 +33,11 @@ final class FragmentCompatSupportLib
   }
 
   @Override
+  public Class<FragmentActivity> getFragmentActivityClass() {
+    return FragmentActivity.class;
+  }
+
+  @Override
   public FragmentAccessorSupportLib forFragment() {
     return sFragmentAccessor;
   }
