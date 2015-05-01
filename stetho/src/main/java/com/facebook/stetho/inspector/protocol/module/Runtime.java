@@ -12,6 +12,7 @@
 package com.facebook.stetho.inspector.protocol.module;
 
 import com.facebook.stetho.common.LogUtil;
+import com.facebook.stetho.inspector.console.RuntimeRepl;
 import com.facebook.stetho.inspector.helper.ObjectIdMapper;
 import com.facebook.stetho.inspector.jsonrpc.DisconnectReceiver;
 import com.facebook.stetho.inspector.jsonrpc.JsonRpcException;
@@ -46,7 +47,19 @@ public class Runtime implements ChromeDevtoolsDomain {
   private static final Map<JsonRpcPeer, Session> sSessions =
       Collections.synchronizedMap(new HashMap<JsonRpcPeer, Session>());
 
+  private final RuntimeRepl mRepl;
+
   public Runtime() {
+    this(new RuntimeRepl() {
+      @Override
+      public Object evaluate(String expression) {
+        return "Not supported (yet)";
+      }
+    });
+  }
+
+  public Runtime(RuntimeRepl repl) {
+    mRepl = repl;
   }
 
   public static int mapObject(JsonRpcPeer peer, Object object) {
@@ -78,17 +91,6 @@ public class Runtime implements ChromeDevtoolsDomain {
   @ChromeDevtoolsMethod
   public void releaseObjectGroup(JsonRpcPeer peer, JSONObject params) {
     LogUtil.w("Ignoring request to releaseObjectGroup: " + params);
-  }
-
-  @ChromeDevtoolsMethod
-  public JsonRpcResult evaluate(JsonRpcPeer peer, JSONObject params) {
-    RemoteObject remoteObject = new RemoteObject();
-    remoteObject.type = ObjectType.STRING;
-    remoteObject.value = "Not supported";
-    EvaluateResponse response = new EvaluateResponse();
-    response.result = remoteObject;
-    response.wasThrown = false;
-    return response;
   }
 
   @ChromeDevtoolsMethod
@@ -126,6 +128,11 @@ public class Runtime implements ChromeDevtoolsDomain {
     response.wasThrown = false;
 
     return response;
+  }
+
+  @ChromeDevtoolsMethod
+  public JsonRpcResult evaluate(JsonRpcPeer peer, JSONObject params) {
+    return getSession(peer).evaluate(mRepl, params);
   }
 
   @ChromeDevtoolsMethod
@@ -214,6 +221,37 @@ public class Runtime implements ChromeDevtoolsDomain {
 
       }
       return result;
+    }
+
+    public EvaluateResponse evaluate(RuntimeRepl repl, JSONObject params) {
+      EvaluateRequest request = mObjectMapper.convertValue(params, EvaluateRequest.class);
+
+      try {
+        if (!request.objectGroup.equals("console")) {
+          return buildExceptionResponse("Not supported by FAB");
+        }
+
+        Object result = repl.evaluate(request.expression);
+        return buildNormalResponse(result);
+      } catch (Exception e) {
+        return buildExceptionResponse(e);
+      }
+    }
+
+    private EvaluateResponse buildNormalResponse(Object retval) {
+      EvaluateResponse response = new EvaluateResponse();
+      response.wasThrown = false;
+      response.result = objectForRemote(retval);
+      return response;
+    }
+
+    private EvaluateResponse buildExceptionResponse(Object retval) {
+      EvaluateResponse response = new EvaluateResponse();
+      response.wasThrown = true;
+      response.result = objectForRemote(retval);
+      response.exceptionDetails = new ExceptionDetails();
+      response.exceptionDetails.text = retval.toString();
+      return response;
     }
 
     public GetPropertiesResponse getProperties(JSONObject params) throws JsonRpcException {
@@ -406,12 +444,28 @@ public class Runtime implements ChromeDevtoolsDomain {
     public List<PropertyDescriptor> result;
   }
 
+  private static class EvaluateRequest implements JsonRpcResult {
+    @JsonProperty(required = true)
+    public String objectGroup;
+
+    @JsonProperty(required = true)
+    public String expression;
+  }
+
   private static class EvaluateResponse implements JsonRpcResult {
     @JsonProperty(required = true)
     public RemoteObject result;
 
     @JsonProperty(required = true)
     public boolean wasThrown;
+
+    @JsonProperty
+    public ExceptionDetails exceptionDetails;
+  }
+
+  private static class ExceptionDetails {
+    @JsonProperty(required = true)
+    public String text;
   }
 
   public static class RemoteObject {
