@@ -1,6 +1,24 @@
 Change Log
 ==========
 
+## Version 1.1.1
+
+_2015-05-01_
+
+ * **Updated patent grant!**
+   See https://code.facebook.com/posts/1639473982937255/updating-our-open-source-patent-grant/
+
+ * New: `stetho-timber` added to redirect log messages to the Stetho console.
+ * Fix #140: More efficient and simpler Fragment accessor code.
+ * Fix #123: All view inspection features are now available for ICS (API 15)
+   and up (some features required JB MR2, API 18).
+ * Fix #154: Fix subtle race when a database is removed after the DevTools
+   UI is opened.
+ * Fix #151: Crash when rapidly adding/removing SharedPreferences keys.
+ * Fix #142: View inspection "hit testing" didn't work as intended with its
+   two-pass design.
+ * Fix: Ignore extraneous files when WAL is enabled for SQLite databases.
+
 ## Version 1.1.0
 
 _2015-04-02_
