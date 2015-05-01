@@ -6,10 +6,9 @@ import android.app.Activity;
 
 import javax.annotation.Nullable;
 
-public interface FragmentActivityAccessor {
+public interface FragmentActivityAccessor<
+    FRAGMENT_ACTIVITY extends Activity,
+    FRAGMENT_MANAGER> {
   @Nullable
-  public Object getFragmentManager(Activity fragmentActivity);
-
-  @Nullable
-  public Object getSupportFragmentManager(Activity fragmentActivity);
+  public FRAGMENT_MANAGER getFragmentManager(FRAGMENT_ACTIVITY activity);
 }

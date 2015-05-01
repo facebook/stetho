@@ -6,7 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.facebook.stetho.common.Util;
-import com.facebook.stetho.common.android.FragmentApiUtil;
+import com.facebook.stetho.common.android.FragmentCompatUtil;
 import com.facebook.stetho.common.android.ViewGroupUtil;
 import com.facebook.stetho.inspector.elements.ChainedDescriptor;
 
@@ -166,7 +166,7 @@ final class ViewGroupDescriptor extends ChainedDescriptor<ViewGroup> {
         return element;
       }
 
-      Object fragment = FragmentApiUtil.findFragmentForView(view);
+      Object fragment = FragmentCompatUtil.findFragmentForView(view);
       if (fragment != null) {
         mViewToElementMap.put(view, fragment);
         return fragment;

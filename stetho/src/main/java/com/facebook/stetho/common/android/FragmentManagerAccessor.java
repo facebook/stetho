@@ -6,7 +6,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-public interface FragmentManagerAccessor {
+public interface FragmentManagerAccessor<FRAGMENT_MANAGER, FRAGMENT> {
   @Nullable
-  public List<?> getAddedFragments(Object fragmentManager);
+  public List<FRAGMENT> getAddedFragments(FRAGMENT_MANAGER fragmentManager);
 }

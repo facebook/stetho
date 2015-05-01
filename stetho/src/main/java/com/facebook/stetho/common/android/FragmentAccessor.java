@@ -7,22 +7,22 @@ import android.view.View;
 
 import javax.annotation.Nullable;
 
-public interface FragmentAccessor {
-  public static final int NO_ID = -1;
+public interface FragmentAccessor<FRAGMENT, FRAGMENT_MANAGER> {
+  public static final int NO_ID = View.NO_ID;
 
   @Nullable
-  public Object getFragmentManager(Object fragment);
+  public FRAGMENT_MANAGER getFragmentManager(FRAGMENT fragment);
 
-  public Resources getResources(Object fragment);
+  public Resources getResources(FRAGMENT fragment);
 
-  public int getId(Object fragment);
-
-  @Nullable
-  public String getTag(Object fragment);
+  public int getId(FRAGMENT fragment);
 
   @Nullable
-  public View getView(Object fragment);
+  public String getTag(FRAGMENT fragment);
 
   @Nullable
-  public Object peekChildFragmentManager(Object fragment);
+  public View getView(FRAGMENT fragment);
+
+  @Nullable
+  public FRAGMENT_MANAGER getChildFragmentManager(FRAGMENT fragment);
 }

@@ -6,50 +6,51 @@ import android.view.View;
 
 import com.facebook.stetho.common.LogUtil;
 import com.facebook.stetho.common.android.FragmentAccessor;
-import com.facebook.stetho.common.android.FragmentApi;
+import com.facebook.stetho.common.android.FragmentCompat;
 import com.facebook.stetho.common.android.ResourcesUtil;
 import com.facebook.stetho.inspector.elements.AttributeAccumulator;
 import com.facebook.stetho.inspector.elements.ChainedDescriptor;
 import com.facebook.stetho.inspector.elements.DescriptorMap;
+
+import javax.annotation.Nullable;
 
 final class FragmentDescriptor
     extends ChainedDescriptor<Object> implements HighlightableDescriptor {
   private static final String ID_ATTRIBUTE_NAME = "id";
   private static final String TAG_ATTRIBUTE_NAME = "tag";
 
+  private final FragmentAccessor mAccessor;
+
   public static DescriptorMap register(DescriptorMap map) {
-    Class<?> supportFragmentClass = FragmentApi.tryGetSupportFragmentClass();
-    if (supportFragmentClass != null) {
-      LogUtil.d("Registering support Fragment descriptor");
-      map.register(supportFragmentClass, new FragmentDescriptor());
-    }
-
-    Class<?> fragmentClass = FragmentApi.tryGetFragmentClass();
-    if (fragmentClass != null) {
-      LogUtil.d("Registering Fragment descriptor");
-      map.register(fragmentClass, new FragmentDescriptor());
-    }
-
+    maybeRegister(map, FragmentCompat.getSupportLibInstance());
+    maybeRegister(map, FragmentCompat.getFrameworkInstance());
     return map;
   }
 
-  private FragmentDescriptor() {
+  private static void maybeRegister(DescriptorMap map, @Nullable FragmentCompat compat) {
+    if (compat != null) {
+      Class<?> fragmentClass = compat.getFragmentClass();
+      LogUtil.d("Adding support for %s", fragmentClass.getName());
+      map.register(fragmentClass, new FragmentDescriptor(compat));
+    }
+  }
+
+  private FragmentDescriptor(FragmentCompat compat) {
+    mAccessor = compat.forFragment();
   }
 
   @Override
   protected void onCopyAttributes(Object element, AttributeAccumulator attributes) {
-    FragmentAccessor accessor = FragmentApi.getFragmentAccessorFor(element);
-
-    int id = accessor.getId(element);
+    int id = mAccessor.getId(element);
     if (id != FragmentAccessor.NO_ID) {
       String value = ResourcesUtil.getIdStringQuietly(
           element,
-          accessor.getResources(element),
+          mAccessor.getResources(element),
           id);
       attributes.add(ID_ATTRIBUTE_NAME, value);
     }
 
-    String tag = accessor.getTag(element);
+    String tag = mAccessor.getTag(element);
     if (tag != null && tag.length() > 0) {
       attributes.add(TAG_ATTRIBUTE_NAME, tag);
     }
@@ -57,8 +58,7 @@ final class FragmentDescriptor
 
   @Override
   protected int onGetChildCount(Object element) {
-    FragmentAccessor accessor = FragmentApi.getFragmentAccessorFor(element);
-    View view = accessor.getView(element);
+    View view = mAccessor.getView(element);
     return (view == null) ? 0 : 1;
   }
 
@@ -68,8 +68,7 @@ final class FragmentDescriptor
       throw new IndexOutOfBoundsException();
     }
 
-    FragmentAccessor accessor = FragmentApi.getFragmentAccessorFor(element);
-    View view = accessor.getView(element);
+    View view = mAccessor.getView(element);
     if (view == null) {
       throw new IndexOutOfBoundsException();
     }
@@ -79,7 +78,6 @@ final class FragmentDescriptor
 
   @Override
   public View getViewForHighlighting(Object element) {
-    FragmentAccessor accessor = FragmentApi.getFragmentAccessorFor(element);
-    return accessor.getView(element);
+    return mAccessor.getView(element);
   }
 }

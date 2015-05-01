@@ -9,8 +9,6 @@ import java.lang.reflect.Method;
 import javax.annotation.Nullable;
 
 public final class ReflectionUtil {
-  private static final Object[] sEmptyArray = new Object[0];
-
   private ReflectionUtil() {
   }
 
@@ -35,32 +33,6 @@ public final class ReflectionUtil {
           theClass);
 
       return null;
-    }
-  }
-
-  public static Method getMethod(Class<?> theClass, String methodName) {
-    try {
-      return theClass.getMethod(methodName);
-    } catch (NoSuchMethodException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  @Nullable
-  public static Method tryGetMethod(Class<?> theClass, String methodName) {
-    try {
-      return theClass.getMethod(methodName);
-    } catch (NoSuchMethodException e) {
-      return null;
-    }
-  }
-
-  @Nullable
-  public static Object invokeMethod(Method method, @Nullable Object target) {
-    try {
-      return method.invoke(target, sEmptyArray);
-    } catch (IllegalAccessException | InvocationTargetException e) {
-      throw new RuntimeException(e);
     }
   }
 
