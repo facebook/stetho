@@ -24,8 +24,7 @@ final class FragmentCompatFramework
     extends FragmentCompat<Fragment, FragmentManager, Activity> {
   private static final FragmentAccessorFrameworkHoneycomb sFragmentAccessor;
   private static final FragmentManagerAccessorViaReflection<FragmentManager, Fragment>
-      sFragmentManagerAccessor =
-          new FragmentManagerAccessorViaReflection<>(FragmentManager.class);
+      sFragmentManagerAccessor = new FragmentManagerAccessorViaReflection<>();
   private static final FragmentActivityAccessorFramework sFragmentActivityAccessor =
       new FragmentActivityAccessorFramework();
 
