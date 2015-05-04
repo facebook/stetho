@@ -22,8 +22,7 @@ final class FragmentCompatSupportLib
   private static final FragmentAccessorSupportLib sFragmentAccessor =
       new FragmentAccessorSupportLib();
   private static final FragmentManagerAccessorViaReflection<FragmentManager, Fragment>
-      sFragmentManagerAccessor =
-          new FragmentManagerAccessorViaReflection<>(FragmentManager.class);
+      sFragmentManagerAccessor = new FragmentManagerAccessorViaReflection<>();
   private static final FragmentActivityAccessorSupportLib sFragmentActivityAccessor =
       new FragmentActivityAccessorSupportLib();
 

@@ -77,20 +77,24 @@ public abstract class FragmentCompat<
   static class FragmentManagerAccessorViaReflection<FRAGMENT_MANAGER, FRAGMENT>
       implements FragmentManagerAccessor<FRAGMENT_MANAGER, FRAGMENT> {
     @Nullable
-    private final Field mFieldMAdded;
-
-    public FragmentManagerAccessorViaReflection(Class<?> fragmentManagerClass) {
-      Util.throwIfNull(fragmentManagerClass);
-      mFieldMAdded = ReflectionUtil.tryGetDeclaredField(fragmentManagerClass, "mAdded");
-      if (mFieldMAdded != null) {
-        mFieldMAdded.setAccessible(true);
-      }
-    }
+    private Field mFieldMAdded;
 
     @SuppressWarnings("unchecked")
     @Nullable
     @Override
     public List<FRAGMENT> getAddedFragments(FRAGMENT_MANAGER fragmentManager) {
+      // This field is actually sitting on FragmentManagerImpl, which derives from FragmentManager.
+      if (mFieldMAdded == null) {
+        Field fieldMAdded = ReflectionUtil.tryGetDeclaredField(
+            fragmentManager.getClass(),
+            "mAdded");
+
+        if (fieldMAdded != null) {
+          fieldMAdded.setAccessible(true);
+          mFieldMAdded = fieldMAdded;
+        }
+      }
+
       return (mFieldMAdded != null)
           ? (List<FRAGMENT>)ReflectionUtil.getFieldValue(mFieldMAdded, fragmentManager)
           : null;
