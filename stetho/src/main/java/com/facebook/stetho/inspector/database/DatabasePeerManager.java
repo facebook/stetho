@@ -159,7 +159,7 @@ public class DatabasePeerManager extends ChromePeerManager {
   }
 
   private static String getFirstWord(String s) {
-    s.trim();
+    s = s.trim();
     int firstSpace = s.indexOf(' ');
     return firstSpace >= 0 ? s.substring(0, firstSpace) : s;
   }
