@@ -185,4 +185,14 @@ public abstract class ChainedDescriptor<E> extends Descriptor {
 
   protected void onCopyAttributes(E element, AttributeAccumulator attributes) {
   }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public final void setAttributesAsText(Object element, String text) {
+    onSetAttributesAsText((E)element, text);
+  }
+
+  protected void onSetAttributesAsText(E element, String text) {
+    mSuper.setAttributesAsText(element, text);
+  }
 }

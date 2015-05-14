@@ -23,6 +23,17 @@ public class Util {
     return item;
   }
 
+  public static <T1, T2> void throwIfNull(T1 item1, T2 item2) {
+    throwIfNull(item1);
+    throwIfNull(item2);
+  }
+
+  public static <T1, T2, T3> void throwIfNull(T1 item1, T2 item2, T3 item3) {
+    throwIfNull(item1);
+    throwIfNull(item2);
+    throwIfNull(item3);
+  }
+
   public static void throwIfNotNull(Object item) {
     if (item != null) {
       throw new IllegalStateException();

@@ -32,11 +32,10 @@ import com.facebook.stetho.json.annotation.JsonProperty;
 
 import org.json.JSONObject;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import javax.annotation.Nullable;
 
 public class DOM implements ChromeDevtoolsDomain {
   private final ChromePeerManager mPeerManager;
@@ -143,6 +142,20 @@ public class DOM implements ChromeDevtoolsDomain {
     response.object = remoteObject;
 
     return response;
+  }
+
+  @ChromeDevtoolsMethod
+  public void setAttributesAsText(JsonRpcPeer peer, JSONObject params) {
+    final SetAttributesAsTextRequest request = mObjectMapper.convertValue(
+        params, SetAttributesAsTextRequest.class);
+    final Object object = mObjectIdMapper.getObjectForId(request.nodeId);
+
+    mDOMProvider.postAndWait(new Runnable() {
+      @Override
+      public void run() {
+        mDOMProvider.setAttributesAsText(object, request.text);
+      }
+    });
   }
 
   @ChromeDevtoolsMethod
@@ -491,6 +504,14 @@ public class DOM implements ChromeDevtoolsDomain {
 
     @JsonProperty
     public String objectGroup;
+  }
+
+  private static class SetAttributesAsTextRequest {
+    @JsonProperty(required = true)
+    public int nodeId;
+
+    @JsonProperty(required = true)
+    public String text;
   }
 
   private static class ResolveNodeResponse implements JsonRpcResult {

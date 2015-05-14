@@ -14,6 +14,8 @@ import com.facebook.stetho.common.UncheckedCallable;
 import com.facebook.stetho.common.Util;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class Descriptor implements NodeDescriptor {
   private Host mHost;
@@ -53,6 +55,41 @@ public abstract class Descriptor implements NodeDescriptor {
   @Override
   public final void postAndWait(Runnable r) {
     getHost().postAndWait(r);
+  }
+
+  /**
+   * Parses the text argument text from DOM.setAttributeAsText()
+   * Text will be in the format "attribute1=\"Value 1\" attribute2=\"Value2\""
+   * @param text the text argument to be parsed
+   * @return a map of attributes to their respective values to be set.
+   */
+  protected Map<String, String> parseSetAttributesAsTextArg(String text) {
+    String value = "";
+    String key = "";
+    StringBuilder buffer = new StringBuilder();
+    Map<String, String> keyValuePairs = new HashMap<>();
+    boolean isInsideQuotes = false;
+    for (int i = 0; i < text.length(); ++i) {
+      final char c = text.charAt(i);
+      if (c == '=') {
+        key = buffer.toString();
+        buffer.setLength(0);
+      } else if (c == '\"') {
+        if (isInsideQuotes) {
+          value = buffer.toString();
+          buffer.setLength(0);
+        }
+        isInsideQuotes = !isInsideQuotes;
+      } else if (c == ' ' && !isInsideQuotes) {
+        keyValuePairs.put(key, value);
+      } else {
+        buffer.append(c);
+      }
+    }
+    if (!key.isEmpty() && !value.isEmpty()) {
+      keyValuePairs.put(key, value);
+    }
+    return keyValuePairs;
   }
 
   public interface Host extends ThreadBound {

@@ -148,6 +148,16 @@ final class AndroidDOMProvider implements DOMProvider, AndroidDescriptorHost {
     }
   }
 
+  @Override
+  public void setAttributesAsText(Object element, String text) {
+    verifyThreadAccess();
+
+    Descriptor descriptor = mDescriptorMap.get(element.getClass());
+    if (descriptor != null) {
+      descriptor.setAttributesAsText(element, text);
+    }
+  }
+
   // Descriptor.Host implementation
   @Override
   public Descriptor getDescriptor(Object element) {
