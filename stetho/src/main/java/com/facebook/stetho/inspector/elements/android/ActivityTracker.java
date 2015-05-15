@@ -111,6 +111,13 @@ public final class ActivityTracker {
     return mActivitiesUnmodifiable;
   }
 
+  public Activity tryGetTopActivity() {
+    if (mActivitiesUnmodifiable.isEmpty()) {
+      return null;
+    }
+    return mActivitiesUnmodifiable.get(mActivitiesUnmodifiable.size() - 1);
+  }
+
   public interface Listener {
     public void onActivityAdded(Activity activity);
     public void onActivityRemoved(Activity activity);
