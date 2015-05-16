@@ -13,8 +13,6 @@ android {
     }
 }
 
-apply plugin: 'android-unit-test'
-
 dependencies {
     compile 'commons-cli:commons-cli:1.2'
     compile 'com.google.code.findbugs:jsr305:2.0.1'
