@@ -22,4 +22,12 @@
       android:layout_marginBottom="10dp"
       />
 
+    <Button
+      android:id="@+id/profiler_btn"
+      android:text="@string/profiler_btn"
+      android:layout_width="@dimen/main_button_width"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="10dp"
+      />
+
 </LinearLayout>

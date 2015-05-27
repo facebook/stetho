@@ -4,6 +4,7 @@
   <string name="app_name">Stetho Sample</string>
   <string name="settings_btn">Settings</string>
   <string name="apod_btn">APOD RSS Feed</string>
+  <string name="profiler_btn">Profiler</string>
   <string name="settings_title">Settings</string>
   <string name="pref_category1_title">General</string>
   <string name="pref_checkbox_title">Boolean setting</string>
@@ -15,4 +16,12 @@
   <string name="pref_change_message">%1$s is now \'%2$s\'</string>
   <string name="apod_title">APOD Listing</string>
   <string name="stetho_missing">Stetho missing in %s build!</string>
+  <string name="profiler_title">Profiler Demo</string>
+  <string name="alloc_simple_btn">Simple Allocation Test</string>
+  <string name="alloc_gotcha_btn">Allocation Gotcha</string>
+  <string name="microscoped_profile">Write to file</string>
+  <string name="already_profiling">Already profiling!</string>
+  <string name="profiler_disclaimer">
+Note: first time profiles will include internal VM overhead
+  </string>
 </resources>
