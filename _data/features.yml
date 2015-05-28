@@ -18,3 +18,6 @@
   text: Dumpapp extends beyond the DevTools UI features shown above to provide a much more extensible, command-line interface to application components. A default set of plugins is provided, but the real power of dumpapp is the ability to easily create your own!
   image: images/dumpapp-prefs.png
   
+-title: Javascript Console
+  text: Javascript Console allows for execution of javascript code that can interact with the application or even the Android SDK.
+  image: images/inspector-js.png
