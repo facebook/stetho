@@ -36,6 +36,13 @@ or:
 compile 'com.facebook.stetho:stetho-urlconnection:1.1.1'
 ```
 
+You can also enable a JavaScript console with:
+
+```groovy
+compile 'com.facebook.stetho:stetho-js-rhino:1.1.1'
+```
+For more details on how to customize the JavaScript runtime see [stetho-js-rhino](stetho-js-rhino/).
+
 ### Putting it together
 Integrating with Stetho is intended to be seamless and straightforward for
 most existing Android applications.  There is a simple initialization step
