@@ -11,6 +11,7 @@ package com.facebook.stetho.inspector.elements.android;
 
 import android.view.View;
 
+import com.facebook.stetho.common.Accumulator;
 import com.facebook.stetho.common.LogUtil;
 import com.facebook.stetho.common.android.FragmentAccessor;
 import com.facebook.stetho.common.android.FragmentCompat;
@@ -47,40 +48,28 @@ final class FragmentDescriptor
   }
 
   @Override
-  protected void onCopyAttributes(Object element, AttributeAccumulator attributes) {
+  protected void onGetAttributes(Object element, AttributeAccumulator attributes) {
     int id = mAccessor.getId(element);
     if (id != FragmentAccessor.NO_ID) {
       String value = ResourcesUtil.getIdStringQuietly(
           element,
           mAccessor.getResources(element),
           id);
-      attributes.add(ID_ATTRIBUTE_NAME, value);
+      attributes.store(ID_ATTRIBUTE_NAME, value);
     }
 
     String tag = mAccessor.getTag(element);
     if (tag != null && tag.length() > 0) {
-      attributes.add(TAG_ATTRIBUTE_NAME, tag);
+      attributes.store(TAG_ATTRIBUTE_NAME, tag);
     }
   }
 
   @Override
-  protected int onGetChildCount(Object element) {
+  protected void onGetChildren(Object element, Accumulator<Object> children) {
     View view = mAccessor.getView(element);
-    return (view == null) ? 0 : 1;
-  }
-
-  @Override
-  protected Object onGetChildAt(Object element, int index) {
-    if (index != 0) {
-      throw new IndexOutOfBoundsException();
+    if (view != null) {
+      children.store(view);
     }
-
-    View view = mAccessor.getView(element);
-    if (view == null) {
-      throw new IndexOutOfBoundsException();
-    }
-
-    return view;
   }
 
   @Override

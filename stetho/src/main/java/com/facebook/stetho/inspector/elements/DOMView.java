@@ -9,6 +9,8 @@
 
 package com.facebook.stetho.inspector.elements;
 
-public interface AttributeAccumulator {
-  public void store(String name, String value);
+public interface DOMView {
+  public Object getRootElement();
+
+  public ElementInfo getElementInfo(Object element);
 }

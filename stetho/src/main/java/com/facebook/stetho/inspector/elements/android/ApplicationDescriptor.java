@@ -12,6 +12,7 @@ package com.facebook.stetho.inspector.elements.android;
 import android.app.Activity;
 import android.app.Application;
 
+import com.facebook.stetho.common.Accumulator;
 import com.facebook.stetho.inspector.elements.ChainedDescriptor;
 import com.facebook.stetho.inspector.elements.NodeType;
 
@@ -32,7 +33,7 @@ final class ApplicationDescriptor extends ChainedDescriptor<Application> {
 
   @Override
   protected void onHook(Application element) {
-    ElementContext context = new ElementContext(element);
+    ElementContext context = new ElementContext();
     context.hook(element);
     mElementToContextMap.put(element, context);
   }
@@ -49,30 +50,29 @@ final class ApplicationDescriptor extends ChainedDescriptor<Application> {
   }
 
   @Override
-  protected int onGetChildCount(Application element) {
+  protected void onGetChildren(Application element, Accumulator<Object> children) {
     ElementContext context = getContext(element);
-    return context.getActivitiesList().size();
-  }
-
-  @Override
-  protected Object onGetChildAt(Application element, int index) {
-    ElementContext context = getContext(element);
-    return context.getActivitiesList().get(index);
+    List<Activity> activities = context.getActivitiesList();
+    // We report these in reverse order so that the newer ones show up on top
+    for (int i = activities.size() - 1; i >= 0; --i) {
+      children.store(activities.get(i));
+    }
   }
 
   private class ElementContext {
-    private final Application mElement;
+    private Application mElement;
 
-    public ElementContext(Application element) {
-      mElement = element;
+    public ElementContext() {
     }
 
     public void hook(Application element) {
+      mElement = element;
       mActivityTracker.registerListener(mListener);
     }
 
     public void unhook() {
       mActivityTracker.unregisterListener(mListener);
+      mElement = null;
     }
 
     public List<Activity> getActivitiesList() {
@@ -82,12 +82,12 @@ final class ApplicationDescriptor extends ChainedDescriptor<Application> {
     private final ActivityTracker.Listener mListener = new ActivityTracker.Listener() {
       @Override
       public void onActivityAdded(Activity activity) {
-        getHost().onChildInserted(mElement, null, activity);
+        // TODO: once we have the ability to report fine-grained updates, do that here
       }
 
       @Override
       public void onActivityRemoved(Activity activity) {
-        getHost().onChildRemoved(mElement, activity);
+        // TODO: once we have the ability to report fine-grained updates, do that here
       }
     };
   }

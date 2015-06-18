@@ -50,5 +50,20 @@ public interface ThreadBound {
    * it threw).
    */
   public void postAndWait(Runnable r);
+
+  /**
+   * Asynchronously executes a {@link Runnable} on the thread that this object is bound to
+   * after the specified delay.
+   * @param r the {@link Runnable} to execute
+   * @param delayMillis The delay (in milliseconds) until the {@link Runnable} will be executed.
+   * @throws RuntimeException if the {@link Runnable} could not be enqueued.
+   */
+  public void postDelayed(Runnable r, long delayMillis);
+
+  /**
+   * Removes any pending posts of the given {@link Runnable} that are in the queue.
+   * @param r the {@link Runnable} to remove from the queue
+   */
+  public void removeCallbacks(Runnable r);
 }
 

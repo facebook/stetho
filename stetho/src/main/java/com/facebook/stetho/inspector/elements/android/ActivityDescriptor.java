@@ -13,6 +13,7 @@ import android.app.Activity;
 import android.view.View;
 import android.view.Window;
 
+import com.facebook.stetho.common.Accumulator;
 import com.facebook.stetho.common.StringUtil;
 import com.facebook.stetho.inspector.elements.ChainedDescriptor;
 
@@ -25,18 +26,10 @@ final class ActivityDescriptor
   }
 
   @Override
-  protected int onGetChildCount(Activity element) {
+  protected void onGetChildren(Activity element, Accumulator<Object> children) {
     Window window = element.getWindow();
-    return (window != null) ? 1 : 0;
-  }
-
-  @Override
-  protected Object onGetChildAt(Activity element, int index) {
-    Window window = element.getWindow();
-    if (window == null) {
-      throw new IndexOutOfBoundsException();
-    } else {
-      return window;
+    if (window != null) {
+      children.store(window);
     }
   }
 

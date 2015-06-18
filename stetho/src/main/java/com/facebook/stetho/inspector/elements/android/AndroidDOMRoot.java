@@ -11,6 +11,7 @@ package com.facebook.stetho.inspector.elements.android;
 
 import android.app.Application;
 
+import com.facebook.stetho.common.Accumulator;
 import com.facebook.stetho.common.Util;
 import com.facebook.stetho.inspector.elements.ChainedDescriptor;
 import com.facebook.stetho.inspector.elements.NodeType;
@@ -35,15 +36,7 @@ final class AndroidDOMRoot extends ChainedDescriptor<AndroidDOMRoot> {
   }
 
   @Override
-  protected int onGetChildCount(AndroidDOMRoot element) {
-    return 1;
-  }
-
-  @Override
-  protected Object onGetChildAt(AndroidDOMRoot element, int index) {
-    if (index != 0) {
-      throw new IndexOutOfBoundsException();
-    }
-    return mApplication;
+  protected void onGetChildren(AndroidDOMRoot element, Accumulator<Object> children) {
+    children.store(mApplication);
   }
 }

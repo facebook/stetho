@@ -7,8 +7,8 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-package com.facebook.stetho.inspector.elements;
+package com.facebook.stetho.common;
 
-public interface AttributeAccumulator {
-  public void store(String name, String value);
+public interface Accumulator<E> {
+  public void store(E object);
 }
