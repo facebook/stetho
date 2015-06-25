@@ -13,19 +13,14 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.facebook.stetho.common.Accumulator;
-import com.facebook.stetho.common.Util;
 import com.facebook.stetho.common.android.FragmentCompatUtil;
 import com.facebook.stetho.inspector.elements.ChainedDescriptor;
 
 import java.util.Collections;
-import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
 
 final class ViewGroupDescriptor extends ChainedDescriptor<ViewGroup> {
-  private final Map<ViewGroup, ElementContext> mElementToContextMap =
-      Collections.synchronizedMap(new IdentityHashMap<ViewGroup, ElementContext>());
-
   /**
    * This is a cache that maps from a View to the Fragment that contains it. If the View isn't
    * contained by a Fragment, then this maps the View to itself. For Views contained by Fragments,
@@ -38,87 +33,39 @@ final class ViewGroupDescriptor extends ChainedDescriptor<ViewGroup> {
   public ViewGroupDescriptor() {
   }
 
-  private ElementContext getOrCreateContext(ViewGroup element) {
-    ElementContext context = mElementToContextMap.get(element);
-    if (context == null) {
-      context = new ElementContext();
-      mElementToContextMap.put(element, context);
-    }
-    return context;
-  }
-
-  final void registerDecorView(ViewGroup decorView) {
-    ElementContext context = getOrCreateContext(decorView);
-    context.markDecorView();
-  }
-
-  @Override
-  protected void onHook(ViewGroup element) {
-    ElementContext context = getOrCreateContext(element);
-    context.hook(element);
-  }
-
-  @Override
-  protected void onUnhook(ViewGroup element) {
-    ElementContext context = mElementToContextMap.remove(element);
-    context.unhook();
-  }
-
-  private Object getElementForView(ViewGroup parentView, View view) {
-    Object element = mViewToElementMap.get(view);
-    if (element != null) {
-      if (view.getParent() == parentView) {
-        return element;
-      }
-      mViewToElementMap.remove(view);
-    }
-
-    Object fragment = FragmentCompatUtil.findFragmentForView(view);
-    if (fragment != null) {
-      mViewToElementMap.put(view, fragment);
-      return fragment;
-    } else {
-      mViewToElementMap.put(view, view);
-      return view;
-    }
-  }
-
   @Override
   protected void onGetChildren(ViewGroup element, Accumulator<Object> children) {
-    ElementContext context = mElementToContextMap.get(element);
-    context.getChildren(children);
+    for (int i = 0, N = element.getChildCount(); i < N; ++i) {
+      final View childView = element.getChildAt(i);
+      if (isChildVisible(childView)) {
+        final Object childElement = getElementForView(element, childView);
+        children.store(childElement);
+      }
+    }
   }
 
-  private final class ElementContext {
-    private ViewGroup mElement;
-    private boolean mIsDecorView;
+  private boolean isChildVisible(View child) {
+    return !(child instanceof DOMHiddenView);
+  }
 
-    public void hook(ViewGroup element) {
-      mElement = Util.throwIfNull(element);
-    }
-
-    public void unhook() {
-      if (mElement != null) {
-        mElement = null;
+  private Object getElementForView(ViewGroup parentView, View childView) {
+    Object element = mViewToElementMap.get(childView);
+    if (element != null) {
+      // The parent of a View may have changed since we stashed it into the cache.
+      // If that's the case then we can't use the cache's answer.
+      if (childView.getParent() == parentView) {
+        return element;
       }
+      mViewToElementMap.remove(childView);
     }
 
-    public void markDecorView() {
-      mIsDecorView = true;
-    }
-
-    public void getChildren(Accumulator<Object> children) {
-      for (int i = 0, N = mElement.getChildCount(); i < N; ++i) {
-        final View child = mElement.getChildAt(i);
-        if (isChildVisible(child)) {
-          final Object element = getElementForView(mElement, child);
-          children.store(element);
-        }
-      }
-    }
-
-    private boolean isChildVisible(View child) {
-      return !mIsDecorView || !(child instanceof DOMHiddenView);
+    Object fragment = FragmentCompatUtil.findFragmentForView(childView);
+    if (fragment != null) {
+      mViewToElementMap.put(childView, fragment);
+      return fragment;
+    } else {
+      mViewToElementMap.put(childView, childView);
+      return childView;
     }
   }
 }
