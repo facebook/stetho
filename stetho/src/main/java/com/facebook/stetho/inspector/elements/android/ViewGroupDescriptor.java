@@ -12,9 +12,9 @@ package com.facebook.stetho.inspector.elements.android;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.facebook.stetho.common.Accumulator;
 import com.facebook.stetho.common.Util;
 import com.facebook.stetho.common.android.FragmentCompatUtil;
-import com.facebook.stetho.common.android.ViewGroupUtil;
 import com.facebook.stetho.inspector.elements.ChainedDescriptor;
 
 import java.util.Collections;
@@ -55,18 +55,12 @@ final class ViewGroupDescriptor extends ChainedDescriptor<ViewGroup> {
   }
 
   @Override
-  protected int onGetChildCount(ViewGroup element) {
+  protected void onGetChildren(ViewGroup element, Accumulator<Object> children) {
     ElementContext context = mElementToContextMap.get(element);
-    return context.getChildCount();
+    context.getChildren(children);
   }
 
-  @Override
-  protected Object onGetChildAt(ViewGroup element, int index) {
-    ElementContext context = mElementToContextMap.get(element);
-    return context.getChildAt(index);
-  }
-
-  private final class ElementContext implements ViewGroup.OnHierarchyChangeListener {
+  private final class ElementContext {
     // This is a cache that maps from a View to the Fragment that contains it. If the
     // View isn't contained by a Fragment, then this maps the View to itself.
     // For Views contained by Fragments, we emit the Fragment instead, and then let
@@ -76,33 +70,15 @@ final class ViewGroupDescriptor extends ChainedDescriptor<ViewGroup> {
         Collections.synchronizedMap(new IdentityHashMap<View, Object>());
 
     private ViewGroup mElement;
-    private ViewGroup.OnHierarchyChangeListener mInnerListener;
     private boolean mIsDecorView;
 
     public void hook(ViewGroup element) {
-      if (mInnerListener != null) {
-        throw new IllegalStateException();
-      }
-
       mElement = Util.throwIfNull(element);
-      mInnerListener = ViewGroupUtil.tryGetOnHierarchyChangeListenerHack(mElement);
-      mElement.setOnHierarchyChangeListener(this);
     }
 
     public void unhook() {
       if (mElement != null) {
-        ViewGroup.OnHierarchyChangeListener currentListener =
-            ViewGroupUtil.tryGetOnHierarchyChangeListenerHack(mElement);
-
-        if (currentListener == this) {
-          mElement.setOnHierarchyChangeListener(mInnerListener);
-        } else {
-          mElement.setOnHierarchyChangeListener(null);
-        }
-
-        mInnerListener = null;
         mElement = null;
-
         mViewToElementMap.clear();
       }
     }
@@ -111,56 +87,18 @@ final class ViewGroupDescriptor extends ChainedDescriptor<ViewGroup> {
       mIsDecorView = true;
     }
 
-    public int getChildCount() {
-      if (mIsDecorView) {
-        return getDecorViewChildCount();
-      } else {
-        return mElement.getChildCount();
+    public void getChildren(Accumulator<Object> children) {
+      for (int i = 0, N = mElement.getChildCount(); i < N; ++i) {
+        final View child = mElement.getChildAt(i);
+        if (isChildVisible(child)) {
+          final Object element = getElementForView(child);
+          children.store(element);
+        }
       }
     }
 
     private boolean isChildVisible(View child) {
       return !mIsDecorView || !(child instanceof DOMHiddenView);
-    }
-
-    private int getDecorViewChildCount() {
-      final int realCount = mElement.getChildCount();
-      int virtualCount = 0;
-      for (int i = 0; i < realCount; ++i) {
-        if (isChildVisible(mElement.getChildAt(i))) {
-          ++virtualCount;
-        }
-      }
-      return virtualCount;
-    }
-
-    public Object getChildAt(int index) {
-      if (index < 0 || index >= mElement.getChildCount()) {
-        throw new IndexOutOfBoundsException();
-      }
-
-      if (mIsDecorView) {
-        return getDecorViewChildAt(index);
-      } else {
-        View view = mElement.getChildAt(index);
-        return getElementForView(view);
-      }
-    }
-
-    private Object getDecorViewChildAt(int index) {
-      final int realCount = mElement.getChildCount();
-      int virtualIndex = 0;
-      for (int i = 0; i < realCount; ++i) {
-        View child = mElement.getChildAt(i);
-        if (isChildVisible(child)) {
-          if (virtualIndex == index) {
-            return getElementForView(child);
-          }
-          ++virtualIndex;
-        }
-      }
-
-      throw new IndexOutOfBoundsException();
     }
 
     private Object getElementForView(View view) {
@@ -181,60 +119,6 @@ final class ViewGroupDescriptor extends ChainedDescriptor<ViewGroup> {
         mViewToElementMap.put(view, view);
         return view;
       }
-    }
-
-    @Override
-    public void onChildViewAdded(View parent, View child) {
-      if (mElement == null) {
-        return;
-      }
-
-      if (mInnerListener != null) {
-        mInnerListener.onChildViewAdded(parent, child);
-      }
-
-      if (!isChildVisible(child)) {
-        return;
-      }
-
-      if (parent instanceof ViewGroup) {
-        final ViewGroup parentGroup = (ViewGroup)parent;
-
-        int childIndex = ViewGroupUtil.findChildIndex(parentGroup, child);
-
-        Object previousElement = null;
-        for (int i = childIndex - 1; i >= 0; --i) {
-          View previousChild = parentGroup.getChildAt(i);
-          if (isChildVisible(previousChild)) {
-            previousElement = getElementForView(previousChild);
-            break;
-          }
-        }
-
-        Object childElement = getElementForView(child);
-
-        getHost().onChildInserted(parent, previousElement, childElement);
-      }
-    }
-
-    @Override
-    public void onChildViewRemoved(View parent, View child) {
-      if (mElement == null) {
-        return;
-      }
-
-      if (mInnerListener != null) {
-        mInnerListener.onChildViewRemoved(parent, child);
-      }
-
-      if (!isChildVisible(child)) {
-        return;
-      }
-
-      Object childElement = getElementForView(child);
-      getHost().onChildRemoved(parent, childElement);
-
-      mViewToElementMap.remove(child);
     }
   }
 }

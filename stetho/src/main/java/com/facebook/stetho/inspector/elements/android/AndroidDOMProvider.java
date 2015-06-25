@@ -22,6 +22,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import com.facebook.stetho.common.Accumulator;
 import com.facebook.stetho.common.Predicate;
 import com.facebook.stetho.common.UncheckedCallable;
 import com.facebook.stetho.common.Util;
@@ -47,6 +48,25 @@ final class AndroidDOMProvider implements DOMProvider, AndroidDescriptorHost {
   private final ViewHighlighter mHighlighter;
   private final InspectModeHandler mInspectModeHandler;
   private Listener mListener;
+
+  // We don't yet have an an implementation for reliably detecting fine-grained changes in the
+  // View tree. So, for now at least, we have a timer that runs every so often and just reports
+  // that we changed. Our listener will then read the entire DOM from us and transmit the changes to
+  // Chrome. Detecting, reporting, and traversing fine-grained changes is a future work item.
+  private static final long REPORT_CHANGED_INTERVAL_MS = 1000;
+  private boolean mIsReportChangesTimerPosted = false;
+  private final Runnable mReportChangesTimer = new Runnable() {
+    @Override
+    public void run() {
+      mIsReportChangesTimerPosted = false;
+
+      if (mListener != null) {
+        mListener.onPossiblyChanged();
+        mIsReportChangesTimerPosted = true;
+        postDelayed(this, REPORT_CHANGED_INTERVAL_MS);
+      }
+    }
+  };
 
   public AndroidDOMProvider(Application application) {
     mApplication = Util.throwIfNull(application);
@@ -92,29 +112,53 @@ final class AndroidDOMProvider implements DOMProvider, AndroidDescriptorHost {
     HandlerUtil.postAndWait(mHandler, r);
   }
 
+  @Override
+  public void postDelayed(Runnable r, long delayMillis) {
+    if (!mHandler.postDelayed(r, delayMillis)) {
+      throw new RuntimeException("Handler.postDelayed() returned false");
+    }
+  }
+
+  @Override
+  public void removeCallbacks(Runnable r) {
+    mHandler.removeCallbacks(r);
+  }
+
   // DOMProvider implementation
   @Override
   public void dispose() {
+    verifyThreadAccess();
+
     mHighlighter.clearHighlight();
     mInspectModeHandler.disable();
+    removeCallbacks(mReportChangesTimer);
+    mIsReportChangesTimerPosted = false;
+    mListener = null;
   }
 
   @Override
   public void setListener(Listener listener) {
+    verifyThreadAccess();
+
     mListener = listener;
+    if (mListener == null && mIsReportChangesTimerPosted) {
+      mIsReportChangesTimerPosted = false;
+      removeCallbacks(mReportChangesTimer);
+    } else  if (mListener != null && !mIsReportChangesTimerPosted) {
+      mIsReportChangesTimerPosted = true;
+      postDelayed(mReportChangesTimer, REPORT_CHANGED_INTERVAL_MS);
+    }
   }
 
   @Override
   public Object getRootElement() {
     verifyThreadAccess();
-
     return mDOMRoot;
   }
 
   @Override
   public NodeDescriptor getNodeDescriptor(Object element) {
     verifyThreadAccess();
-
     return getDescriptor(element);
   }
 
@@ -174,16 +218,6 @@ final class AndroidDOMProvider implements DOMProvider, AndroidDescriptorHost {
     mListener.onAttributeRemoved(element, name);
   }
 
-  @Override
-  public void onChildInserted(Object parentElement, Object previousElement, Object childElement) {
-    mListener.onChildInserted(parentElement, previousElement, childElement);
-  }
-
-  @Override
-  public void onChildRemoved(Object parentElement, Object childElement) {
-    mListener.onChildRemoved(parentElement, childElement);
-  }
-
   // AndroidDescriptorHost implementation
   @Override
   public View getHighlightingView(Object element) {
@@ -201,7 +235,7 @@ final class AndroidDOMProvider implements DOMProvider, AndroidDescriptorHost {
       }
 
       if (descriptor != lastDescriptor && descriptor instanceof HighlightableDescriptor) {
-        highlightingView = ((HighlightableDescriptor)descriptor).getViewForHighlighting(element);
+        highlightingView = ((HighlightableDescriptor) descriptor).getViewForHighlighting(element);
       }
 
       lastDescriptor = descriptor;
@@ -211,30 +245,27 @@ final class AndroidDOMProvider implements DOMProvider, AndroidDescriptorHost {
     return highlightingView;
   }
 
-  private List<Window> collectWindows() {
-    ArrayList<Window> windows = new ArrayList<Window>();
-
+  private void getWindows(final Accumulator<Window> accumulator) {
     Descriptor appDescriptor = getDescriptor(mApplication);
-    if (appDescriptor == null) {
-      return windows;
+    if (appDescriptor != null) {
+      Accumulator<Object> elementAccumulator = new Accumulator<Object>() {
+        @Override
+        public void store(Object element) {
+          if (element instanceof Window) {
+            // Store the Window and do not recurse into its children.
+            accumulator.store((Window) element);
+          } else {
+            // Recursively scan this element's children in search of more Windows.
+            Descriptor elementDescriptor = getDescriptor(element);
+            if (elementDescriptor != null) {
+              elementDescriptor.getChildren(element, this);
+            }
+          }
+        }
+      };
+
+      appDescriptor.getChildren(mApplication, elementAccumulator);
     }
-
-    int activityCount = appDescriptor.getChildCount(mApplication);
-    for (int ai = 0; ai < activityCount; ++ai) {
-      final Activity activity = (Activity)appDescriptor.getChildAt(mApplication, ai);
-      Descriptor activityDescriptor = getDescriptor(activity);
-      if (activityDescriptor == null) {
-        continue;
-      }
-
-      int windowCount = activityDescriptor.getChildCount(activity);
-      for (int wi = 0; wi < windowCount; ++wi) {
-        final Window window = (Window)activityDescriptor.getChildAt(activity, wi);
-        windows.add(window);
-      }
-    }
-
-    return windows;
   }
 
   private final class InspectModeHandler {
@@ -254,26 +285,27 @@ final class AndroidDOMProvider implements DOMProvider, AndroidDescriptorHost {
         disable();
       }
 
-      mOverlays = new ArrayList<View>();
+      mOverlays = new ArrayList<>();
 
-      List<Window> windows = collectWindows();
-      for (int i = 0; i < windows.size(); ++i) {
-        final Window window = windows.get(i);
-        if (window.peekDecorView() instanceof ViewGroup) {
-          final ViewGroup decorView = (ViewGroup)window.peekDecorView();
+      getWindows(new Accumulator<Window>() {
+        @Override
+        public void store(Window object) {
+          if (object.peekDecorView() instanceof ViewGroup) {
+            final ViewGroup decorView = (ViewGroup) object.peekDecorView();
 
-          OverlayView overlayView = new OverlayView(mApplication);
+            OverlayView overlayView = new OverlayView(mApplication);
 
-          WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
-          layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
-          layoutParams.height = WindowManager.LayoutParams.MATCH_PARENT;
+            WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
+            layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
+            layoutParams.height = WindowManager.LayoutParams.MATCH_PARENT;
 
-          decorView.addView(overlayView, layoutParams);
-          decorView.bringChildToFront(overlayView);
+            decorView.addView(overlayView, layoutParams);
+            decorView.bringChildToFront(overlayView);
 
-          mOverlays.add(overlayView);
+            mOverlays.add(overlayView);
+          }
         }
-      }
+      });
     }
 
     public void disable() {

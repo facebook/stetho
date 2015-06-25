@@ -9,6 +9,7 @@
 
 package com.facebook.stetho.inspector.elements;
 
+import com.facebook.stetho.common.Accumulator;
 import com.facebook.stetho.common.ThreadBound;
 
 import javax.annotation.Nullable;
@@ -27,11 +28,9 @@ public interface NodeDescriptor extends ThreadBound {
   @Nullable
   public String getNodeValue(Object element);
 
-  public int getChildCount(Object element);
+  public void getChildren(Object element, Accumulator<Object> children);
 
-  public Object getChildAt(Object element, int index);
-
-  public void copyAttributes(Object element, AttributeAccumulator attributes);
+  public void getAttributes(Object element, AttributeAccumulator attributes);
 
   public void setAttributesAsText(Object element, String text);
 }
