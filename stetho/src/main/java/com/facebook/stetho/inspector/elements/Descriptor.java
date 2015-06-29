@@ -23,13 +23,13 @@ public abstract class Descriptor implements NodeDescriptor {
   protected Descriptor() {
   }
 
-  void initialize(Host host) {
+  final void initialize(Host host) {
     Util.throwIfNull(host);
     Util.throwIfNotNull(mHost);
     mHost = host;
   }
 
-  boolean isInitialized() {
+  final boolean isInitialized() {
     return mHost != null;
   }
 
@@ -73,13 +73,13 @@ public abstract class Descriptor implements NodeDescriptor {
    * @param text the text argument to be parsed
    * @return a map of attributes to their respective values to be set.
    */
-  protected Map<String, String> parseSetAttributesAsTextArg(String text) {
+  protected static Map<String, String> parseSetAttributesAsTextArg(String text) {
     String value = "";
     String key = "";
     StringBuilder buffer = new StringBuilder();
     Map<String, String> keyValuePairs = new HashMap<>();
     boolean isInsideQuotes = false;
-    for (int i = 0; i < text.length(); ++i) {
+    for (int i = 0, N = text.length(); i < N; ++i) {
       final char c = text.charAt(i);
       if (c == '=') {
         key = buffer.toString();

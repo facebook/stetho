@@ -15,7 +15,7 @@ import android.view.View;
 import javax.annotation.Nullable;
 
 public interface FragmentAccessor<FRAGMENT, FRAGMENT_MANAGER> {
-  public static final int NO_ID = View.NO_ID;
+  public static final int NO_ID = 0;
 
   @Nullable
   public FRAGMENT_MANAGER getFragmentManager(FRAGMENT fragment);

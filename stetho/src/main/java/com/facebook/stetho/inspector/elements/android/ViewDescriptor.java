@@ -13,12 +13,12 @@ import android.view.View;
 import com.facebook.stetho.common.StringUtil;
 import com.facebook.stetho.common.android.ResourcesUtil;
 import com.facebook.stetho.inspector.elements.AttributeAccumulator;
-import com.facebook.stetho.inspector.elements.ChainedDescriptor;
+import com.facebook.stetho.inspector.elements.AbstractChainedDescriptor;
 
 import javax.annotation.Nullable;
 import java.util.Map;
 
-final class ViewDescriptor extends ChainedDescriptor<View> implements HighlightableDescriptor {
+final class ViewDescriptor extends AbstractChainedDescriptor<View> implements HighlightableDescriptor {
   private static final String ID_ATTRIBUTE_NAME = "id";
 
   private final MethodInvoker mMethodInvoker;

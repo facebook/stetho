@@ -9,164 +9,49 @@
 
 package com.facebook.stetho.inspector.elements;
 
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AbsListView;
+import android.widget.ListView;
 import com.facebook.stetho.common.Accumulator;
-import com.facebook.stetho.common.ThreadBound;
-import com.facebook.stetho.common.Util;
-
-import javax.annotation.Nullable;
 
 /**
- * This class implements {@link Descriptor} in a way that is specially understood by
- * {@link DescriptorMap}. When implemented and registered for a class {@link E}, an instance of this
- * class will automatically be chained to the {@link Descriptor} which is registered for {@link E}'s
- * next super class. If {@link E}'s immediate super class doesn't have a descriptor registered for
- * it, but the super-super class does, then that will be used. This allows you to implement
- * {@link Descriptor} for any class without having to worry about describing anything about the
- * super class, and without having to know which {@link Descriptor} is registered for that super
- * class.
+ * This interface marks a {@link Descriptor} in a way that is specially understood by
+ * {@link DescriptorMap}. When registered for a particular class 'E', a {@link Descriptor} that
+ * implements this interface will be chained (via {@link ChainedDescriptor#setSuper(Descriptor)}) to
+ * the {@link Descriptor} that is registered for the super class of E. If the super class of E
+ * doesn't have a registration, then the super-super class will be used (and so on). This allows you
+ * to implement {@link Descriptor} for any class in an inheritance hierarchy without having to
+ * couple it (via direct inheritance) to the super-class' {@link Descriptor}.<p/>
  *
- * <p>For example, let's say you wanted to write a {@link Descriptor} for
- * {@link android.widget.ListView}. You can certainly derive from {@link Descriptor} and write
- * code to describe everything exposed by {@link android.widget.ListView},
- * {@link android.view.ViewGroup}, {@link android.view.View}, and {@link java.lang.Object}. Or you
- * can implement descriptors for each of these classes and create a parallel inheritance
- * hierarchy (e.g. your descriptor for {@link android.view.ViewGroup} would derive from your
- * descriptor for {@link android.view.View}, at which point you have to worry about things like
- * aggregating the results of {@link Descriptor#getChildAt(Object, int)} and so on. In both cases
- * you'll also have a lot of messy unchecked casts to worry about.</p>
+ * To understand why this is useful, let's say you wanted to write a {@link Descriptor} for
+ * {@link ListView}. You have three options:<p/>
  *
- * <p>Or, you can derive from {@link ChainedDescriptor} and then only worry about describing what
- * {@link android.widget.ListView} adds to or changes from {@link android.view.ViewGroup}.
- * Aggregation and casting are handled for you. You're also protected from the fragility that
- * would occur if a {@link Descriptor} was later implemented for something in-between
- * {@link android.view.ViewGroup} and {@link android.widget.ListView}, such as
- * {@link android.widget.AbsListView}. Your descriptor will automatically chain to and benefit from
- * the descriptor registered for the nearest super class.</p>
+ * The first option is to derive directly from {@link Descriptor} and write code to describe
+ * everything about instances of {@link ListView}, including details that are exposed by super
+ * classes such as {@link ViewGroup}, {@link View}, and even {@link Object}. This isn't generally
+ * a very good choice because it would require a lot of duplicated code amongst many descriptor
+ * implementations.<p/>
  *
- * <p>This class also implements the thread safety enforcement policy prescribed by
- * {@link ThreadBound}. Namely, that {@link #verifyThreadAccess()}} needs to be called in the
- * prologue for every method. Your derived class SHOULD NOT call {@link #verifyThreadAccess()}} in
- * any of its on___() methods.
- * </p>
+ * The second option is to derive your 'ListViewDescriptor' from
+ * {@link com.facebook.stetho.inspector.elements.android.ViewGroupDescriptor} and only implement
+ * code to describe how {@link ListView} differs from {@link ViewGroup}. This will result in a class
+ * hierarchy that is parallel to the one that you are describing, but is also not a good choice for
+ * two reasons (let's assume for the moment that
+ * {@link com.facebook.stetho.inspector.elements.android.ViewGroupDescriptor} is deriving from
+ * {@link com.facebook.stetho.inspector.elements.android.ViewDescriptor}). The first problem is that
+ * you will need to write code for aggregating results from the super-class in methods such as
+ * {@link Descriptor#getChildren(Object, Accumulator)} and
+ * {@link Descriptor#getAttributes(Object, AttributeAccumulator)}. The second problem is that you'd
+ * end up with a log of fragility if you ever want to implement a descriptor for classes that are
+ * in-between {@link ViewGroup} and {@link ListView}, e.g. {@link AbsListView}. Any descriptor that
+ * derived from {@link com.facebook.stetho.inspector.elements.android.ViewGroupDescriptor} and
+ * described a class deriving from {@link AbsListView} would have to be modified to now derive from
+ * 'AbsListViewDescriptor'.<p/>
  *
- * <p>(NOTE: As an optimization, {@link #verifyThreadAccess()} is not actually called in the
- * prologue for every method. Instead, we rely on {@link DOMProvider#getNodeDescriptor(Object)}
- * calling it in order to get most of our enforcement coverage. We still call
- * {@link #verifyThreadAccess()} in a few important methods such as {@link #hook(Object)} and
- * {@link #unhook(Object)} (anything that writes or is potentially really dangerous if misused).
- *
- * @param <E> the class that this descriptor will be describing for {@link DOMProvider} and
- * {@link com.facebook.stetho.inspector.protocol.module.DOM}
+ * The third option is to implement {@link ChainedDescriptor} (e.g. by deriving from
+ * {@link AbstractChainedDescriptor}) which solves all of these issues for you.<p/>
  */
-public abstract class ChainedDescriptor<E> extends Descriptor {
-
-  private Descriptor mSuper;
-
-  final void setSuper(Descriptor superDescriptor) {
-    Util.throwIfNull(superDescriptor);
-
-    if (superDescriptor != mSuper) {
-      if (mSuper != null) {
-        throw new IllegalStateException();
-      }
-      mSuper = superDescriptor;
-    }
-  }
-
-  public final Descriptor getSuper() {
-    return mSuper;
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public final void hook(Object element) {
-    verifyThreadAccess();
-    mSuper.hook(element);
-    onHook((E) element);
-  }
-
-  protected void onHook(E element) {
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public final void unhook(Object element) {
-    verifyThreadAccess();
-    onUnhook((E) element);
-    mSuper.unhook(element);
-  }
-
-  protected void onUnhook(E element) {
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public final NodeType getNodeType(Object element) {
-    return onGetNodeType((E) element);
-  }
-
-  protected NodeType onGetNodeType(E element) {
-    return mSuper.getNodeType(element);
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public final String getNodeName(Object element) {
-    return onGetNodeName((E) element);
-  }
-
-  protected String onGetNodeName(E element) {
-    return mSuper.getNodeName(element);
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public final String getLocalName(Object element) {
-    return onGetLocalName((E) element);
-  }
-
-  protected String onGetLocalName(E element) {
-    return mSuper.getLocalName(element);
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public final String getNodeValue(Object element) {
-    return onGetNodeValue((E) element);
-  }
-
-  @Nullable
-  public String onGetNodeValue(E element) {
-    return mSuper.getNodeValue(element);
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public final void getChildren(Object element, Accumulator<Object> children) {
-    mSuper.getChildren(element, children);
-    onGetChildren((E) element, children);
-  }
-
-  protected void onGetChildren(E element, Accumulator<Object> children) {
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public final void getAttributes(Object element, AttributeAccumulator attributes) {
-    mSuper.getAttributes(element, attributes);
-    onGetAttributes((E) element, attributes);
-  }
-
-  protected void onGetAttributes(E element, AttributeAccumulator attributes) {
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public final void setAttributesAsText(Object element, String text) {
-    onSetAttributesAsText((E) element, text);
-  }
-
-  protected void onSetAttributesAsText(E element, String text) {
-    mSuper.setAttributesAsText(element, text);
-  }
+public interface ChainedDescriptor {
+  public void setSuper(Descriptor superDescriptor);
 }

@@ -17,13 +17,13 @@ import com.facebook.stetho.common.android.FragmentAccessor;
 import com.facebook.stetho.common.android.FragmentCompat;
 import com.facebook.stetho.common.android.ResourcesUtil;
 import com.facebook.stetho.inspector.elements.AttributeAccumulator;
-import com.facebook.stetho.inspector.elements.ChainedDescriptor;
+import com.facebook.stetho.inspector.elements.AbstractChainedDescriptor;
 import com.facebook.stetho.inspector.elements.DescriptorMap;
 
 import javax.annotation.Nullable;
 
 final class FragmentDescriptor
-    extends ChainedDescriptor<Object> implements HighlightableDescriptor {
+    extends AbstractChainedDescriptor<Object> implements HighlightableDescriptor {
   private static final String ID_ATTRIBUTE_NAME = "id";
   private static final String TAG_ATTRIBUTE_NAME = "tag";
 
