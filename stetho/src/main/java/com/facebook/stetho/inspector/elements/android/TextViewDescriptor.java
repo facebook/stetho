@@ -15,13 +15,13 @@ import android.widget.TextView;
 
 import com.facebook.stetho.common.Util;
 import com.facebook.stetho.inspector.elements.AttributeAccumulator;
-import com.facebook.stetho.inspector.elements.ChainedDescriptor;
+import com.facebook.stetho.inspector.elements.AbstractChainedDescriptor;
 
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
-final class TextViewDescriptor extends ChainedDescriptor<TextView> {
+final class TextViewDescriptor extends AbstractChainedDescriptor<TextView> {
   private static final String TEXT_ATTRIBUTE_NAME = "text";
 
   private final Map<TextView, ElementContext> mElementToContextMap =

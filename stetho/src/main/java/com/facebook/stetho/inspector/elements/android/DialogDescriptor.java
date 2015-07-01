@@ -9,28 +9,34 @@
 
 package com.facebook.stetho.inspector.elements.android;
 
+import android.app.Dialog;
 import android.view.View;
 import android.view.Window;
-
 import com.facebook.stetho.common.Accumulator;
 import com.facebook.stetho.inspector.elements.AbstractChainedDescriptor;
+import com.facebook.stetho.inspector.elements.Descriptor;
 
 import javax.annotation.Nullable;
 
-final class WindowDescriptor extends AbstractChainedDescriptor<Window>
-    implements HighlightableDescriptor {
+final class DialogDescriptor
+    extends AbstractChainedDescriptor<Dialog> implements HighlightableDescriptor {
   @Override
-  protected void onGetChildren(Window element, Accumulator<Object> children) {
-    View decorView = element.peekDecorView();
-    if (decorView != null) {
-      children.store(decorView);
+  protected void onGetChildren(Dialog element, Accumulator<Object> children) {
+    Window window = element.getWindow();
+    if (window != null) {
+      children.store(window);
     }
   }
 
-  @Override
   @Nullable
+  @Override
   public View getViewForHighlighting(Object element) {
-    Window window = (Window) element;
-    return window.peekDecorView();
+    final Descriptor.Host host = getHost();
+    if (host instanceof AndroidDescriptorHost) {
+      final Dialog dialog = (Dialog) element;
+      return ((AndroidDescriptorHost) host).getHighlightingView(dialog.getWindow());
+    }
+
+    return null;
   }
 }

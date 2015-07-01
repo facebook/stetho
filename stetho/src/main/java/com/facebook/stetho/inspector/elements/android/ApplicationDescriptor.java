@@ -13,7 +13,7 @@ import android.app.Activity;
 import android.app.Application;
 
 import com.facebook.stetho.common.Accumulator;
-import com.facebook.stetho.inspector.elements.ChainedDescriptor;
+import com.facebook.stetho.inspector.elements.AbstractChainedDescriptor;
 import com.facebook.stetho.inspector.elements.NodeType;
 
 import java.util.Collections;
@@ -21,7 +21,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
-final class ApplicationDescriptor extends ChainedDescriptor<Application> {
+final class ApplicationDescriptor extends AbstractChainedDescriptor<Application> {
   private final Map<Application, ElementContext> mElementToContextMap =
       Collections.synchronizedMap(new IdentityHashMap<Application, ElementContext>());
 

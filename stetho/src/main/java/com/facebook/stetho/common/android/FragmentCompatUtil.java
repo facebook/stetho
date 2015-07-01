@@ -20,6 +20,22 @@ public final class FragmentCompatUtil {
   private FragmentCompatUtil() {
   }
 
+  public static boolean isDialogFragment(Object fragment) {
+    FragmentCompat supportLib = FragmentCompat.getSupportLibInstance();
+    if (supportLib != null &&
+        supportLib.getDialogFragmentClass().isInstance(fragment)) {
+      return true;
+    }
+
+    FragmentCompat framework = FragmentCompat.getFrameworkInstance();
+    if (framework != null &&
+        framework.getDialogFragmentClass().isInstance(fragment)) {
+      return true;
+    }
+
+    return false;
+  }
+
   @Nullable
   public static Object findFragmentForView(View view) {
     Activity activity = ViewUtil.tryGetActivity(view);
@@ -62,10 +78,12 @@ public final class FragmentCompatUtil {
       FragmentCompat compat,
       Activity activity,
       View view) {
-    return findFragmentForViewInFragmentManager(
-        compat,
-        compat.forFragmentActivity().getFragmentManager(activity),
-        view);
+    Object fragmentManager = compat.forFragmentActivity().getFragmentManager(activity);
+    if (fragmentManager != null) {
+      return findFragmentForViewInFragmentManager(compat, fragmentManager, view);
+    } else {
+      return null;
+    }
   }
 
   @Nullable
@@ -76,7 +94,7 @@ public final class FragmentCompatUtil {
     List<?> fragments = compat.forFragmentManager().getAddedFragments(fragmentManager);
 
     if (fragments != null) {
-      for (int i = 0; i < fragments.size(); ++i) {
+      for (int i = 0, N = fragments.size(); i < N; ++i) {
         Object fragment = fragments.get(i);
         Object result = findFragmentForViewInFragment(compat, fragment, view);
         if (result != null) {

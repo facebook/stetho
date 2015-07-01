@@ -13,12 +13,12 @@ import android.app.Application;
 
 import com.facebook.stetho.common.Accumulator;
 import com.facebook.stetho.common.Util;
-import com.facebook.stetho.inspector.elements.ChainedDescriptor;
+import com.facebook.stetho.inspector.elements.AbstractChainedDescriptor;
 import com.facebook.stetho.inspector.elements.NodeType;
 
 // For the root, we use 1 object for both element and descriptor.
 
-final class AndroidDOMRoot extends ChainedDescriptor<AndroidDOMRoot> {
+final class AndroidDOMRoot extends AbstractChainedDescriptor<AndroidDOMRoot> {
   private final Application mApplication;
 
   public AndroidDOMRoot(Application application) {

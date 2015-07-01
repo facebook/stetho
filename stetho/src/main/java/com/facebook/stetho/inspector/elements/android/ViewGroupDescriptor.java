@@ -14,13 +14,13 @@ import android.view.ViewGroup;
 
 import com.facebook.stetho.common.Accumulator;
 import com.facebook.stetho.common.android.FragmentCompatUtil;
-import com.facebook.stetho.inspector.elements.ChainedDescriptor;
+import com.facebook.stetho.inspector.elements.AbstractChainedDescriptor;
 
 import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
 
-final class ViewGroupDescriptor extends ChainedDescriptor<ViewGroup> {
+final class ViewGroupDescriptor extends AbstractChainedDescriptor<ViewGroup> {
   /**
    * This is a cache that maps from a View to the Fragment that contains it. If the View isn't
    * contained by a Fragment, then this maps the View to itself. For Views contained by Fragments,
@@ -59,8 +59,14 @@ final class ViewGroupDescriptor extends ChainedDescriptor<ViewGroup> {
       mViewToElementMap.remove(childView);
     }
 
+    /**
+     * Note that we do NOT emit DialogFragments. Those get emitted via ActivityDescriptor.
+     * We do the check here so that we can also cache the cost of calling
+     * {@link FragmentCompatUtil#isDialogFragment(Object)}.
+     */
+
     Object fragment = FragmentCompatUtil.findFragmentForView(childView);
-    if (fragment != null) {
+    if (fragment != null && !FragmentCompatUtil.isDialogFragment(fragment)) {
       mViewToElementMap.put(childView, fragment);
       return fragment;
     } else {
