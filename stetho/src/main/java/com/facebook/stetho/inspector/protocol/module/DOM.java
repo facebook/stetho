@@ -102,6 +102,7 @@ public class DOM implements ChromeDevtoolsDomain {
         if (mShadowDOM == null) {
           mShadowDOM = new ShadowDOM(mDOMProvider.getRootElement());
           createShadowDOMUpdate().commit();
+          mDOMProvider.setListener(new ProviderListener());
         } else if (rootElement != mShadowDOM.getRootElement()) {
           // We don't support changing the root element. This is handled differently by the
           // protocol than updates to an existing DOM, and we don't have any case in our
@@ -402,12 +403,7 @@ public class DOM implements ChromeDevtoolsDomain {
     @Override
     protected synchronized void onFirstPeerRegistered() {
       mDOMProvider = mDOMProviderFactory.create();
-      mDOMProvider.postAndWait(new Runnable() {
-        @Override
-        public void run() {
-          mDOMProvider.setListener(new ProviderListener());
-        }
-      });
+      // We dont call mDOMProvider.setListener() until the first DOM.getDocument request.
     }
 
     @Override
