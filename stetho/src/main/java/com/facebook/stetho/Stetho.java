@@ -10,6 +10,7 @@
 package com.facebook.stetho;
 
 import com.facebook.stetho.dumpapp.plugins.CrashDumperPlugin;
+import com.facebook.stetho.dumpapp.plugins.FilesDumperPlugin;
 import com.facebook.stetho.dumpapp.plugins.HprofDumperPlugin;
 import com.facebook.stetho.inspector.database.DefaultDatabaseFilesProvider;
 import javax.annotation.Nullable;
@@ -120,6 +121,7 @@ public class Stetho {
         plugins.add(new HprofDumperPlugin(context));
         plugins.add(new SharedPreferencesDumperPlugin(context));
         plugins.add(new CrashDumperPlugin());
+        plugins.add(new FilesDumperPlugin(context));
         return plugins;
       }
     };
