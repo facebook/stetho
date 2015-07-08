@@ -36,6 +36,7 @@ import com.facebook.stetho.inspector.ChromeDiscoveryHandler;
 import com.facebook.stetho.inspector.elements.android.ActivityTracker;
 import com.facebook.stetho.inspector.elements.android.AndroidDOMConstants;
 import com.facebook.stetho.inspector.elements.android.AndroidDOMProviderFactory;
+import com.facebook.stetho.inspector.network.DefaultAsyncPrettyPrinterRegistry;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
 import com.facebook.stetho.inspector.protocol.module.CSS;
 import com.facebook.stetho.inspector.protocol.module.Console;
@@ -141,7 +142,7 @@ public class Stetho {
         modules.add(new DOMStorage(context));
         modules.add(new HeapProfiler());
         modules.add(new Inspector());
-        modules.add(new Network(context));
+        modules.add(new Network(context, new DefaultAsyncPrettyPrinterRegistry()));
         modules.add(new Page(context));
         modules.add(new Profiler());
         modules.add(new Runtime());

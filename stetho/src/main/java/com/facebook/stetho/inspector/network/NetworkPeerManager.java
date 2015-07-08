@@ -21,23 +21,31 @@ public class NetworkPeerManager extends ChromePeerManager {
 
   private final ResponseBodyFileManager mResponseBodyFileManager;
 
+  private final AsyncPrettyPrinterRegistry mAsyncPrettyPrinterRegistry;
+
   @Nullable
   public static synchronized NetworkPeerManager getInstanceOrNull() {
     return sInstance;
   }
 
-  public static synchronized NetworkPeerManager getOrCreateInstance(Context context) {
+  public static synchronized NetworkPeerManager getOrCreateInstance(
+      Context context,
+      AsyncPrettyPrinterRegistry prettyPrinterRegistry) {
     if (sInstance == null) {
       sInstance = new NetworkPeerManager(
           new ResponseBodyFileManager(
-              context.getApplicationContext()));
+              context.getApplicationContext()),
+          prettyPrinterRegistry);
     }
     return sInstance;
   }
 
-  public NetworkPeerManager(ResponseBodyFileManager responseBodyFileManager) {
+  public NetworkPeerManager(
+      ResponseBodyFileManager responseBodyFileManager,
+      AsyncPrettyPrinterRegistry asyncPrettyPrinterRegistry) {
     mResponseBodyFileManager = responseBodyFileManager;
     setListener(mTempFileCleanup);
+    mAsyncPrettyPrinterRegistry = asyncPrettyPrinterRegistry;
   }
 
   public ResponseBodyFileManager getResponseBodyFileManager() {
