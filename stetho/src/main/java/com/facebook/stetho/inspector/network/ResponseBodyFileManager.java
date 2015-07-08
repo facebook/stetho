@@ -15,11 +15,22 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import android.content.Context;
 import android.util.Base64;
 import android.util.Base64OutputStream;
 
+import com.facebook.stetho.common.ExceptionUtil;
 import com.facebook.stetho.common.LogRedirector;
 import com.facebook.stetho.common.Util;
 
@@ -29,8 +40,14 @@ import com.facebook.stetho.common.Util;
 public class ResponseBodyFileManager {
   private static final String TAG = "ResponseBodyFileManager";
   private static final String FILENAME_PREFIX = "network-response-body-";
+  private static final int PRETTY_PRINT_TIMEOUT_SEC = 10;
 
   private final Context mContext;
+
+  private final Map<String, AsyncPrettyPrinter> mRequestIdMap = Collections.synchronizedMap(
+      new HashMap<String, AsyncPrettyPrinter>());
+  private final ExecutorService sExecutorService =
+      AsyncPrettyPrinterExecutorHolder.sExecutorService;
 
   public ResponseBodyFileManager(Context context) {
     mContext = context;
@@ -56,17 +73,40 @@ public class ResponseBodyFileManager {
       }
       ResponseBodyData bodyData = new ResponseBodyData();
       bodyData.base64Encoded = firstByte != 0;
-      bodyData.data = readContentsAsUTF8(in);
+
+      AsyncPrettyPrinter asyncPrettyPrinter = mRequestIdMap.get(requestId);
+      if (asyncPrettyPrinter != null) {
+        // TODO: this line blocks for up to 10 seconds and create problems as described
+        // in issue #243 allow asynchronous dispatch for MethodDispatcher
+        bodyData.data = prettyPrintContentWithTimeOut(asyncPrettyPrinter, in);
+      } else {
+        bodyData.data = Util.readAsUTF8(in);
+      }
       return bodyData;
+
     } finally {
       in.close();
     }
   }
 
-  private static String readContentsAsUTF8(InputStream in) throws IOException {
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-    Util.copy(in, out, new byte[1024]);
-    return out.toString("UTF-8");
+  private String prettyPrintContentWithTimeOut(
+      AsyncPrettyPrinter asyncPrettyPrinter,
+      InputStream in) throws IOException {
+    AsyncPrettyPrintingCallable prettyPrintingCallable = new AsyncPrettyPrintingCallable(
+        in,
+        asyncPrettyPrinter);
+    Future<String> future = sExecutorService.submit(prettyPrintingCallable);
+    try {
+      return Util.getUninterruptibly(future, PRETTY_PRINT_TIMEOUT_SEC, TimeUnit.SECONDS);
+    } catch (TimeoutException e) {
+      future.cancel(true);
+      return "Time out after " + PRETTY_PRINT_TIMEOUT_SEC +
+          " seconds of attempting to pretty print\n" + Util.readAsUTF8(in);
+    }  catch (ExecutionException e) {
+      Throwable cause = e.getCause();
+      ExceptionUtil.propagateIfInstanceOf(cause, IOException.class);
+      throw ExceptionUtil.propagate(cause);
+    }
   }
 
   public OutputStream openResponseBodyFile(String requestId, boolean base64Encode)
@@ -82,5 +122,49 @@ public class ResponseBodyFileManager {
 
   private static String getFilename(String requestId) {
     return FILENAME_PREFIX + requestId;
+  }
+
+  /**
+   * Associates an asynchronous pretty printer with a response request id
+   * The pretty printer will be used to pretty print the response body that has
+   * the particular request id
+   *
+   * @param requestId Unique identifier for the response
+   * as per {@link NetworkEventReporter.InspectorResponse#requestId()}
+   * @param asyncPrettyPrinter Asynchronous Pretty Printer to pretty print the response body
+   */
+  public void associateAsyncPrettyPrinterWithId(
+      String requestId,
+      AsyncPrettyPrinter asyncPrettyPrinter) {
+    if (mRequestIdMap.put(requestId, asyncPrettyPrinter) != null) {
+      throw new IllegalArgumentException("cannot associate different " +
+          "pretty printers with the same request id: "+requestId);
+    }
+  }
+
+  private class AsyncPrettyPrintingCallable implements Callable<String> {
+    private final InputStream mInputStream;
+    private final AsyncPrettyPrinter mAsyncPrettyPrinter;
+
+    public AsyncPrettyPrintingCallable(
+        InputStream in,
+        AsyncPrettyPrinter asyncPrettyPrinter) {
+      mInputStream = in;
+      mAsyncPrettyPrinter = asyncPrettyPrinter;
+    }
+
+    @Override
+    public String call() throws IOException {
+      return prettyPrintContent(mInputStream, mAsyncPrettyPrinter);
+    }
+
+    private String prettyPrintContent(InputStream in, AsyncPrettyPrinter asyncPrettyPrinter)
+        throws IOException {
+      ByteArrayOutputStream out = new ByteArrayOutputStream();
+      PrintWriter writer = new PrintWriter(out);
+      asyncPrettyPrinter.printTo(writer, in);
+      writer.flush();
+      return out.toString("UTF-8");
+    }
   }
 }

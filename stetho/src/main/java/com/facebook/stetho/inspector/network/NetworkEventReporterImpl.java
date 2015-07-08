@@ -148,12 +148,56 @@ public class NetworkEventReporterImpl implements NetworkEventReporter {
       receivedParams.frameId = "1";
       receivedParams.loaderId = "1";
       receivedParams.timestamp = stethoNow() / 1000.0;
-      receivedParams.type = contentType != null ?
-          getResourceTypeHelper().determineResourceType(contentType) :
-          Page.ResourceType.OTHER;
       receivedParams.response = responseJSON;
+      AsyncPrettyPrinter asyncPrettyPrinter =
+          initAsyncPrettyPrinterForResponse(response, peerManager);
+      receivedParams.type =
+          determineResourceType(asyncPrettyPrinter, contentType, getResourceTypeHelper());
       peerManager.sendNotificationToPeers("Network.responseReceived", receivedParams);
     }
+  }
+
+  @Nullable
+   static AsyncPrettyPrinter initAsyncPrettyPrinterForResponse(
+      InspectorResponse response,
+      NetworkPeerManager peerManager) {
+    AsyncPrettyPrinterRegistry registry = peerManager.getAsyncPrettyPrinterRegistry();
+    AsyncPrettyPrinter asyncPrettyPrinter = createPrettyPrinterForResponse(response, registry);
+    if (asyncPrettyPrinter != null) {
+      peerManager.getResponseBodyFileManager().associateAsyncPrettyPrinterWithId(
+          response.requestId(),
+          asyncPrettyPrinter);
+    }
+     return asyncPrettyPrinter;
+  }
+
+  private static Page.ResourceType determineResourceType(
+      AsyncPrettyPrinter asyncPrettyPrinter,
+      String contentType,
+      ResourceTypeHelper resourceTypeHelper) {
+    if (asyncPrettyPrinter != null) {
+      return asyncPrettyPrinter.getPrettifiedType().getResourceType();
+    } else {
+      return contentType != null ?
+          resourceTypeHelper.determineResourceType(contentType) :
+          Page.ResourceType.OTHER;
+    }
+  }
+
+  @Nullable
+  private static AsyncPrettyPrinter createPrettyPrinterForResponse(
+      InspectorResponse response,
+      AsyncPrettyPrinterRegistry registry) {
+    for (int i = 0, count = response.headerCount(); i < count; i++) {
+      AsyncPrettyPrinterFactory factory = registry.lookup(response.headerName(i));
+      if (factory != null) {
+        AsyncPrettyPrinter asyncPrettyPrinter = factory.getInstance(
+            response.headerName(i),
+            response.headerValue(i));
+        return asyncPrettyPrinter;
+      }
+    }
+    return null;
   }
 
   @Override
