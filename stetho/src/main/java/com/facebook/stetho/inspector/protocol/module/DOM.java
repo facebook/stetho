@@ -44,9 +44,13 @@ import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 
 public class DOM implements ChromeDevtoolsDomain {
   private final ChromePeerManager mPeerManager;
@@ -65,6 +69,9 @@ public class DOM implements ChromeDevtoolsDomain {
   private ChildNodeRemovedEvent mCachedChildNodeRemovedEvent;
   private ChildNodeInsertedEvent mCachedChildNodeInsertedEvent;
 
+  private final Map<String, List<Integer>> mSearchResults;
+  private final AtomicInteger mResultCounter;
+
   public DOM(DOMProvider.Factory providerFactory) {
     mDOMProviderFactory = Util.throwIfNull(providerFactory);
 
@@ -73,6 +80,11 @@ public class DOM implements ChromeDevtoolsDomain {
 
     mObjectMapper = new ObjectMapper();
     mObjectIdMapper = new DOMObjectIdMapper();
+
+    mSearchResults = Collections.synchronizedMap(
+      new HashMap<String, List<Integer>>());
+
+    mResultCounter = new AtomicInteger(0);
   }
 
   @ChromeDevtoolsMethod
@@ -206,6 +218,104 @@ public class DOM implements ChromeDevtoolsDomain {
         mDOMProvider.setInspectModeEnabled(request.enabled);
       }
     });
+  }
+
+  @ChromeDevtoolsMethod
+  public PerformSearchResponse performSearch(JsonRpcPeer peer, final JSONObject params) {
+    final PerformSearchRequest request = mObjectMapper.convertValue(
+        params,
+        PerformSearchRequest.class);
+
+    final Pattern queryPattern = Pattern.compile(Pattern.quote(request.query), Pattern.CASE_INSENSITIVE);
+
+    ArrayList<Integer> results = mDOMProvider.postAndWait(new UncheckedCallable<ArrayList<Integer>>() {
+      @Override
+      public ArrayList<Integer> call() {
+        final Object rootElement = mShadowDOM.getRootElement();
+
+        final ArrayList<Integer> results = new ArrayList<>();
+
+        findMatches(queryPattern, rootElement, results);
+
+        return results;
+      }
+    });
+
+    // Each search action has a unique ID so that
+    // it can be queried later.
+    final String id = String.valueOf(mResultCounter.getAndIncrement());
+
+    mSearchResults.put(id, results);
+
+    final PerformSearchResponse response = new PerformSearchResponse();
+    response.searchId = id;
+    response.resultCount = results.size();
+
+    return response;
+  }
+
+  private void findMatches(Pattern queryPattern, Object element, List<Integer> resultIds) {
+    final ElementInfo info = mShadowDOM.getElementInfo(element);
+
+    for (int i = 0, size = info.children.size(); i < size; i++) {
+      final Object childElement = info.children.get(i);
+
+      if (doesElementMatch(queryPattern, childElement)) {
+        resultIds.add(mObjectIdMapper.getIdForObject(childElement));
+      }
+
+      findMatches(queryPattern, childElement, resultIds);
+    }
+  }
+
+  private boolean doesElementMatch(final Pattern queryPattern, final Object element) {
+      final NodeDescriptor descriptor = mDOMProvider.getNodeDescriptor(element);
+
+      final AttributeListAccumulator accumulator = getCachedAttributeListAccumulator();
+
+      try {
+        descriptor.getAttributes(element, accumulator);
+
+        for (int i = 0, size = accumulator.size(); i < size; i++) {
+          if (queryPattern.matcher(accumulator.get(i)).find()) {
+            return true;
+          }
+        }
+      } finally {
+        returnCachedAttributeListAccumulator(accumulator);
+      }
+
+      return queryPattern.matcher(descriptor.getNodeName(element)).find();
+  }
+
+  @ChromeDevtoolsMethod
+  public GetSearchResultsResponse getSearchResults(JsonRpcPeer peer, JSONObject params) {
+    final GetSearchResultsRequest request = mObjectMapper.convertValue(
+        params,
+        GetSearchResultsRequest.class);
+
+    final List<Integer> results = mSearchResults.get(request.searchId);
+
+    if (results == null) {
+      LogUtil.w("\"" + request.searchId + "\" is not a valid reference to a search result");
+      return null;
+    }
+
+    final List<Integer> resultsRange = results.subList(request.fromIndex, request.toIndex);
+
+    final GetSearchResultsResponse response = new GetSearchResultsResponse();
+    response.nodeIds = resultsRange;
+
+    return response;
+  }
+
+  @ChromeDevtoolsMethod
+  public void discardSearchResults(JsonRpcPeer peer, JSONObject params) {
+    final DiscardSearchResultsRequest request = mObjectMapper.convertValue(
+      params,
+      DiscardSearchResultsRequest.class);
+
+    mSearchResults.remove(request.searchId);
   }
 
   private void updateTree() {
@@ -415,6 +525,7 @@ public class DOM implements ChromeDevtoolsDomain {
           mShadowDOM = null;
           mObjectIdMapper.clear();
           mDOMProvider.dispose();
+          mSearchResults.clear();
         }
       });
 
@@ -814,5 +925,42 @@ public class DOM implements ChromeDevtoolsDomain {
   private static class ResolveNodeResponse implements JsonRpcResult {
     @JsonProperty(required = true)
     public Runtime.RemoteObject object;
+  }
+
+  private static class PerformSearchRequest {
+    @JsonProperty(required = true)
+    public String query;
+
+    @JsonProperty
+    public Boolean includeUserAgentShadowDOM;
+  }
+
+  private static class PerformSearchResponse implements JsonRpcResult {
+    @JsonProperty(required = true)
+    public String searchId;
+
+    @JsonProperty(required = true)
+    public int resultCount;
+  }
+
+  private static class GetSearchResultsRequest {
+    @JsonProperty(required = true)
+    public String searchId;
+
+    @JsonProperty(required = true)
+    public int fromIndex;
+
+    @JsonProperty(required = true)
+    public int toIndex;
+  }
+
+  private static class GetSearchResultsResponse implements JsonRpcResult {
+    @JsonProperty(required = true)
+    public List<Integer> nodeIds;
+  }
+
+  private static class DiscardSearchResultsRequest {
+    @JsonProperty(required = true)
+    public String searchId;
   }
 }
