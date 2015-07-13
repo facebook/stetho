@@ -26,7 +26,7 @@ or Maven:
 </dependency>
 ```
 
-Only the main `stetho` dependency is strictly required, however you may also wish to use one of the network helpers:
+Only the main `stetho` dependency is strictly required; however, you may also wish to use one of the network helpers:
 
 ```groovy
 compile 'com.facebook.stetho:stetho-okhttp:1.1.1'
@@ -76,7 +76,7 @@ caveats with this approach.  In particular, you must explicitly add
 `Accept-Encoding: gzip` to the request headers and manually handle compressed
 responses in order for Stetho to report compressed payload sizes.
 
-See the `stetho-sample` project for more details.
+See the [`stetho-sample` project](stetho-sample) for more details.
 
 ## Going further
 
@@ -104,10 +104,10 @@ private static class MyDumperPluginsProvider implements DumperPluginsProvider {
 }
 ```
 
-See the `stetho-sample` project for more details.
+See the [`stetho-sample` project](stetho-sample) for more details.
 
 ## Improve Stetho!
-See the CONTRIBUTING.md file for how to help out.
+See the [CONTRIBUTING.md](CONTRIBUTING.md) file for how to help out.
 
 ## License
 Stetho is BSD-licensed. We also provide an additional patent grant.
