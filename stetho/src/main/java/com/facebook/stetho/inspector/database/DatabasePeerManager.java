@@ -10,6 +10,7 @@
 package com.facebook.stetho.inspector.database;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
@@ -70,6 +71,7 @@ public class DatabasePeerManager extends ChromePeerManager {
 
   private void bootstrapNewPeer(JsonRpcPeer peer) {
     List<File> potentialDatabaseFiles = mDatabaseFilesProvider.getDatabaseFiles();
+    Collections.sort(potentialDatabaseFiles);
     Iterable<File> tidiedList = tidyDatabaseList(potentialDatabaseFiles);
     for (File database : tidiedList) {
       Database.DatabaseObject databaseParams = new Database.DatabaseObject();
