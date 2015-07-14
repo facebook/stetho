@@ -19,5 +19,5 @@ package com.facebook.stetho.common;
  * @param <V> the result type of method {@code call}
  */
 public interface UncheckedCallable<V> {
-  public V call();
+  V call();
 }

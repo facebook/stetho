@@ -14,41 +14,41 @@ import com.facebook.stetho.common.ThreadBound;
 import javax.annotation.Nullable;
 
 public interface DOMProvider extends ThreadBound {
-  public void setListener(Listener listener);
+  void setListener(Listener listener);
 
-  public void dispose();
-
-  @Nullable
-  public Object getRootElement();
+  void dispose();
 
   @Nullable
-  public NodeDescriptor getNodeDescriptor(@Nullable Object element);
+  Object getRootElement();
 
-  public void highlightElement(Object element, int color);
+  @Nullable
+  NodeDescriptor getNodeDescriptor(@Nullable Object element);
 
-  public void hideHighlight();
+  void highlightElement(Object element, int color);
 
-  public void setInspectModeEnabled(boolean enabled);
+  void hideHighlight();
 
-  public void setAttributesAsText(Object element, String text);
+  void setInspectModeEnabled(boolean enabled);
 
-  public static interface Factory {
+  void setAttributesAsText(Object element, String text);
+
+  interface Factory {
     DOMProvider create();
   }
 
-  public static interface Listener {
-    public void onPossiblyChanged();
+  interface Listener {
+    void onPossiblyChanged();
 
-    public void onAttributeModified(
+    void onAttributeModified(
         Object element,
         String name,
         String value);
 
-    public void onAttributeRemoved(
+    void onAttributeRemoved(
         Object element,
         String name);
 
-    public void onInspectRequested(
+    void onInspectRequested(
         Object element);
   }
 }

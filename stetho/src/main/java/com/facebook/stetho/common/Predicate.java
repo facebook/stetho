@@ -10,5 +10,5 @@
 package com.facebook.stetho.common;
 
 public interface Predicate<T> {
-  public boolean apply(T t);
+  boolean apply(T t);
 }

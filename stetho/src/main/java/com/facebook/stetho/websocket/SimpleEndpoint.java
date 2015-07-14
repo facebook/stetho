@@ -19,7 +19,7 @@ public interface SimpleEndpoint {
    *
    * @param session Unique handle for this session.
    */
-  public void onOpen(SimpleSession session);
+  void onOpen(SimpleSession session);
 
   /**
    * Invoked when a text-based message is received from the peer.  May have spanned multiple
@@ -28,7 +28,7 @@ public interface SimpleEndpoint {
    * @param session Unique handle for this session.
    * @param message Complete payload data.
    */
-  public void onMessage(SimpleSession session, String message);
+  void onMessage(SimpleSession session, String message);
 
   /**
    * Invoked when a binary message is received from the peer.  May have spanned multiple
@@ -38,7 +38,7 @@ public interface SimpleEndpoint {
    * @param message Complete payload data.
    * @param messageLen Maximum number of bytes of {@code message} to read.
    */
-  public void onMessage(SimpleSession session, byte[] message, int messageLen);
+  void onMessage(SimpleSession session, byte[] message, int messageLen);
 
   /**
    * Invoked when a remote peer closed the WebSocket session or if {@link SimpleSession#close}
@@ -48,7 +48,7 @@ public interface SimpleEndpoint {
    * @param closeReasonCode Close reason code (see RFC6455)
    * @param closeReasonPhrase Possibly arbitrary text phrase associated with the reason code.
    */
-  public void onClose(SimpleSession session, int closeReasonCode, String closeReasonPhrase);
+  void onClose(SimpleSession session, int closeReasonCode, String closeReasonPhrase);
 
   /**
    * Invoked when errors occur out of the normal band of the WebSocket protocol.  This is
@@ -58,5 +58,5 @@ public interface SimpleEndpoint {
    * @param session Unique handle for this session.
    * @param t Exception that occurred.
    */
-  public void onError(SimpleSession session, Throwable t);
+  void onError(SimpleSession session, Throwable t);
 }

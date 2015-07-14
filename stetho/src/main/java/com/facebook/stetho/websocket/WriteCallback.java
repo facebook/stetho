@@ -12,6 +12,6 @@ package com.facebook.stetho.websocket;
 import java.io.IOException;
 
 interface WriteCallback {
-  public void onFailure(IOException e);
-  public void onSuccess();
+  void onFailure(IOException e);
+  void onSuccess();
 }

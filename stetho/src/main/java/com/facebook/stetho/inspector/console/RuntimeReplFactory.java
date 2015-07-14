@@ -19,5 +19,5 @@ package com.facebook.stetho.inspector.console;
  * This is provided as part of an experimental API.  Depend on it at your own risk...
  */
 public interface RuntimeReplFactory {
-  public RuntimeRepl newInstance();
+  RuntimeRepl newInstance();
 }

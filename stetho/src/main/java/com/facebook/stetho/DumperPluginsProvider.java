@@ -17,5 +17,5 @@ import com.facebook.stetho.dumpapp.DumperPlugin;
  * binding a socket and starting the listener thread.
  */
 public interface DumperPluginsProvider {
-  public Iterable<DumperPlugin> get();
+  Iterable<DumperPlugin> get();
 }

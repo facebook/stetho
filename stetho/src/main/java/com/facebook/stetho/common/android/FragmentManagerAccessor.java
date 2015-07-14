@@ -15,5 +15,5 @@ import javax.annotation.Nullable;
 
 public interface FragmentManagerAccessor<FRAGMENT_MANAGER, FRAGMENT> {
   @Nullable
-  public List<FRAGMENT> getAddedFragments(FRAGMENT_MANAGER fragmentManager);
+  List<FRAGMENT> getAddedFragments(FRAGMENT_MANAGER fragmentManager);
 }
