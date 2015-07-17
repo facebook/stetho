@@ -13,8 +13,8 @@ package com.facebook.stetho.websocket;
  * Close codes as defined by RFC6455.
  */
 public interface CloseCodes {
-  public static final int NORMAL_CLOSURE = 1000;
-  public static final int PROTOCOL_ERROR = 1002;
-  public static final int CLOSED_ABNORMALLY = 1006;
-  public static final int UNEXPECTED_CONDITION = 1011;
+  int NORMAL_CLOSURE = 1000;
+  int PROTOCOL_ERROR = 1002;
+  int CLOSED_ABNORMALLY = 1006;
+  int UNEXPECTED_CONDITION = 1011;
 }

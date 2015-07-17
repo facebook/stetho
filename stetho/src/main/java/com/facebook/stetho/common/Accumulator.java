@@ -10,5 +10,5 @@
 package com.facebook.stetho.common;
 
 public interface Accumulator<E> {
-  public void store(E object);
+  void store(E object);
 }

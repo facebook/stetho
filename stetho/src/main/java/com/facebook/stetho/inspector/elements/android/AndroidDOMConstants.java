@@ -16,5 +16,5 @@ public interface AndroidDOMConstants {
    * Minimum API version required to make effective use of the DOM module.  This can be moved
    * back significantly through manual APIs to discover {@link android.app.Activity} instances.
    */
-  public static final int MIN_API_LEVEL = Build.VERSION_CODES.ICE_CREAM_SANDWICH;
+  int MIN_API_LEVEL = Build.VERSION_CODES.ICE_CREAM_SANDWICH;
 }

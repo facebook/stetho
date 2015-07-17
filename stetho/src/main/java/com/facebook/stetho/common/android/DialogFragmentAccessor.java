@@ -13,5 +13,5 @@ import android.app.Dialog;
 
 public interface DialogFragmentAccessor<DIALOG_FRAGMENT, FRAGMENT, FRAGMENT_MANAGER>
     extends FragmentAccessor<FRAGMENT, FRAGMENT_MANAGER> {
-  public Dialog getDialog(DIALOG_FRAGMENT dialogFragment);
+  Dialog getDialog(DIALOG_FRAGMENT dialogFragment);
 }

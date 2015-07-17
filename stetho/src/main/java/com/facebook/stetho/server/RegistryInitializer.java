@@ -25,5 +25,5 @@ public interface RegistryInitializer {
    * <p/>
    * This is only called once.
    */
-  public HttpRequestHandlerRegistry getRegistry();
+  HttpRequestHandlerRegistry getRegistry();
 }
