@@ -25,12 +25,12 @@ import javax.annotation.Nullable;
  * any of its on___() methods.<p/>
  *
  * (NOTE: As an optimization, {@link #verifyThreadAccess()} is not actually called in the
- * prologue for every method. Instead, we rely on {@link DOMProvider#getNodeDescriptor(Object)}
+ * prologue for every method. Instead, we rely on {@link DocumentProvider#getNodeDescriptor(Object)}
  * calling it in order to get most of our enforcement coverage. We still call
  * {@link #verifyThreadAccess()} in a few important methods such as {@link #hook(Object)} and
  * {@link #unhook(Object)} (anything that writes or is potentially really dangerous if misused).<p/>
  *
- * @param <E> the class that this descriptor will be describing for {@link DOMProvider} and
+ * @param <E> the class that this descriptor will be describing for {@link DocumentProvider} and
  * {@link com.facebook.stetho.inspector.protocol.module.DOM}
  */
 public abstract class AbstractChainedDescriptor<E> extends Descriptor implements ChainedDescriptor {
