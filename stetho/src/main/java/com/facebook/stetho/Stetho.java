@@ -259,7 +259,6 @@ public class Stetho {
 
     public Iterable<ChromeDevtoolsDomain> finish() {
       provideIfDesired(new Console());
-      provideIfDesired(new CSS());
       provideIfDesired(new Debugger());
       if (Build.VERSION.SDK_INT >= AndroidDOMConstants.MIN_API_LEVEL) {
         Document document = new Document(
@@ -267,6 +266,7 @@ public class Stetho {
                 (Application) mContext.getApplicationContext()));
 
         provideIfDesired(new DOM(document));
+        provideIfDesired(new CSS(document));
       }
       provideIfDesired(new DOMStorage(mContext));
       provideIfDesired(new HeapProfiler());
