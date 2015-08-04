@@ -132,11 +132,18 @@ public class Stetho {
       @Override
       public Iterable<ChromeDevtoolsDomain> get() {
         ArrayList<ChromeDevtoolsDomain> modules = new ArrayList<ChromeDevtoolsDomain>();
-        modules.add(new Console());
         modules.add(new CSS());
         modules.add(new Debugger());
+        Runtime runtime = new Runtime();
+        modules.add(runtime);
         if (Build.VERSION.SDK_INT >= AndroidDOMConstants.MIN_API_LEVEL) {
-          modules.add(new DOM(new AndroidDOMProviderFactory((Application)context.getApplicationContext())));
+          DOM dom = new DOM(
+              new AndroidDOMProviderFactory(
+                  (Application)context.getApplicationContext()));
+          modules.add(dom);
+          modules.add(new Console(dom, runtime));
+        } else {
+          modules.add(new Console());
         }
         modules.add(new DOMStorage(context));
         modules.add(new HeapProfiler());
@@ -144,7 +151,6 @@ public class Stetho {
         modules.add(new Network(context));
         modules.add(new Page(context));
         modules.add(new Profiler());
-        modules.add(new Runtime());
         modules.add(new Worker());
         if (Build.VERSION.SDK_INT >= DatabaseConstants.MIN_API_LEVEL) {
           modules.add(new Database(context, new DefaultDatabaseFilesProvider(context)));

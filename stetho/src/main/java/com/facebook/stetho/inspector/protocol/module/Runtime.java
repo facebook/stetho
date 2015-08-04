@@ -57,8 +57,20 @@ public class Runtime implements ChromeDevtoolsDomain {
     mReplFactory = replFactory;
   }
 
+  RuntimeReplFactory getReplFactory() {
+    return mReplFactory;
+  }
+
   public static int mapObject(JsonRpcPeer peer, Object object) {
     return getSession(peer).getObjects().putObject(object);
+  }
+
+  public static void addInspectedNode(
+      JsonRpcPeer peer,
+      RuntimeReplFactory replFactory,
+      Object domObject)
+      throws Throwable {
+    getSession(peer).addInspectedNode(replFactory, domObject);
   }
 
   @Nonnull
@@ -234,6 +246,17 @@ public class Runtime implements ChromeDevtoolsDomain {
         return buildNormalResponse(result);
       } catch (Throwable t) {
         return buildExceptionResponse(t);
+      }
+    }
+
+    public void addInspectedNode(RuntimeReplFactory replFactory, Object domObject)
+        throws Throwable {
+      RuntimeRepl repl = getRepl(replFactory);
+      boolean success = repl.assignVariable("$0", domObject);
+      if (!success) {
+        LogUtil.d("Cannot assign $0 to " +
+            domObject.getClass().getSimpleName() +
+            "{" + System.identityHashCode(domObject) + "}");
       }
     }
 
@@ -567,6 +590,11 @@ public class Runtime implements ChromeDevtoolsDomain {
         @Override
         public Object evaluate(String expression) throws Exception {
           return "Not supported";
+        }
+
+        @Override
+        public boolean assignVariable(String varName, Object value) throws Throwable {
+          return false;
         }
       };
     }
