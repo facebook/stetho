@@ -32,6 +32,12 @@ dependencies {
     debugCompile project(':stetho')
     debugCompile project(':stetho-urlconnection')
 
+    // Uncomment if you wish to play with the Console evaluation
+    // features of the Rhino JS implementation.  Disabled by default
+    // because it is a large JAR by comparison to the rest of
+    // Stetho.
+    //debugCompile project(':stetho-js-rhino')
+
     // We must use Maven dependency resolution to demonstrate our usage
     // of optional dependencies to include stetho-urlconnection but not
     // the full blown stetho.  For most projects, of course the simpler
