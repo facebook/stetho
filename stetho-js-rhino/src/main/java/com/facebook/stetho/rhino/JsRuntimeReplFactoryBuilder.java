@@ -11,24 +11,18 @@ package com.facebook.stetho.rhino;
 
 import android.support.annotation.NonNull;
 import android.util.Log;
-import com.facebook.stetho.InspectorModulesProvider;
-import com.facebook.stetho.Stetho;
 import com.facebook.stetho.common.LogUtil;
 import com.facebook.stetho.inspector.console.CLog;
 import com.facebook.stetho.inspector.console.RuntimeRepl;
 import com.facebook.stetho.inspector.console.RuntimeReplFactory;
-import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
 import com.facebook.stetho.inspector.protocol.module.Console;
-import com.facebook.stetho.inspector.protocol.module.Runtime;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.ImporterTopLevel;
 import org.mozilla.javascript.ScriptableObject;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -46,7 +40,7 @@ import java.util.Set;
  *
  * <p>Your application context package is automatically visible with this builder.</p>
  */
-public class JsRuntimeBuilder {
+public class JsRuntimeReplFactoryBuilder {
 
   /**
    * Name of the "source" file used for reporting JavaScript compilation errors (or runtime errors).
@@ -80,9 +74,13 @@ public class JsRuntimeBuilder {
    */
   private final Map<String, Function> mFunctions = new HashMap<>();
 
+  public static RuntimeReplFactory defaultFactory(@NonNull android.content.Context context) {
+    return new JsRuntimeReplFactoryBuilder(context).build();
+  }
 
-  public JsRuntimeBuilder(@NonNull android.content.Context context) {
-    this.mContext = context;
+  public JsRuntimeReplFactoryBuilder(@NonNull android.content.Context context) {
+    mContext = context;
+
     // We import the app's package name by default
     mPackages.add(context.getPackageName());
   }
@@ -92,7 +90,8 @@ public class JsRuntimeBuilder {
    * @param aClass the java class to import
    * @return the builder
    */
-  public @NonNull JsRuntimeBuilder importClass(@NonNull Class<?> aClass) {
+  public @NonNull
+  JsRuntimeReplFactoryBuilder importClass(@NonNull Class<?> aClass) {
     mClasses.add(aClass);
     return this;
   }
@@ -103,7 +102,8 @@ public class JsRuntimeBuilder {
    * @param packageName the java package name to import
    * @return the builder
    */
-  public @NonNull JsRuntimeBuilder importPackage(@NonNull String packageName) {
+  public @NonNull
+  JsRuntimeReplFactoryBuilder importPackage(@NonNull String packageName) {
     mPackages.add(packageName);
     return this;
   }
@@ -114,7 +114,7 @@ public class JsRuntimeBuilder {
    * @param value the value to add
    * @return the builder
    */
-  public JsRuntimeBuilder addVariable(@NonNull String name, Object value) {
+  public JsRuntimeReplFactoryBuilder addVariable(@NonNull String name, Object value) {
     mVariables.put(name, value);
     return this;
   }
@@ -125,9 +125,22 @@ public class JsRuntimeBuilder {
    * @param function the function
    * @return the builder
    */
-  public @NonNull JsRuntimeBuilder addFunction(@NonNull String name, @NonNull Function function) {
+  public @NonNull
+  JsRuntimeReplFactoryBuilder addFunction(@NonNull String name, @NonNull Function function) {
     mFunctions.put(name, function);
     return this;
+  }
+
+  /**
+   * Build the runtime REPL instance to be supplied to the Stetho {@code Runtime} module.
+   */
+  public RuntimeReplFactory build() {
+    return new RuntimeReplFactory() {
+      @Override
+      public RuntimeRepl newInstance() {
+        return new JsRuntimeRepl(initJsScope());
+      }
+    };
   }
 
   /**
@@ -228,39 +241,6 @@ public class JsRuntimeBuilder {
       }
     }
   }
-
-  /**
-   * Returns an InspectorModulesProvider that's enhanced with a javascript runtime.
-   * @return an InspectorModulesProvider with javascript enabled
-   */
-  public @NonNull InspectorModulesProvider jsInspectorModulesProvider () {
-    // Find the runtime module and swap it for a new one that has the JavaScript REPL
-    final List<ChromeDevtoolsDomain> modules = new ArrayList<>();
-    for (ChromeDevtoolsDomain module : Stetho.defaultInspectorModulesProvider(mContext).get()) {
-      if (module instanceof Runtime) {
-        RuntimeReplFactory factory = new RuntimeReplFactory() {
-          @Override
-          public RuntimeRepl newInstance() {
-            ScriptableObject scope = initJsScope();
-            RuntimeRepl runtime = new JsRuntimeRepl(scope);
-            return runtime;
-          }
-        };
-        module = new Runtime(factory);
-      }
-      modules.add(module);
-    }
-
-    InspectorModulesProvider runtimeModulesProvider = new InspectorModulesProvider() {
-      @Override
-      public Iterable<ChromeDevtoolsDomain> get() {
-        return modules;
-      }
-    };
-
-    return runtimeModulesProvider;
-  }
-
 
   private static class StethoJsException extends Exception {
     StethoJsException(Throwable rootCause, String format, Object...args) {

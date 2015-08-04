@@ -9,6 +9,7 @@
 
 package com.facebook.stetho.inspector.protocol.module;
 
+import android.content.Context;
 import com.facebook.stetho.common.LogUtil;
 import com.facebook.stetho.inspector.console.RuntimeRepl;
 import com.facebook.stetho.inspector.console.RuntimeReplFactory;
@@ -20,6 +21,7 @@ import com.facebook.stetho.inspector.jsonrpc.JsonRpcResult;
 import com.facebook.stetho.inspector.jsonrpc.protocol.JsonRpcError;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsMethod;
+import com.facebook.stetho.inspector.runtime.RhinoDetectingRuntimeReplFactory;
 import com.facebook.stetho.json.ObjectMapper;
 import com.facebook.stetho.json.annotation.JsonProperty;
 import com.facebook.stetho.json.annotation.JsonValue;
@@ -49,8 +51,27 @@ public class Runtime implements ChromeDevtoolsDomain {
 
   private final RuntimeReplFactory mReplFactory;
 
+  /**
+   * @deprecated Provided for ABI compatibility
+   * @see Runtime(Context)
+   */
+  @Deprecated
   public Runtime() {
-    this(new DefaultRuntimeReplFactory());
+    this(new RuntimeReplFactory() {
+      @Override
+      public RuntimeRepl newInstance() {
+        return new RuntimeRepl() {
+          @Override
+          public Object evaluate(String expression) throws Throwable {
+            return "Not supported with legacy Runtime module";
+          }
+        };
+      }
+    });
+  }
+
+  public Runtime(Context context) {
+    this(new RhinoDetectingRuntimeReplFactory(context));
   }
 
   public Runtime(RuntimeReplFactory replFactory) {
@@ -560,15 +581,4 @@ public class Runtime implements ChromeDevtoolsDomain {
     }
   }
 
-  private static class DefaultRuntimeReplFactory implements RuntimeReplFactory {
-    @Override
-    public RuntimeRepl newInstance() {
-      return new RuntimeRepl() {
-        @Override
-        public Object evaluate(String expression) throws Exception {
-          return "Not supported";
-        }
-      };
-    }
-  }
 }

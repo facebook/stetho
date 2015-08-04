@@ -21,26 +21,8 @@ or Maven:
 Make sure that you depend on the main `stetho` dependency too.
 
 ### Putting it together
-The JavaScript integration is similar to standard Stetho integration.
-The main difference is with the WebKitInspector used.
-There is a simple initialization step which occurs in your `Application` class:
-
-```java
-public class MyApplication extends Application {
-  public void onCreate() {
-    super.onCreate();
-+   JsRuntimeBuilder jsRuntimeBuilder = new JsRuntimeBuilder(this);
-    Stetho.initialize(
-        Stetho.newInitializerBuilder(this)
-            .enableDumpapp(Stetho.defaultDumperPluginsProvider(this))
--           .enableWebKitInspector(Stetho.defaultInspectorModulesProvider(context))
-+           .enableWebKitInspector(jsRuntimeBuilder.jsInspectorModulesProvider())
-            .build());
-  }
-}
-```
-
-You can still use other Stetho plugins with this approach, for instance the network helpers stetho-okhttp and stetho-urlconnection will still work if activated properly.
+The Rhino JavaScript integration is automatically detected by Stetho and is
+enabled simply by adding the `stetho-js-rhino` dependency to your project.
 
 ### How it works
 
