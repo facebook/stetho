@@ -12,6 +12,7 @@ package com.facebook.stetho.urlconnection;
 import com.facebook.stetho.inspector.network.DefaultResponseHandler;
 import com.facebook.stetho.inspector.network.NetworkEventReporter;
 import com.facebook.stetho.inspector.network.NetworkEventReporterImpl;
+import com.facebook.stetho.inspector.network.RequestBodyHelper;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -38,6 +39,7 @@ class StethoURLConnectionManagerImpl {
 
   private HttpURLConnection mConnection;
   @Nullable private URLConnectionInspectorRequest mInspectorRequest;
+  @Nullable private RequestBodyHelper mRequestBodyHelper;
 
   public StethoURLConnectionManagerImpl(@Nullable String friendlyName) {
     mRequestId = sSequenceNumberGenerator.getAndIncrement();
@@ -57,11 +59,13 @@ class StethoURLConnectionManagerImpl {
     throwIfConnection();
     mConnection = connection;
     if (isStethoActive()) {
+      mRequestBodyHelper = new RequestBodyHelper(mStethoHook, getStethoRequestId());
       mInspectorRequest = new URLConnectionInspectorRequest(
           getStethoRequestId(),
           mFriendlyName,
           connection,
-          requestEntity);
+          requestEntity,
+          mRequestBodyHelper);
       mStethoHook.requestWillBeSent(mInspectorRequest);
     }
   }
@@ -72,11 +76,8 @@ class StethoURLConnectionManagerImpl {
   public void postConnect() throws IOException {
     throwIfNoConnection();
     if (isStethoActive()) {
-      if (mInspectorRequest != null) {
-        byte[] body = mInspectorRequest.body();
-        if (body != null) {
-          mStethoHook.dataSent(getStethoRequestId(), body.length, body.length);
-        }
+      if (mRequestBodyHelper != null && mRequestBodyHelper.hasBody()) {
+        mRequestBodyHelper.reportDataSent();
       }
       mStethoHook.responseHeadersReceived(
           new URLConnectionInspectorResponse(
