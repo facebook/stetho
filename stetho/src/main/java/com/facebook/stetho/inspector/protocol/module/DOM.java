@@ -87,6 +87,10 @@ public class DOM implements ChromeDevtoolsDomain {
     mResultCounter = new AtomicInteger(0);
   }
 
+  ObjectIdMapper getObjectIdMapper() {
+    return mObjectIdMapper;
+  }
+
   @ChromeDevtoolsMethod
   public void enable(JsonRpcPeer peer, JSONObject params) {
     mPeerManager.addPeer(peer);

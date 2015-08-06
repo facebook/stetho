@@ -36,6 +36,18 @@ class JsRuntimeRepl implements RuntimeRepl {
       return Context.jsToJava(result, Object.class);
   }
 
+  @Override
+  public boolean assignVariable(String varName, Object value) throws Throwable {
+    enterJsContext();
+    try {
+      Object jsValue = Context.javaToJS(value, mJsScope);
+      ScriptableObject.putProperty(mJsScope, varName, jsValue);
+      return true;
+    } finally {
+      Context.exit();
+    }
+  }
+
   /**
    * Setups a proper javascript context so that it can run javascript code properly under android.
    * For android we need to disable bytecode generation since the android vms don't understand JVM bytecode.
