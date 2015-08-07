@@ -65,6 +65,9 @@ public class NetworkPeerManager extends ChromePeerManager {
         mAsyncPrettyPrinterRegistry = new AsyncPrettyPrinterRegistry();
         mPrettyPrinterInitializer.populatePrettyPrinters(mAsyncPrettyPrinterRegistry);
       }
+      if (AsyncPrettyPrinterSchemaManager.getInstance() == null) {
+        AsyncPrettyPrinterSchemaManager.ensureInitialized();
+      }
       mResponseBodyFileManager.cleanupFiles();
     }
 
@@ -72,6 +75,7 @@ public class NetworkPeerManager extends ChromePeerManager {
     protected void onLastPeerUnregistered() {
       mResponseBodyFileManager.cleanupFiles();
       AsyncPrettyPrinterExecutorHolder.shutdown();
+      AsyncPrettyPrinterSchemaManager.getInstance().clearCache();
     }
   };
 }
