@@ -9,15 +9,13 @@
 
 package com.facebook.stetho.sample;
 
-import java.util.ArrayList;
-
 import android.content.Context;
-
 import android.os.SystemClock;
 import android.util.Log;
 import com.facebook.stetho.DumperPluginsProvider;
 import com.facebook.stetho.Stetho;
 import com.facebook.stetho.dumpapp.DumperPlugin;
+import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
 
 public class SampleDebugApplication extends SampleApplication {
   private static final String TAG = "SampleDebugApplication";
@@ -27,32 +25,24 @@ public class SampleDebugApplication extends SampleApplication {
     super.onCreate();
 
     long startTime = SystemClock.elapsedRealtime();
-    final Context context = this;
-    Stetho.initialize(
-        Stetho.newInitializerBuilder(context)
-            .enableDumpapp(new SampleDumperPluginsProvider(context))
-            .enableWebKitInspector(Stetho.defaultInspectorModulesProvider(context))
-            .build());
+    initializeStetho(this);
     long elapsed = SystemClock.elapsedRealtime() - startTime;
     Log.i(TAG, "Stetho initialized in " + elapsed + " ms");
   }
 
-  private static class SampleDumperPluginsProvider implements DumperPluginsProvider {
-    private final Context mContext;
-
-    public SampleDumperPluginsProvider(Context context) {
-      mContext = context;
-    }
-
-    @Override
-    public Iterable<DumperPlugin> get() {
-      ArrayList<DumperPlugin> plugins = new ArrayList<DumperPlugin>();
-      for (DumperPlugin defaultPlugin : Stetho.defaultDumperPluginsProvider(mContext).get()) {
-        plugins.add(defaultPlugin);
-      }
-      plugins.add(new HelloWorldDumperPlugin());
-      plugins.add(new APODDumperPlugin(mContext.getContentResolver()));
-      return plugins;
-    }
+  private void initializeStetho(final Context context) {
+    // See also: Stetho.initializeWithDefaults(Context)
+    Stetho.initialize(Stetho.newInitializerBuilder(context)
+        .enableDumpapp(new DumperPluginsProvider() {
+          @Override
+          public Iterable<DumperPlugin> get() {
+            return new Stetho.DefaultDumperPluginsBuilder(context)
+                .provide(new HelloWorldDumperPlugin())
+                .provide(new APODDumperPlugin(context.getContentResolver()))
+                .finish();
+          }
+        })
+        .enableWebKitInspector(Stetho.defaultInspectorModulesProvider(context))
+        .build());
   }
 }

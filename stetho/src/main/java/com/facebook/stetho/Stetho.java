@@ -17,6 +17,8 @@ import javax.annotation.Nullable;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 import android.app.Application;
 import android.content.Context;
@@ -65,14 +67,15 @@ import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.protocol.HttpRequestHandlerRegistry;
 
 /**
- * Initialization and configuration entry point for the Stetho debugging system.  Example usage:
- * <p>
+ * Initialization and configuration entry point for the Stetho debugging system.  Simple usage with
+ * default plugins and features enabled:
+ * <p />
  * <pre>
- *   Stetho.initialize(Stetho.newInitializerBuilder(context)
- *       .enableDumpapp(Stetho.defaultDumperPluginsProvider(context))
- *       .enableWebKitInspector(Stetho.defaultInspectorModulesProvider(context))
- *       .build());
+ *   Stetho.initializeWithDefaults(context)
  * </pre>
+ * <p />
+ * For more advanced configuration, see {@link #newInitializerBuilder(Context)} or
+ * the {@code stetho-sample} for more information.
  */
 public class Stetho {
   private static final String LISTENER_THREAD_NAME = "Stetho-Listener";
@@ -80,6 +83,13 @@ public class Stetho {
   private Stetho() {
   }
 
+  /**
+   * Construct a simple initializer helper which allows you to customize stetho behaviour
+   * with additional features, plugins, etc.  See {@link DefaultDumperPluginsBuilder} and
+   * {@link DefaultInspectorModulesBuilder} for more information.
+   * <p />
+   * For simple use cases, consider {@link #initializeWithDefaults(Context)}.
+   */
   public static InitializerBuilder newInitializerBuilder(Context context) {
     return new InitializerBuilder(context);
   }
@@ -88,6 +98,26 @@ public class Stetho {
    * Start the listening server.  Most of the heavy lifting initialization is deferred until the
    * first socket connection is received, allowing this to be safely used for debug builds on
    * even low-end hardware without noticeably affecting performance.
+   */
+  public static void initializeWithDefaults(final Context context) {
+    initialize(new Initializer(context) {
+      @Override
+      protected Iterable<DumperPlugin> getDumperPlugins() {
+        return new DefaultDumperPluginsBuilder(context).finish();
+      }
+
+      @Override
+      protected Iterable<ChromeDevtoolsDomain> getInspectorModules() {
+        return new DefaultInspectorModulesBuilder(context).finish();
+      }
+    });
+  }
+
+  /**
+   * Start the listening service, providing a custom initializer as per
+   * {@link #newInitializerBuilder}.
+   *
+   * @see #initializeWithDefaults(Context)
    */
   public static void initialize(final Initializer initializer) {
     // Hook activity tracking so that after Stetho is attached we can figure out what
@@ -117,12 +147,7 @@ public class Stetho {
     return new DumperPluginsProvider() {
       @Override
       public Iterable<DumperPlugin> get() {
-        ArrayList<DumperPlugin> plugins = new ArrayList<DumperPlugin>();
-        plugins.add(new HprofDumperPlugin(context));
-        plugins.add(new SharedPreferencesDumperPlugin(context));
-        plugins.add(new CrashDumperPlugin());
-        plugins.add(new FilesDumperPlugin(context));
-        return plugins;
+        return new DefaultDumperPluginsBuilder(context).finish();
       }
     };
   }
@@ -131,27 +156,129 @@ public class Stetho {
     return new InspectorModulesProvider() {
       @Override
       public Iterable<ChromeDevtoolsDomain> get() {
-        ArrayList<ChromeDevtoolsDomain> modules = new ArrayList<ChromeDevtoolsDomain>();
-        modules.add(new Console());
-        modules.add(new CSS());
-        modules.add(new Debugger());
-        if (Build.VERSION.SDK_INT >= AndroidDOMConstants.MIN_API_LEVEL) {
-          modules.add(new DOM(new AndroidDOMProviderFactory((Application)context.getApplicationContext())));
-        }
-        modules.add(new DOMStorage(context));
-        modules.add(new HeapProfiler());
-        modules.add(new Inspector());
-        modules.add(new Network(context));
-        modules.add(new Page(context));
-        modules.add(new Profiler());
-        modules.add(new Runtime());
-        modules.add(new Worker());
-        if (Build.VERSION.SDK_INT >= DatabaseConstants.MIN_API_LEVEL) {
-          modules.add(new Database(context, new DefaultDatabaseFilesProvider(context)));
-        }
-        return modules;
+        return new DefaultInspectorModulesBuilder(context).finish();
       }
     };
+  }
+
+  private static class PluginBuilder<T> {
+    private final Set<String> mProvidedNames = new HashSet<>();
+    private final Set<String> mRemovedNames = new HashSet<>();
+
+    private final ArrayList<T> mPlugins = new ArrayList<>();
+
+    private boolean mFinished;
+
+    public void provide(String name, T plugin) {
+      throwIfFinished();
+      mPlugins.add(plugin);
+      mProvidedNames.add(name);
+    }
+
+    public void provideIfDesired(String name, T plugin) {
+      throwIfFinished();
+      if (!mRemovedNames.contains(name)) {
+        if (mProvidedNames.add(name)) {
+          mPlugins.add(plugin);
+        }
+      }
+    }
+
+    public void remove(String pluginName) {
+      throwIfFinished();
+      mRemovedNames.remove(pluginName);
+    }
+
+    private void throwIfFinished() {
+      if (mFinished) {
+        throw new IllegalStateException("Must not continue to build after finish()");
+      }
+    }
+
+    public Iterable<T> finish() {
+      mFinished = true;
+      return mPlugins;
+    }
+  }
+
+  public static final class DefaultDumperPluginsBuilder {
+    private final Context mContext;
+    private final PluginBuilder<DumperPlugin> mDelegate = new PluginBuilder<>();
+
+    public DefaultDumperPluginsBuilder(Context context) {
+      mContext = context;
+    }
+
+    public DefaultDumperPluginsBuilder provide(DumperPlugin plugin) {
+      mDelegate.provide(plugin.getName(), plugin);
+      return this;
+    }
+
+    private DefaultDumperPluginsBuilder provideIfDesired(DumperPlugin plugin) {
+      mDelegate.provideIfDesired(plugin.getName(), plugin);
+      return this;
+    }
+
+    public DefaultDumperPluginsBuilder remove(String pluginName) {
+      mDelegate.remove(pluginName);
+      return this;
+    }
+
+    public Iterable<DumperPlugin> finish() {
+      provideIfDesired(new HprofDumperPlugin(mContext));
+      provideIfDesired(new SharedPreferencesDumperPlugin(mContext));
+      provideIfDesired(new CrashDumperPlugin());
+      provideIfDesired(new FilesDumperPlugin(mContext));
+      return mDelegate.finish();
+    }
+  }
+
+  public static final class DefaultInspectorModulesBuilder {
+    private final Context mContext;
+    private final PluginBuilder<ChromeDevtoolsDomain> mDelegate = new PluginBuilder<>();
+
+    public DefaultInspectorModulesBuilder(Context context) {
+      mContext = context;
+    }
+
+    public DefaultInspectorModulesBuilder provide(ChromeDevtoolsDomain module) {
+      mDelegate.provide(module.getClass().getName(), module);
+      return this;
+    }
+
+    private DefaultInspectorModulesBuilder provideIfDesired(ChromeDevtoolsDomain module) {
+      mDelegate.provideIfDesired(module.getClass().getName(), module);
+      return this;
+    }
+
+    public DefaultInspectorModulesBuilder remove(String moduleName) {
+      mDelegate.remove(moduleName);
+      return this;
+    }
+
+    public Iterable<ChromeDevtoolsDomain> finish() {
+      provideIfDesired(new Console());
+      provideIfDesired(new CSS());
+      provideIfDesired(new Debugger());
+      if (Build.VERSION.SDK_INT >= AndroidDOMConstants.MIN_API_LEVEL) {
+        provideIfDesired(
+            new DOM(
+                new AndroidDOMProviderFactory(
+                    (Application) mContext.getApplicationContext())));
+      }
+      provideIfDesired(new DOMStorage(mContext));
+      provideIfDesired(new HeapProfiler());
+      provideIfDesired(new Inspector());
+      provideIfDesired(new Network(mContext));
+      provideIfDesired(new Page(mContext));
+      provideIfDesired(new Profiler());
+      provideIfDesired(new Runtime());
+      provideIfDesired(new Worker());
+      if (Build.VERSION.SDK_INT >= DatabaseConstants.MIN_API_LEVEL) {
+        provideIfDesired(new Database(mContext, new DefaultDatabaseFilesProvider(mContext)));
+      }
+      return mDelegate.finish();
+    }
   }
 
   /**
