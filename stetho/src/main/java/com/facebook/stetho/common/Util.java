@@ -9,11 +9,16 @@
 
 package com.facebook.stetho.common;
 
+import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class Util {
   public static <T> T throwIfNull(T item) {
@@ -115,5 +120,38 @@ public class Util {
         // Keep going...
       }
     }
+  }
+
+  public static <T> T getUninterruptibly(
+      Future<T> future,
+      long timeout,
+      TimeUnit unit) throws TimeoutException, ExecutionException {
+    long remaining = unit.toMillis(timeout);
+    long startTime = System.currentTimeMillis();
+    while (true) {
+      try {
+        return future.get(remaining, TimeUnit.MILLISECONDS);
+      } catch (InterruptedException e) {
+        long gotFor = System.currentTimeMillis() - startTime;
+        remaining -= gotFor;
+      }
+    }
+  }
+
+  public static <T> T getUninterruptibly(Future<T> future)
+      throws ExecutionException {
+    while (true) {
+      try {
+        return future.get();
+      } catch (InterruptedException e) {
+        //Keep going...
+      }
+    }
+  }
+
+  public static String readAsUTF8(InputStream in) throws IOException {
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    copy(in, out, new byte[1024]);
+    return out.toString("UTF-8");
   }
 }

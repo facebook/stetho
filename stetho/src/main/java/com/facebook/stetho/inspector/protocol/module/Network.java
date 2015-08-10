@@ -19,6 +19,7 @@ import com.facebook.stetho.inspector.jsonrpc.JsonRpcPeer;
 import com.facebook.stetho.inspector.jsonrpc.JsonRpcResult;
 import com.facebook.stetho.inspector.jsonrpc.protocol.JsonRpcError;
 import com.facebook.stetho.inspector.network.NetworkPeerManager;
+import com.facebook.stetho.inspector.network.AsyncPrettyPrinterRegistry;
 import com.facebook.stetho.inspector.network.ResponseBodyData;
 import com.facebook.stetho.inspector.network.ResponseBodyFileManager;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
@@ -84,6 +85,10 @@ public class Network implements ChromeDevtoolsDomain {
     response.body = bodyData.data;
     response.base64Encoded = bodyData.base64Encoded;
     return response;
+  }
+
+  public AsyncPrettyPrinterRegistry getAsyncPrettyPrinterRegistry() {
+    return mNetworkPeerManager.getAsyncPrettyPrinterRegistry();
   }
 
   private static class GetResponseBodyResponse implements JsonRpcResult {
