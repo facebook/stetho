@@ -43,11 +43,8 @@ public class ResponseBodyFileManager {
   private static final int PRETTY_PRINT_TIMEOUT_SEC = 10;
 
   private final Context mContext;
-
   private final Map<String, AsyncPrettyPrinter> mRequestIdMap = Collections.synchronizedMap(
       new HashMap<String, AsyncPrettyPrinter>());
-  private final ExecutorService sExecutorService =
-      AsyncPrettyPrinterExecutorHolder.sExecutorService;
 
   public ResponseBodyFileManager(Context context) {
     mContext = context;
@@ -95,7 +92,12 @@ public class ResponseBodyFileManager {
     AsyncPrettyPrintingCallable prettyPrintingCallable = new AsyncPrettyPrintingCallable(
         in,
         asyncPrettyPrinter);
-    Future<String> future = sExecutorService.submit(prettyPrintingCallable);
+    ExecutorService executorService = AsyncPrettyPrinterExecutorHolder.getExecutorService();
+    if (executorService == null) {
+      //last peer is unregistered...
+      return null;
+    }
+    Future<String> future = executorService.submit(prettyPrintingCallable);
     try {
       return Util.getUninterruptibly(future, PRETTY_PRINT_TIMEOUT_SEC, TimeUnit.SECONDS);
     } catch (TimeoutException e) {
