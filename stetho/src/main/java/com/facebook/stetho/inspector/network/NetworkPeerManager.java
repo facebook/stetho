@@ -12,7 +12,7 @@ package com.facebook.stetho.inspector.network;
 import javax.annotation.Nullable;
 
 import android.content.Context;
-
+import com.facebook.stetho.common.Util;
 import com.facebook.stetho.inspector.helper.ChromePeerManager;
 import com.facebook.stetho.inspector.helper.PeersRegisteredListener;
 
@@ -20,7 +20,8 @@ public class NetworkPeerManager extends ChromePeerManager {
   private static NetworkPeerManager sInstance;
 
   private final ResponseBodyFileManager mResponseBodyFileManager;
-  private final AsyncPrettyPrinterRegistry mAsyncPrettyPrinterRegistry;
+  private AsyncPrettyPrinterInitializer mPrettyPrinterInitializer;
+  private AsyncPrettyPrinterRegistry mAsyncPrettyPrinterRegistry;
 
   @Nullable
   public static synchronized NetworkPeerManager getInstanceOrNull() {
@@ -36,23 +37,33 @@ public class NetworkPeerManager extends ChromePeerManager {
     return sInstance;
   }
 
-  public NetworkPeerManager(ResponseBodyFileManager responseBodyFileManager) {
+  public NetworkPeerManager(
+      ResponseBodyFileManager responseBodyFileManager) {
     mResponseBodyFileManager = responseBodyFileManager;
     setListener(mTempFileCleanup);
-    mAsyncPrettyPrinterRegistry = new AsyncPrettyPrinterRegistry();
   }
 
   public ResponseBodyFileManager getResponseBodyFileManager() {
     return mResponseBodyFileManager;
   }
 
+  @Nullable
   public AsyncPrettyPrinterRegistry getAsyncPrettyPrinterRegistry() {
     return mAsyncPrettyPrinterRegistry;
+  }
+
+  public void setPrettyPrinterInitializer(AsyncPrettyPrinterInitializer initializer) {
+    Util.throwIfNotNull(mPrettyPrinterInitializer);
+    mPrettyPrinterInitializer = Util.throwIfNull(initializer);
   }
 
   private final PeersRegisteredListener mTempFileCleanup = new PeersRegisteredListener() {
     @Override
     protected void onFirstPeerRegistered() {
+      if (mAsyncPrettyPrinterRegistry == null && mPrettyPrinterInitializer != null) {
+        mAsyncPrettyPrinterRegistry = new AsyncPrettyPrinterRegistry();
+        mPrettyPrinterInitializer.populatePrettyPrinters(mAsyncPrettyPrinterRegistry);
+      }
       mResponseBodyFileManager.cleanupFiles();
     }
 

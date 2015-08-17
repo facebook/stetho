@@ -19,8 +19,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.never;
 import static org.mockito.Matchers.any;
 
-import com.facebook.stetho.inspector.network.AsyncPrettyPrinter;
-import dalvik.annotation.TestTargetClass;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -38,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 public class AsyncPrettyPrintResponseBodyTest {
@@ -65,15 +64,13 @@ public class AsyncPrettyPrintResponseBodyTest {
 
   private AsyncPrettyPrinterRegistry mAsyncPrettyPrinterRegistry;
   private PrettyPrinterTestFactory mPrettyPrinterTestFactory;
-  private NetworkPeerManager mNetworkPeerManager;
   private ResponseBodyFileManager mResponseBodyFileManager;
 
   @Before
   public void setup() {
     mPrettyPrinterTestFactory = new PrettyPrinterTestFactory();
     mResponseBodyFileManager = mock(ResponseBodyFileManager.class);
-    mNetworkPeerManager = new NetworkPeerManager(mResponseBodyFileManager);
-    mAsyncPrettyPrinterRegistry = mNetworkPeerManager.getAsyncPrettyPrinterRegistry();
+    mAsyncPrettyPrinterRegistry = new AsyncPrettyPrinterRegistry();
     mAsyncPrettyPrinterRegistry.register(TEST_HEADER_NAME, mPrettyPrinterTestFactory);
   }
 
@@ -105,13 +102,10 @@ public class AsyncPrettyPrintResponseBodyTest {
         headerValues,
         TEST_REQUEST_ID
     );
-    NetworkEventReporterImpl.initAsyncPrettyPrinterForResponse(
+    AsyncPrettyPrinter prettyPrinter = NetworkEventReporterImpl.createPrettyPrinterForResponse(
         testResponse,
-        mNetworkPeerManager);
-    verify(mResponseBodyFileManager, times(1)).associateAsyncPrettyPrinterWithId(
-        eq(TEST_REQUEST_ID),
-        any(AsyncPrettyPrinter.class)
-    );
+        mAsyncPrettyPrinterRegistry);
+    assertNotNull(prettyPrinter);
   }
 
   @Test
@@ -131,13 +125,10 @@ public class AsyncPrettyPrintResponseBodyTest {
         headerValues,
         TEST_REQUEST_ID
     );
-    NetworkEventReporterImpl.initAsyncPrettyPrinterForResponse(
+    AsyncPrettyPrinter prettyPrinter = NetworkEventReporterImpl.createPrettyPrinterForResponse(
         testResponse,
-        mNetworkPeerManager);
-    verify(mResponseBodyFileManager, never()).associateAsyncPrettyPrinterWithId(
-        eq(TEST_REQUEST_ID),
-        any(AsyncPrettyPrinter.class)
-    );
+        mAsyncPrettyPrinterRegistry);
+    assertEquals(null, prettyPrinter);
   }
 
   @Test
@@ -157,11 +148,10 @@ public class AsyncPrettyPrintResponseBodyTest {
         headerValues,
         TEST_REQUEST_ID
     );
-    AsyncPrettyPrinter asyncPrettyPrinter =
-        NetworkEventReporterImpl.initAsyncPrettyPrinterForResponse(
+    AsyncPrettyPrinter prettyPrinter = NetworkEventReporterImpl.createPrettyPrinterForResponse(
         testResponse,
-        mNetworkPeerManager);
-    assertEquals(null, asyncPrettyPrinter);
+        mAsyncPrettyPrinterRegistry);
+    assertEquals(null, prettyPrinter);
   }
 
   private class PrettyPrinterTestFactory extends DownloadingAsyncPrettyPrinterFactory {
@@ -175,7 +165,8 @@ public class AsyncPrettyPrintResponseBodyTest {
       output.close();
     }
 
-    @Override @Nullable
+    @Override
+    @Nullable
     protected MatchResult matchAndParseHeader(String headerName, String headerValue) {
       if (headerName.equals(TEST_HEADER_NAME) && headerValue.equals(TEST_HEADER_VALUE)) {
         return new MatchResult("https://www.facebook.com", PrettyPrinterDisplayType.TEXT);
