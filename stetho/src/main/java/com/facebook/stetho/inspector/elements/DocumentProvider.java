@@ -13,7 +13,7 @@ import com.facebook.stetho.common.ThreadBound;
 
 import javax.annotation.Nullable;
 
-public interface DOMProvider extends ThreadBound {
+public interface DocumentProvider extends ThreadBound {
   void setListener(Listener listener);
 
   void dispose();
@@ -32,8 +32,8 @@ public interface DOMProvider extends ThreadBound {
 
   void setAttributesAsText(Object element, String text);
 
-  interface Factory {
-    DOMProvider create();
+  interface Factory extends ThreadBound {
+    DocumentProvider create();
   }
 
   interface Listener {

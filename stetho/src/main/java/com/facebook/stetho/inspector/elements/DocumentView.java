@@ -9,7 +9,7 @@
 
 package com.facebook.stetho.inspector.elements;
 
-public interface DOMView {
+public interface DocumentView {
   Object getRootElement();
 
   ElementInfo getElementInfo(Object element);

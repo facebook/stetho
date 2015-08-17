@@ -15,7 +15,6 @@ import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.os.Handler;
-import android.os.Looper;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,29 +24,31 @@ import android.widget.TextView;
 
 import com.facebook.stetho.common.Accumulator;
 import com.facebook.stetho.common.Predicate;
+import com.facebook.stetho.common.ThreadBound;
 import com.facebook.stetho.common.UncheckedCallable;
 import com.facebook.stetho.common.Util;
 import com.facebook.stetho.common.android.HandlerUtil;
 import com.facebook.stetho.common.android.ViewUtil;
-import com.facebook.stetho.inspector.elements.DOMProvider;
+import com.facebook.stetho.inspector.elements.DocumentProvider;
 import com.facebook.stetho.inspector.elements.Descriptor;
 import com.facebook.stetho.inspector.elements.DescriptorMap;
 import com.facebook.stetho.inspector.elements.NodeDescriptor;
 import com.facebook.stetho.inspector.elements.ObjectDescriptor;
+import com.facebook.stetho.inspector.helper.ThreadBoundProxy;
 
 import javax.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
-final class AndroidDOMProvider implements DOMProvider, AndroidDescriptorHost {
+final class AndroidDocumentProvider extends ThreadBoundProxy
+    implements DocumentProvider, AndroidDescriptorHost {
   private static final int INSPECT_OVERLAY_COLOR = 0x40FFFFFF;
   private static final int INSPECT_HOVER_COLOR = 0x404040ff;
 
   private final Application mApplication;
-  private final Handler mHandler;
   private final DescriptorMap mDescriptorMap;
-  private final AndroidDOMRoot mDOMRoot;
+  private final AndroidDocumentRoot mDocumentRoot;
   private final ViewHighlighter mHighlighter;
   private final InspectModeHandler mInspectModeHandler;
   private @Nullable Listener mListener;
@@ -71,15 +72,16 @@ final class AndroidDOMProvider implements DOMProvider, AndroidDescriptorHost {
     }
   };
 
-  public AndroidDOMProvider(Application application) {
+  public AndroidDocumentProvider(Application application, ThreadBound enforcer) {
+    super(enforcer);
+
     mApplication = Util.throwIfNull(application);
-    mHandler = new Handler(Looper.getMainLooper());
-    mDOMRoot = new AndroidDOMRoot(application);
+    mDocumentRoot = new AndroidDocumentRoot(application);
 
     mDescriptorMap = new DescriptorMap()
         .beginInit()
         .register(Activity.class, new ActivityDescriptor())
-        .register(AndroidDOMRoot.class, mDOMRoot)
+        .register(AndroidDocumentRoot.class, mDocumentRoot)
         .register(Application.class, new ApplicationDescriptor())
         .register(Dialog.class, new DialogDescriptor());
     DialogFragmentDescriptor.register(mDescriptorMap);
@@ -96,40 +98,6 @@ final class AndroidDOMProvider implements DOMProvider, AndroidDescriptorHost {
     mInspectModeHandler = new InspectModeHandler();
   }
 
-  // ThreadBound implementation
-  @Override
-  public boolean checkThreadAccess() {
-    return HandlerUtil.checkThreadAccess(mHandler);
-  }
-
-  @Override
-  public void verifyThreadAccess() {
-    HandlerUtil.verifyThreadAccess(mHandler);
-  }
-
-  @Override
-  public <V> V postAndWait(UncheckedCallable<V> c) {
-    return HandlerUtil.postAndWait(mHandler, c);
-  }
-
-  @Override
-  public void postAndWait(Runnable r) {
-    HandlerUtil.postAndWait(mHandler, r);
-  }
-
-  @Override
-  public void postDelayed(Runnable r, long delayMillis) {
-    if (!mHandler.postDelayed(r, delayMillis)) {
-      throw new RuntimeException("Handler.postDelayed() returned false");
-    }
-  }
-
-  @Override
-  public void removeCallbacks(Runnable r) {
-    mHandler.removeCallbacks(r);
-  }
-
-  // DOMProvider implementation
   @Override
   public void dispose() {
     verifyThreadAccess();
@@ -158,7 +126,7 @@ final class AndroidDOMProvider implements DOMProvider, AndroidDescriptorHost {
   @Override
   public Object getRootElement() {
     verifyThreadAccess();
-    return mDOMRoot;
+    return mDocumentRoot;
   }
 
   @Override

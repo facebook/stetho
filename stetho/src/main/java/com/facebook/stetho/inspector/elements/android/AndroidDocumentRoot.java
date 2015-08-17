@@ -18,25 +18,25 @@ import com.facebook.stetho.inspector.elements.NodeType;
 
 // For the root, we use 1 object for both element and descriptor.
 
-final class AndroidDOMRoot extends AbstractChainedDescriptor<AndroidDOMRoot> {
+final class AndroidDocumentRoot extends AbstractChainedDescriptor<AndroidDocumentRoot> {
   private final Application mApplication;
 
-  public AndroidDOMRoot(Application application) {
+  public AndroidDocumentRoot(Application application) {
     mApplication = Util.throwIfNull(application);
   }
 
   @Override
-  protected NodeType onGetNodeType(AndroidDOMRoot element) {
+  protected NodeType onGetNodeType(AndroidDocumentRoot element) {
     return NodeType.DOCUMENT_NODE;
   }
 
   @Override
-  protected String onGetNodeName(AndroidDOMRoot element) {
+  protected String onGetNodeName(AndroidDocumentRoot element) {
     return "root";
   }
 
   @Override
-  protected void onGetChildren(AndroidDOMRoot element, Accumulator<Object> children) {
+  protected void onGetChildren(AndroidDocumentRoot element, Accumulator<Object> children) {
     children.store(mApplication);
   }
 }

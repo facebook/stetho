@@ -24,12 +24,12 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
-public final class ShadowDOM implements DOMView {
+public final class ShadowDocument implements DocumentView {
   private final Object mRootElement;
   private final IdentityHashMap<Object, ElementInfo> mElementToInfoMap = new IdentityHashMap<>();
   private boolean mIsUpdating;
 
-  public ShadowDOM(Object rootElement) {
+  public ShadowDocument(Object rootElement) {
     mRootElement = Util.throwIfNull(rootElement);
   }
 
@@ -68,9 +68,9 @@ public final class ShadowDOM implements DOMView {
      * time and space proportional to the size of that node's sub-tree. This means the difference
      * between O(n^2) and O(n) time for transmitting updates to Chrome.<p/>
      *
-     * We currently only have one implementation of {@link DOMProvider},
-     * {@link com.facebook.stetho.inspector.elements.android.AndroidDOMProvider}, and it already
-     * supplies element changes in top-down order. Because of this, we can just use
+     * We currently only have one implementation of {@link DocumentProvider},
+     * {@link com.facebook.stetho.inspector.elements.android.AndroidDocumentProvider}, and it
+     * already supplies element changes in top-down order. Because of this, we can just use
      * {@link LinkedHashMap} instead of adding some kind of post-process sorting of the elements to
      * put them in that order. If we reach a point where we can't or shouldn't rely on elements
      * being forwarded to us in top-down order, then we should change this field to an
@@ -90,7 +90,7 @@ public final class ShadowDOM implements DOMView {
 
     /**
      * This contains every element in {@link #mElementToInfoChangesMap} whose
-     * {@link ElementInfo#parentElement} is null. {@link ShadowDOM} provides access to a tree, which
+     * {@link ElementInfo#parentElement} is null. {@link ShadowDocument} provides access to a tree, which
      * means it has a single root (only one element with a null parent). During an update, however,
      * the DOM can be conceptually thought of as being a forest. The true root is identified by
      * {@link #mRootElement}, and all other roots identify disconnected trees full of elements that
@@ -257,7 +257,7 @@ public final class ShadowDOM implements DOMView {
     }
   }
 
-  public final class Update implements DOMView {
+  public final class Update implements DocumentView {
     private final Map<Object, ElementInfo> mElementToInfoChangesMap;
     private final Set<Object> mRootElementChangesSet;
 
@@ -277,7 +277,7 @@ public final class ShadowDOM implements DOMView {
     }
 
     public Object getRootElement() {
-      return ShadowDOM.this.getRootElement();
+      return ShadowDocument.this.getRootElement();
     }
 
     public ElementInfo getElementInfo(Object element) {
@@ -325,7 +325,7 @@ public final class ShadowDOM implements DOMView {
         if (newElementInfo.parentElement == expectedParent) {
           accumulator.store(element);
 
-          ElementInfo oldElementInfo = ShadowDOM.this.getElementInfo(element);
+          ElementInfo oldElementInfo = ShadowDocument.this.getElementInfo(element);
           if (oldElementInfo != null) {
             for (int i = 0, N = oldElementInfo.children.size(); i < N; ++i) {
               queue.add(oldElementInfo.children.get(i));
