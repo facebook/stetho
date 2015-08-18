@@ -3,6 +3,7 @@ package com.facebook.stetho.inspector.network;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.concurrent.Callable;
@@ -157,10 +158,18 @@ public abstract class DownloadingAsyncPrettyPrinterFactory implements AsyncPrett
 
     @Override
     public String call() throws IOException {
-      InputStream urlStream = url.openStream();
-      String result = Util.readAsUTF8(urlStream);
-      urlStream.close();
-      return result;
+      HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+      int statusCode = connection.getResponseCode();
+      if (statusCode != 200) {
+        throw new IOException("Got status code: " + statusCode + " while downloading " +
+            "schema with url: " + url.toString());
+      }
+      InputStream urlStream = connection.getInputStream();
+      try {
+        return Util.readAsUTF8(urlStream);
+      } finally {
+        urlStream.close();
+      }
     }
   }
 }
