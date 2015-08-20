@@ -19,10 +19,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.never;
 import static org.mockito.Matchers.any;
 
-import com.facebook.stetho.inspector.network.AsyncPrettyPrinterSchemaManager;
-
 import org.junit.Before;
-import org.junit.runner.RunWith;
 import org.junit.Test;
 
 import javax.annotation.Nullable;
@@ -81,7 +78,6 @@ public class AsyncPrettyPrintResponseBodyTest {
 
   @Test
   public void testAsyncPrettyPrinterResult() throws IOException {
-
     StringWriter out = new StringWriter();
     PrintWriter writer = new PrintWriter(out);
     AsyncPrettyPrinter mAsyncPrettyPrinter = mPrettyPrinterTestFactory.getInstance(
