@@ -75,7 +75,6 @@ public class AsyncPrettyPrintResponseBodyTest {
   public void setup() {
     mPrettyPrinterTestFactory = new PrettyPrinterTestFactory();
     mAsyncPrettyPrinterRegistry = new AsyncPrettyPrinterRegistry();
-    AsyncPrettyPrinterSchemaManager.ensureInitialized();
     mAsyncPrettyPrinterRegistry.register(TEST_HEADER_NAME, mPrettyPrinterTestFactory);
     AsyncPrettyPrinterExecutorHolder.ensureInitialized();
   }
