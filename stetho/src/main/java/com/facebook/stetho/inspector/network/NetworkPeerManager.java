@@ -65,9 +65,6 @@ public class NetworkPeerManager extends ChromePeerManager {
         mAsyncPrettyPrinterRegistry = new AsyncPrettyPrinterRegistry();
         mPrettyPrinterInitializer.populatePrettyPrinters(mAsyncPrettyPrinterRegistry);
       }
-      if (AsyncPrettyPrinterSchemaManager.getInstance() == null) {
-        AsyncPrettyPrinterSchemaManager.ensureInitialized();
-      }
       mResponseBodyFileManager.cleanupFiles();
     }
 

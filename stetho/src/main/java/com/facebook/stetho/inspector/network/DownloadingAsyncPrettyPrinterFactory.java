@@ -11,6 +11,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
+import android.util.Log;
 import com.facebook.stetho.common.ExceptionUtil;
 import com.facebook.stetho.common.Util;
 

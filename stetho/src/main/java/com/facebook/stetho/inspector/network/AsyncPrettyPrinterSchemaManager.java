@@ -17,33 +17,33 @@ import java.util.Map;
 
 public final class AsyncPrettyPrinterSchemaManager {
   private static AsyncPrettyPrinterSchemaManager sSchemaManager;
-  private Map<URL, String> sSchemaCache;
+  private Map<URL, String> mSchemaCache;
 
-  public static void ensureInitialized() {
+  private static void ensureInitialized() {
     if (sSchemaManager == null) {
       sSchemaManager = new AsyncPrettyPrinterSchemaManager(new HashMap<URL, String>());
     }
   }
 
   private AsyncPrettyPrinterSchemaManager(Map<URL, String> schemaCache) {
-    sSchemaCache = schemaCache;
+    mSchemaCache = schemaCache;
   }
 
   public synchronized void put(URL schemaUrl, String schema) {
-      sSchemaCache.put(schemaUrl, schema);
+    mSchemaCache.put(schemaUrl, schema);
   }
 
   @Nullable
   public synchronized String get(URL schemaUrl) {
-    return sSchemaCache.get(schemaUrl);
+    return mSchemaCache.get(schemaUrl);
   }
 
-  @Nullable
   public static AsyncPrettyPrinterSchemaManager getInstance() {
+    ensureInitialized();
     return sSchemaManager;
   }
 
   public void clearCache() {
-    sSchemaCache = new HashMap<>();
+    mSchemaCache = new HashMap<>();
   }
 }
