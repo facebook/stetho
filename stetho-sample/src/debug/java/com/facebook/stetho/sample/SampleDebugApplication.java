@@ -10,12 +10,18 @@
 package com.facebook.stetho.sample;
 
 import android.content.Context;
+import android.os.Build;
 import android.os.SystemClock;
 import android.util.Log;
 import com.facebook.stetho.DumperPluginsProvider;
+import com.facebook.stetho.InspectorModulesProvider;
 import com.facebook.stetho.Stetho;
 import com.facebook.stetho.dumpapp.DumperPlugin;
+import com.facebook.stetho.inspector.database.DefaultDatabaseFilesProvider;
+import com.facebook.stetho.inspector.database.SqliteDatabasePeer;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
+import com.facebook.stetho.inspector.protocol.module.Database;
+import com.facebook.stetho.inspector.protocol.module.DatabaseConstants;
 
 public class SampleDebugApplication extends SampleApplication {
   private static final String TAG = "SampleDebugApplication";
@@ -42,7 +48,32 @@ public class SampleDebugApplication extends SampleApplication {
                 .finish();
           }
         })
-        .enableWebKitInspector(Stetho.defaultInspectorModulesProvider(context))
+        .enableWebKitInspector(new ExtInspectorModulesProvider(context))
         .build());
   }
+
+  private static class ExtInspectorModulesProvider implements InspectorModulesProvider {
+
+    private Context mContext;
+
+    ExtInspectorModulesProvider(Context context) {
+      mContext = context;
+    }
+
+    @Override
+    public Iterable<ChromeDevtoolsDomain> get() {
+      Stetho.DefaultInspectorModulesBuilder builder = new Stetho.DefaultInspectorModulesBuilder(mContext);
+      if (Build.VERSION.SDK_INT >= DatabaseConstants.MIN_API_LEVEL) {
+        Database database = new Database();
+        database.add(new SqliteDatabasePeer(mContext, new DefaultDatabaseFilesProvider(mContext)));
+        // ---   here all extensions come   ---
+        database.add(new CalendarProviderDatabasePeer(mContext));
+        // ...
+        // --- ^ here all extensions come ^ ---
+        builder.provide(database);
+      }
+      return builder.finish();
+    }
+  }
+
 }
