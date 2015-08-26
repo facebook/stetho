@@ -9,15 +9,6 @@
 
 package com.facebook.stetho.inspector.database;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import javax.annotation.concurrent.ThreadSafe;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.database.Cursor;
@@ -26,14 +17,21 @@ import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
 
 import com.facebook.stetho.common.Util;
-import com.facebook.stetho.inspector.helper.ChromePeerManager;
-import com.facebook.stetho.inspector.helper.PeerRegistrationListener;
 import com.facebook.stetho.inspector.jsonrpc.JsonRpcPeer;
 import com.facebook.stetho.inspector.protocol.module.Database;
 import com.facebook.stetho.inspector.protocol.module.DatabaseConstants;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.annotation.concurrent.ThreadSafe;
+
 @ThreadSafe
-public class DatabasePeerManager extends ChromePeerManager {
+public class SqliteDatabasePeer extends Database.DatabasePeer {
   private static final String[] UNINTERESTING_FILENAME_SUFFIXES = new String[]{
       "-journal",
       "-shm",
@@ -41,20 +39,20 @@ public class DatabasePeerManager extends ChromePeerManager {
       "-wal"
   };
 
-  private final Context mContext;
   private final DatabaseFilesProvider mDatabaseFilesProvider;
+  private final Set<String> mDatabases;
 
   /**
    * Constructs the object with a {@link DatabaseFilesProvider} that supplies the database files
    * from {@link Context#databaseList()}.
    *
    * @param context the context
-   * @deprecated use the other {@linkplain DatabasePeerManager#DatabasePeerManager(Context,
+   * @deprecated use the other {@linkplain SqliteDatabasePeer#SqliteDatabasePeer(Context,
    * DatabaseFilesProvider) constructor} and pass in the {@linkplain DefaultDatabaseFilesProvider
    * default provider}.
    */
   @Deprecated
-  public DatabasePeerManager(Context context) {
+  public SqliteDatabasePeer(Context context) {
     this(context, new DefaultDatabaseFilesProvider(context));
   }
 
@@ -62,13 +60,14 @@ public class DatabasePeerManager extends ChromePeerManager {
    * @param context the context
    * @param databaseFilesProvider a database file name provider
    */
-  public DatabasePeerManager(Context context, DatabaseFilesProvider databaseFilesProvider) {
-    mContext = context;
+  public SqliteDatabasePeer(Context context, DatabaseFilesProvider databaseFilesProvider) {
+    super(context);
+    mDatabases = new HashSet<>();
     mDatabaseFilesProvider = databaseFilesProvider;
-    setListener(mPeerRegistrationListener);
   }
 
-  private void bootstrapNewPeer(JsonRpcPeer peer) {
+  @Override
+  protected void onRegistered(JsonRpcPeer peer) {
     List<File> potentialDatabaseFiles = mDatabaseFilesProvider.getDatabaseFiles();
     Collections.sort(potentialDatabaseFiles);
     Iterable<File> tidiedList = tidyDatabaseList(potentialDatabaseFiles);
@@ -82,7 +81,18 @@ public class DatabasePeerManager extends ChromePeerManager {
       eventParams.database = databaseParams;
 
       peer.invokeMethod("Database.addDatabase", eventParams, null /* callback */);
+      mDatabases.add(databaseParams.id);
     }
+  }
+
+  @Override
+  protected void onUnregistered(JsonRpcPeer peer) {
+
+  }
+
+  @Override
+  public boolean contains(String databaseId) {
+    return mDatabases.contains(databaseId);
   }
 
   /**
@@ -216,25 +226,4 @@ public class DatabasePeerManager extends ChromePeerManager {
         SQLiteDatabase.OPEN_READWRITE);
   }
 
-  public interface ExecuteResultHandler<T> {
-    public T handleRawQuery() throws SQLiteException;
-
-    public T handleSelect(Cursor result) throws SQLiteException;
-
-    public T handleInsert(long insertedId) throws SQLiteException;
-
-    public T handleUpdateDelete(int count) throws SQLiteException;
-  }
-
-  private final PeerRegistrationListener mPeerRegistrationListener =
-      new PeerRegistrationListener() {
-    @Override
-    public void onPeerRegistered(JsonRpcPeer peer) {
-      bootstrapNewPeer(peer);
-    }
-
-    @Override
-    public void onPeerUnregistered(JsonRpcPeer peer) {
-    }
-  };
 }
