@@ -9,6 +9,7 @@
 
 package com.facebook.stetho.sample;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.os.SystemClock;
@@ -64,6 +65,7 @@ public class SampleDebugApplication extends SampleApplication {
       mContext = context;
     }
 
+    @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
     @Override
     public Iterable<ChromeDevtoolsDomain> get() {
       Stetho.DefaultInspectorModulesBuilder builder = new Stetho.DefaultInspectorModulesBuilder(mContext);
