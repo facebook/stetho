@@ -10,6 +10,7 @@
 package com.facebook.stetho.inspector.protocol.module;
 
 import android.content.Context;
+import com.facebook.stetho.Stetho;
 import com.facebook.stetho.common.LogUtil;
 import com.facebook.stetho.inspector.console.RuntimeRepl;
 import com.facebook.stetho.inspector.console.RuntimeReplFactory;
@@ -53,7 +54,9 @@ public class Runtime implements ChromeDevtoolsDomain {
 
   /**
    * @deprecated Provided for ABI compatibility
-   * @see Runtime(Context)
+   *
+   * @see #Runtime(RuntimeReplFactory)
+   * @see Stetho.DefaultInspectorModulesBuilder#runtimeRepl(RuntimeReplFactory)
    */
   @Deprecated
   public Runtime() {
@@ -70,6 +73,10 @@ public class Runtime implements ChromeDevtoolsDomain {
     });
   }
 
+  /**
+   * @deprecated This was a transitionary API that was replaced by
+   *     {@link com.facebook.stetho.Stetho.DefaultInspectorModulesBuilder#runtimeRepl}
+   */
   public Runtime(Context context) {
     this(new RhinoDetectingRuntimeReplFactory(context));
   }

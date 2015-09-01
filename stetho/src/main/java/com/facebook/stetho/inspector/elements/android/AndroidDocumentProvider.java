@@ -14,7 +14,6 @@ import android.app.Application;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Canvas;
-import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,13 +24,12 @@ import android.widget.TextView;
 import com.facebook.stetho.common.Accumulator;
 import com.facebook.stetho.common.Predicate;
 import com.facebook.stetho.common.ThreadBound;
-import com.facebook.stetho.common.UncheckedCallable;
 import com.facebook.stetho.common.Util;
-import com.facebook.stetho.common.android.HandlerUtil;
 import com.facebook.stetho.common.android.ViewUtil;
 import com.facebook.stetho.inspector.elements.DocumentProvider;
 import com.facebook.stetho.inspector.elements.Descriptor;
 import com.facebook.stetho.inspector.elements.DescriptorMap;
+import com.facebook.stetho.inspector.elements.DocumentProviderListener;
 import com.facebook.stetho.inspector.elements.NodeDescriptor;
 import com.facebook.stetho.inspector.elements.ObjectDescriptor;
 import com.facebook.stetho.inspector.helper.ThreadBoundProxy;
@@ -51,7 +49,7 @@ final class AndroidDocumentProvider extends ThreadBoundProxy
   private final AndroidDocumentRoot mDocumentRoot;
   private final ViewHighlighter mHighlighter;
   private final InspectModeHandler mInspectModeHandler;
-  private @Nullable Listener mListener;
+  private @Nullable DocumentProviderListener mListener;
 
   // We don't yet have an an implementation for reliably detecting fine-grained changes in the
   // View tree. So, for now at least, we have a timer that runs every so often and just reports
@@ -110,7 +108,7 @@ final class AndroidDocumentProvider extends ThreadBoundProxy
   }
 
   @Override
-  public void setListener(Listener listener) {
+  public void setListener(DocumentProviderListener listener) {
     verifyThreadAccess();
 
     mListener = listener;

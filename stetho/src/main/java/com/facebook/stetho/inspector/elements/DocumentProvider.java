@@ -13,8 +13,14 @@ import com.facebook.stetho.common.ThreadBound;
 
 import javax.annotation.Nullable;
 
+/**
+ * Provides a document that can be rendered in Chrome's Elements tab (conforming loosely to the
+ * W3C DOM to the degree specified in this API).
+ *
+ * @see DocumentProviderFactory
+ */
 public interface DocumentProvider extends ThreadBound {
-  void setListener(Listener listener);
+  void setListener(DocumentProviderListener listener);
 
   void dispose();
 
@@ -31,24 +37,4 @@ public interface DocumentProvider extends ThreadBound {
   void setInspectModeEnabled(boolean enabled);
 
   void setAttributesAsText(Object element, String text);
-
-  interface Factory extends ThreadBound {
-    DocumentProvider create();
-  }
-
-  interface Listener {
-    void onPossiblyChanged();
-
-    void onAttributeModified(
-        Object element,
-        String name,
-        String value);
-
-    void onAttributeRemoved(
-        Object element,
-        String name);
-
-    void onInspectRequested(
-        Object element);
-  }
 }

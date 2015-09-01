@@ -28,7 +28,7 @@ import java.util.Queue;
 import java.util.regex.Pattern;
 
 public final class Document extends ThreadBoundProxy {
-  private final DocumentProvider.Factory mFactory;
+  private final DocumentProviderFactory mFactory;
   private final ObjectIdMapper mObjectIdMapper;
   private final Queue<Object> mCachedUpdateQueue;
 
@@ -42,7 +42,7 @@ public final class Document extends ThreadBoundProxy {
   @GuardedBy("this")
   private int mReferenceCounter;
 
-  public Document(DocumentProvider.Factory factory) {
+  public Document(DocumentProviderFactory factory) {
     super(factory);
 
     mFactory = factory;
@@ -616,7 +616,7 @@ public final class Document extends ThreadBoundProxy {
     }
   }
 
-  private final class ProviderListener implements DocumentProvider.Listener {
+  private final class ProviderListener implements DocumentProviderListener {
     @Override
     public void onPossiblyChanged() {
       updateTree();
