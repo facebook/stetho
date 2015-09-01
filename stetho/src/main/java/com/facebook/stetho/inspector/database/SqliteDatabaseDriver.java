@@ -15,11 +15,12 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
-
 import com.facebook.stetho.common.Util;
 import com.facebook.stetho.inspector.jsonrpc.JsonRpcPeer;
 import com.facebook.stetho.inspector.protocol.module.Database;
 import com.facebook.stetho.inspector.protocol.module.DatabaseConstants;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -28,10 +29,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 @ThreadSafe
-public class SqliteDatabasePeer extends Database.DatabasePeer {
+public class SqliteDatabaseDriver extends Database.DatabaseDriver {
   private static final String[] UNINTERESTING_FILENAME_SUFFIXES = new String[]{
       "-journal",
       "-shm",
@@ -47,12 +46,12 @@ public class SqliteDatabasePeer extends Database.DatabasePeer {
    * from {@link Context#databaseList()}.
    *
    * @param context the context
-   * @deprecated use the other {@linkplain SqliteDatabasePeer#SqliteDatabasePeer(Context,
+   * @deprecated use the other {@linkplain SqliteDatabaseDriver#SqliteDatabaseDriver(Context,
    * DatabaseFilesProvider) constructor} and pass in the {@linkplain DefaultDatabaseFilesProvider
    * default provider}.
    */
   @Deprecated
-  public SqliteDatabasePeer(Context context) {
+  public SqliteDatabaseDriver(Context context) {
     this(context, new DefaultDatabaseFilesProvider(context));
   }
 
@@ -60,7 +59,7 @@ public class SqliteDatabasePeer extends Database.DatabasePeer {
    * @param context the context
    * @param databaseFilesProvider a database file name provider
    */
-  public SqliteDatabasePeer(Context context, DatabaseFilesProvider databaseFilesProvider) {
+  public SqliteDatabaseDriver(Context context, DatabaseFilesProvider databaseFilesProvider) {
     super(context);
     mDatabases = new HashSet<>();
     mDatabaseFilesProvider = databaseFilesProvider;

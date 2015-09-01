@@ -45,7 +45,7 @@ public class Database implements ChromeDevtoolsDomain {
    */
   private static final int MAX_EXECUTE_RESULTS = 250;
 
-  private List<DatabasePeer> mDatabasePeers;
+  private List<DatabaseDriver> mDatabaseDrivers;
   private final ChromePeerManager mChromePeerManager;
   private final ObjectMapper mObjectMapper;
 
@@ -53,28 +53,28 @@ public class Database implements ChromeDevtoolsDomain {
    * Constructs the object.
    */
   public Database() {
-    mDatabasePeers = new ArrayList<>();
+    mDatabaseDrivers = new ArrayList<>();
     mChromePeerManager = new ChromePeerManager();
     mChromePeerManager.setListener(new PeerRegistrationListener() {
       @Override
       public void onPeerRegistered(JsonRpcPeer peer) {
-        for (DatabasePeer databasePeer : mDatabasePeers) {
-          databasePeer.onRegistered(peer);
+        for (DatabaseDriver databaseDriver : mDatabaseDrivers) {
+          databaseDriver.onRegistered(peer);
         }
       }
 
       @Override
       public void onPeerUnregistered(JsonRpcPeer peer) {
-        for (DatabasePeer databasePeer : mDatabasePeers) {
-          databasePeer.onUnregistered(peer);
+        for (DatabaseDriver databaseDriver : mDatabaseDrivers) {
+          databaseDriver.onUnregistered(peer);
         }
       }
     });
     mObjectMapper = new ObjectMapper();
   }
 
-  public void add(DatabasePeer databasePeer) {
-    mDatabasePeers.add(databasePeer);
+  public void add(DatabaseDriver databaseDriver) {
+    mDatabaseDrivers.add(databaseDriver);
   }
 
   @ChromeDevtoolsMethod
@@ -94,11 +94,11 @@ public class Database implements ChromeDevtoolsDomain {
         GetDatabaseTableNamesRequest.class);
 
     String databaseId = request.databaseId;
-    DatabasePeer databasePeer = getDatabasePeer(databaseId);
+    DatabaseDriver databaseDriver = getDatabasePeer(databaseId);
 
     try {
       GetDatabaseTableNamesResponse response = new GetDatabaseTableNamesResponse();
-      response.tableNames = databasePeer.getDatabaseTableNames(request.databaseId);
+      response.tableNames = databaseDriver.getDatabaseTableNames(request.databaseId);
       return response;
     } catch (SQLiteException e) {
       throw new JsonRpcException(
@@ -117,11 +117,11 @@ public class Database implements ChromeDevtoolsDomain {
     String databaseId = request.databaseId;
     String query = request.query;
 
-    DatabasePeer databasePeer = getDatabasePeer(databaseId);
+    DatabaseDriver databaseDriver = getDatabasePeer(databaseId);
 
     try {
-      return databasePeer.executeSQL(request.databaseId, request.query,
-          new DatabasePeer.ExecuteResultHandler<ExecuteSQLResponse>() {
+      return databaseDriver.executeSQL(request.databaseId, request.query,
+          new DatabaseDriver.ExecuteResultHandler<ExecuteSQLResponse>() {
         @Override
         public ExecuteSQLResponse handleRawQuery() throws SQLiteException {
           ExecuteSQLResponse response = new ExecuteSQLResponse();
@@ -166,10 +166,10 @@ public class Database implements ChromeDevtoolsDomain {
     }
   }
 
-  private DatabasePeer getDatabasePeer(String databaseId) {
-    for (DatabasePeer databasePeer : mDatabasePeers) {
-      if (databasePeer.contains(databaseId)) {
-          return databasePeer;
+  private DatabaseDriver getDatabasePeer(String databaseId) {
+    for (DatabaseDriver databaseDriver : mDatabaseDrivers) {
+      if (databaseDriver.contains(databaseId)) {
+          return databaseDriver;
       }
     }
     return null;
@@ -273,11 +273,11 @@ public class Database implements ChromeDevtoolsDomain {
     public int code;
   }
 
-  public static abstract class DatabasePeer {
+  public static abstract class DatabaseDriver {
 
     protected Context mContext;
 
-    public DatabasePeer(Context context) {
+    public DatabaseDriver(Context context) {
       mContext = context;
     }
 
@@ -287,7 +287,7 @@ public class Database implements ChromeDevtoolsDomain {
 
     public abstract List<String> getDatabaseTableNames(String databaseId);
 
-    public abstract <T> T executeSQL(String databaseName, String query, DatabasePeer.ExecuteResultHandler<T> handler)
+    public abstract <T> T executeSQL(String databaseName, String query, DatabaseDriver.ExecuteResultHandler<T> handler)
         throws SQLiteException;
 
     public abstract boolean contains(String databaseId);

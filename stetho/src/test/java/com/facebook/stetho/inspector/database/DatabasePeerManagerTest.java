@@ -32,7 +32,7 @@ public class DatabasePeerManagerTest {
         new File("baz.db"), new File("baz.db-somethingelse"),
         new File("dangling.db-journal")
     };
-    List<File> tidied = SqliteDatabasePeer.tidyDatabaseList(Arrays.asList(databases));
+    List<File> tidied = SqliteDatabaseDriver.tidyDatabaseList(Arrays.asList(databases));
     assertArrayEquals(expected, tidied.toArray());
   }
 }
