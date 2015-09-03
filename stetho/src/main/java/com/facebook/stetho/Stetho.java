@@ -274,7 +274,7 @@ public class Stetho {
       provideIfDesired(new Network(mContext));
       provideIfDesired(new Page(mContext));
       provideIfDesired(new Profiler());
-      provideIfDesired(new Runtime());
+      provideIfDesired(new Runtime(mContext));
       provideIfDesired(new Worker());
       if (Build.VERSION.SDK_INT >= DatabaseConstants.MIN_API_LEVEL) {
         provideIfDesired(new Database(mContext, new DefaultDatabaseFilesProvider(mContext)));
