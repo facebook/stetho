@@ -21,8 +21,24 @@ or Maven:
 Make sure that you depend on the main `stetho` dependency too.
 
 ### Putting it together
+
 The Rhino JavaScript integration is automatically detected by Stetho and is
 enabled simply by adding the `stetho-js-rhino` dependency to your project.
+
+If you want to configure the JavaScript environment you can pass your own
+variables, classes, packages and functions and provide this custom runtime REPL using:
+
+```java
+return new DefaultInspectorModulesProvider(context)
+  .runtimeRepl(
+    new JsRuntimeReplFactoryBuilder(context)
+      // Pass to JavaScript: var foo = "bar";
+      .addVariable("foo", "bar")
+      .build())
+  .finish();
+```
+
+For more details see the next sections.
 
 ### How it works
 
