@@ -29,13 +29,19 @@ If you want to configure the JavaScript environment you can pass your own
 variables, classes, packages and functions and provide this custom runtime REPL using:
 
 ```java
-return new DefaultInspectorModulesProvider(context)
-  .runtimeRepl(
-    new JsRuntimeReplFactoryBuilder(context)
-      // Pass to JavaScript: var foo = "bar";
-      .addVariable("foo", "bar")
-      .build())
-  .finish();
+    Stetho.initialize(Stetho.newInitializerBuilder(context)
+        .enableWebKitInspector(new InspectorModulesProvider() {
+          @Override
+          public Iterable<ChromeDevtoolsDomain> get() {
+            return new DefaultInspectorModulesBuilder(context).runtimeRepl(
+                new JsRuntimeReplFactoryBuilder(context)
+                    // Pass to JavaScript: var foo = "bar";
+                    .addVariable("foo", "bar")
+                    .build()
+            ).finish();
+          }
+        })
+        .build());
 ```
 
 For more details see the next sections.
