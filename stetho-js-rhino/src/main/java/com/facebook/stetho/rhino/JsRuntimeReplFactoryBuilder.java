@@ -49,6 +49,11 @@ public class JsRuntimeReplFactoryBuilder {
   private static final String SOURCE_NAME = "chrome";
 
   /**
+   * Singleton instance.
+   */
+  private static volatile JsRuntimeReplFactoryBuilder sInstance;
+
+  /**
    * Android application context.
    */
   private final android.content.Context mContext;
@@ -74,11 +79,18 @@ public class JsRuntimeReplFactoryBuilder {
    */
   private final Map<String, Function> mFunctions = new HashMap<>();
 
-  public static RuntimeReplFactory defaultFactory(@NonNull android.content.Context context) {
-    return new JsRuntimeReplFactoryBuilder(context).build();
+  public static synchronized JsRuntimeReplFactoryBuilder getInstance(@NonNull android.content.Context context) {
+    if (sInstance == null) {
+      sInstance = new JsRuntimeReplFactoryBuilder(context);
+    }
+    return sInstance;
   }
 
-  public JsRuntimeReplFactoryBuilder(@NonNull android.content.Context context) {
+  public static synchronized RuntimeReplFactory defaultFactory(@NonNull android.content.Context context) {
+    return getInstance(context).build();
+  }
+
+  private JsRuntimeReplFactoryBuilder(@NonNull android.content.Context context) {
     mContext = context;
 
     // We import the app's package name by default
