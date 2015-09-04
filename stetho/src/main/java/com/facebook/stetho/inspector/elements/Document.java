@@ -280,10 +280,28 @@ public final class Document extends ThreadBoundProxy {
       NodeDescriptor descriptor = mDocumentProvider.getNodeDescriptor(element);
       mObjectIdMapper.putObject(element);
       descriptor.getChildren(element, childrenAccumulator);
-      updateBuilder.setElementChildren(element, childrenAccumulator);
-      for (int i = 0, N = childrenAccumulator.size(); i < N; ++i) {
-        mCachedUpdateQueue.add(childrenAccumulator.get(i));
+
+      for (int i = 0, size = childrenAccumulator.size(); i < size; ++i) {
+        Object child = childrenAccumulator.get(i);
+        if (child != null) {
+          mCachedUpdateQueue.add(child);
+        } else {
+          // This could be indicative of a bug in Stetho code, but could also be caused by a
+          // custom element of some kind, e.g. ViewGroup. Let's not allow it to kill the hosting
+          // app.
+          LogUtil.e(
+              "%s.getChildren() emitted a null child at position %s for element %s",
+              descriptor.getClass().getName(),
+              Integer.toString(i),
+              element);
+
+          childrenAccumulator.remove(i);
+          --i;
+          --size;
+        }
       }
+
+      updateBuilder.setElementChildren(element, childrenAccumulator);
       childrenAccumulator.clear();
     }
 
