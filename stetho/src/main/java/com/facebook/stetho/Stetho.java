@@ -40,7 +40,7 @@ import com.facebook.stetho.inspector.ChromeDiscoveryHandler;
 import com.facebook.stetho.inspector.elements.Document;
 import com.facebook.stetho.inspector.elements.DocumentProviderFactory;
 import com.facebook.stetho.inspector.elements.android.ActivityTracker;
-import com.facebook.stetho.inspector.elements.android.AndroidDOMConstants;
+import com.facebook.stetho.inspector.elements.android.AndroidDocumentConstants;
 import com.facebook.stetho.inspector.elements.android.AndroidDocumentProviderFactory;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
 import com.facebook.stetho.inspector.protocol.module.CSS;
@@ -362,7 +362,7 @@ public class Stetho {
       if (mDocumentProvider != null) {
         return mDocumentProvider;
       }
-      if (Build.VERSION.SDK_INT >= AndroidDOMConstants.MIN_API_LEVEL) {
+      if (Build.VERSION.SDK_INT >= AndroidDocumentConstants.MIN_API_LEVEL) {
         return new AndroidDocumentProviderFactory(mContext);
       }
       return null;

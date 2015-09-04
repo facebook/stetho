@@ -9,11 +9,13 @@
 
 package com.facebook.stetho.inspector.elements.android;
 
-import android.content.Context;
-import android.view.View;
+import android.os.Build;
 
-class DOMHiddenView extends View {
-  public DOMHiddenView(Context context) {
-    super(context);
-  }
+public interface AndroidDocumentConstants {
+  /**
+   * Minimum API version required to make effective use of AndroidDocumentProvider. This can be
+   * moved back significantly through manual APIs to discover {@link android.app.Activity}
+   * instances.
+   */
+  int MIN_API_LEVEL = Build.VERSION_CODES.ICE_CREAM_SANDWICH;
 }
