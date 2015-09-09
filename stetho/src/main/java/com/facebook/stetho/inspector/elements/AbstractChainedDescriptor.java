@@ -12,6 +12,7 @@ package com.facebook.stetho.inspector.elements;
 import com.facebook.stetho.common.Accumulator;
 import com.facebook.stetho.common.ThreadBound;
 import com.facebook.stetho.common.Util;
+import com.facebook.stetho.inspector.protocol.module.DOM;
 
 import javax.annotation.Nullable;
 
@@ -30,8 +31,8 @@ import javax.annotation.Nullable;
  * {@link #verifyThreadAccess()} in a few important methods such as {@link #hook(Object)} and
  * {@link #unhook(Object)} (anything that writes or is potentially really dangerous if misused).<p/>
  *
- * @param <E> the class that this descriptor will be describing for {@link DocumentProvider} and
- * {@link com.facebook.stetho.inspector.protocol.module.DOM}
+ * @param <E> the class that this descriptor will be describing for {@link DocumentProvider},
+ * {@link Document}, and ultimately {@link DOM}.
  */
 public abstract class AbstractChainedDescriptor<E> extends Descriptor implements ChainedDescriptor {
 

@@ -53,8 +53,9 @@ final class AndroidDocumentProvider extends ThreadBoundProxy
 
   // We don't yet have an an implementation for reliably detecting fine-grained changes in the
   // View tree. So, for now at least, we have a timer that runs every so often and just reports
-  // that we changed. Our listener will then read the entire DOM from us and transmit the changes to
-  // Chrome. Detecting, reporting, and traversing fine-grained changes is a future work item.
+  // that we changed. Our listener will then read the entire Document from us and transmit the
+  // changes to Chrome. Detecting, reporting, and traversing fine-grained changes is a future work
+  // item (see Issue #210).
   private static final long REPORT_CHANGED_INTERVAL_MS = 1000;
   private boolean mIsReportChangesTimerPosted = false;
   private final Runnable mReportChangesTimer = new Runnable() {
@@ -247,7 +248,7 @@ final class AndroidDocumentProvider extends ThreadBoundProxy
     private final Predicate<View> mViewSelector = new Predicate<View>() {
       @Override
       public boolean apply(View view) {
-        return !(view instanceof DOMHiddenView);
+        return !(view instanceof DocumentHiddenView);
       }
     };
 
@@ -299,7 +300,7 @@ final class AndroidDocumentProvider extends ThreadBoundProxy
       mOverlays = null;
     }
 
-    private final class OverlayView extends DOMHiddenView {
+    private final class OverlayView extends DocumentHiddenView {
       public OverlayView(Context context) {
         super(context);
       }
