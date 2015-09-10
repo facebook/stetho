@@ -65,6 +65,10 @@ public final class ListUtil {
     }
   }
 
+  public static <T> List<T> newImmutableList(T item) {
+    return new OneItemImmutableList<>(item);
+  }
+
   private static interface ImmutableList<E> extends List<E>, RandomAccess {
   }
 

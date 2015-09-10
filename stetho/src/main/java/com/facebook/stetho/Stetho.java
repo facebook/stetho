@@ -327,12 +327,12 @@ public class Stetho {
 
     public Iterable<ChromeDevtoolsDomain> finish() {
       provideIfDesired(new Console());
-      provideIfDesired(new CSS());
       provideIfDesired(new Debugger());
       DocumentProviderFactory documentModel = resolveDocumentProvider();
       if (documentModel != null) {
         Document document = new Document(documentModel);
         provideIfDesired(new DOM(document));
+        provideIfDesired(new CSS(document));
       }
       provideIfDesired(new DOMStorage(mContext));
       provideIfDesired(new HeapProfiler());

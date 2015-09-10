@@ -145,4 +145,14 @@ public abstract class AbstractChainedDescriptor<E> extends Descriptor implements
   protected void onSetAttributesAsText(E element, String text) {
     mSuper.setAttributesAsText(element, text);
   }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public final void getStyles(Object element, StyleAccumulator accumulator) {
+    mSuper.getStyles(element, accumulator);
+    onGetStyles((E) element, accumulator);
+  }
+
+  protected void onGetStyles(E element, StyleAccumulator accumulator) {
+  }
 }

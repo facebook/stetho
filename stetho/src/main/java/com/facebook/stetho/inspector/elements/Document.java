@@ -140,6 +140,12 @@ public final class Document extends ThreadBoundProxy {
     mDocumentProvider.setAttributesAsText(element, text);
   }
 
+  public void getElementStyles(Object element, StyleAccumulator styleAccumulator) {
+    NodeDescriptor nodeDescriptor = getNodeDescriptor(element);
+
+    nodeDescriptor.getStyles(element, styleAccumulator);
+  }
+
   public DocumentView getDocumentView() {
     verifyThreadAccess();
     return mShadowDocument;

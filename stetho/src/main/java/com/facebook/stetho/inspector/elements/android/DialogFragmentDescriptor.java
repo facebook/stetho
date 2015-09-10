@@ -23,6 +23,7 @@ import com.facebook.stetho.inspector.elements.ChainedDescriptor;
 import com.facebook.stetho.inspector.elements.Descriptor;
 import com.facebook.stetho.inspector.elements.DescriptorMap;
 import com.facebook.stetho.inspector.elements.NodeType;
+import com.facebook.stetho.inspector.elements.StyleAccumulator;
 
 import javax.annotation.Nullable;
 
@@ -124,5 +125,9 @@ final class DialogFragmentDescriptor
     }
 
     return null;
+  }
+
+  @Override
+  public void getStyles(Object element, StyleAccumulator styles) {
   }
 }
