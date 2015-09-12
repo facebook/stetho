@@ -54,13 +54,7 @@ Integrating with **Stetho** is intended to be seamless and straightforward for m
 public class MyApplication extends Application {
   public void onCreate() {
     super.onCreate();
-    Stetho.initialize(
-      Stetho.newInitializerBuilder(this)
-        .enableDumpapp(
-            Stetho.defaultDumperPluginsProvider(this))
-        .enableWebKitInspector(
-            Stetho.defaultInspectorModulesProvider(this))
-        .build());
+    Stetho.initializeWithDefaults(this);
   }
 }
 ```
@@ -86,21 +80,16 @@ Custom plugins are the preferred means of extending the dumpapp system and can b
   
 ```java  
 Stetho.initialize(Stetho.newInitializerBuilder(context)
-    .enableDumpapp(new MyDumperPluginsProvider(context))
-    .build())
-
-private static class MyDumperPluginsProvider
-    implements DumperPluginsProvider {
-  public Iterable<DumperPlugin> get() {
-    ArrayList<DumperPlugin> plugins = new ArrayList<DumperPlugin>();
-    for (DumperPlugin defaultPlugin :
-        Stetho.defaultDumperPluginsProvider(mContext).get()) {
-      plugins.add(defaultPlugin);
-    }
-    plugins.add(new MyDumperPlugin());
-    return plugins;
-  }
-}
+    .enableDumpapp(new DumperPluginsProvider() {
+      @Override
+      public Iterable<DumperPlugin> get() {
+        return new Stetho.DefaultDumperPluginsBuilder(context)
+            .provide(new MyDumperPlugin())
+            .finish();
+      }
+    })
+    .enableWebKitInspector(Stetho.defaultInspectorModulesProvider(context))
+    .build());
 ```
 
 See the stetho-sample project for more details. 
