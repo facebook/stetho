@@ -5,14 +5,14 @@ id: home
 
 ## Download
 
-{% include ui/button.html button_href="https://github.com/facebook/stetho/releases/download/v1.1.1/stetho-1.1.1-fatjar.jar" button_text="Download v1.1.1" margin="small" align="center" %}
+{% include ui/button.html button_href="https://github.com/facebook/stetho/releases/download/v1.2.0/stetho-1.2.0-fatjar.jar" button_text="Download v1.2.0" margin="small" align="center" %}
 
 Alternatively you can include Stetho from Maven Central via Gradle or Maven. 
 
 ```groovy
   // Gradle dependency on Stetho 
   dependencies { 
-    compile 'com.facebook.stetho:stetho:1.1.1' 
+    compile 'com.facebook.stetho:stetho:1.2.0' 
   } 
 ```
 
@@ -20,7 +20,7 @@ Alternatively you can include Stetho from Maven Central via Gradle or Maven.
   <dependency>
     <groupid>com.facebook.stetho</groupid> 
     <artifactid>stetho</artifactid> 
-    <version>1.1.1</version> 
+    <version>1.2.0</version> 
   </dependency> 
 ```
 
@@ -28,7 +28,7 @@ Only the main `stetho` dependency is strictly required, however you may also wis
 
 ```groovy 
   dependencies { 
-    compile 'com.facebook.stetho:stetho-okhttp:1.1.1' 
+    compile 'com.facebook.stetho:stetho-okhttp:1.2.0' 
   } 
 ```
 
@@ -36,7 +36,7 @@ or:
 
 ```groovy
   dependencies { 
-    compile 'com.facebook.stetho:stetho-urlconnection:1.1.1' 
+    compile 'com.facebook.stetho:stetho-urlconnection:1.2.0' 
   } 
 ```
 
@@ -54,13 +54,7 @@ Integrating with **Stetho** is intended to be seamless and straightforward for m
 public class MyApplication extends Application {
   public void onCreate() {
     super.onCreate();
-    Stetho.initialize(
-      Stetho.newInitializerBuilder(this)
-        .enableDumpapp(
-            Stetho.defaultDumperPluginsProvider(this))
-        .enableWebKitInspector(
-            Stetho.defaultInspectorModulesProvider(this))
-        .build());
+    Stetho.initializeWithDefaults(this);
   }
 }
 ```
@@ -86,21 +80,16 @@ Custom plugins are the preferred means of extending the dumpapp system and can b
   
 ```java  
 Stetho.initialize(Stetho.newInitializerBuilder(context)
-    .enableDumpapp(new MyDumperPluginsProvider(context))
-    .build())
-
-private static class MyDumperPluginsProvider
-    implements DumperPluginsProvider {
-  public Iterable<DumperPlugin> get() {
-    ArrayList<DumperPlugin> plugins = new ArrayList<DumperPlugin>();
-    for (DumperPlugin defaultPlugin :
-        Stetho.defaultDumperPluginsProvider(mContext).get()) {
-      plugins.add(defaultPlugin);
-    }
-    plugins.add(new MyDumperPlugin());
-    return plugins;
-  }
-}
+    .enableDumpapp(new DumperPluginsProvider() {
+      @Override
+      public Iterable<DumperPlugin> get() {
+        return new Stetho.DefaultDumperPluginsBuilder(context)
+            .provide(new MyDumperPlugin())
+            .finish();
+      }
+    })
+    .enableWebKitInspector(Stetho.defaultInspectorModulesProvider(context))
+    .build());
 ```
 
 See the stetho-sample project for more details. 
