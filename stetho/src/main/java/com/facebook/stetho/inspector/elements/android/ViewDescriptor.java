@@ -284,6 +284,8 @@ final class ViewDescriptor extends AbstractChainedDescriptor<View> implements Hi
       getStyleFromInteger(name, (Integer) value, annotation, styles);
     } else if (value instanceof Float) {
       getStyleFromFloat(name, (Float) value, annotation, styles);
+    } else {
+      getStylesFromObject(element, name, value, annotation, styles);
     }
   }
 
@@ -329,6 +331,64 @@ final class ViewDescriptor extends AbstractChainedDescriptor<View> implements Hi
       @Nullable ViewDebug.ExportedProperty annotation,
       StyleAccumulator styles) {
     styles.store(name, String.valueOf(value), isDefaultValue(value));
+  }
+
+  private void getStylesFromObject(
+      View view,
+      String name,
+      Object value,
+      @Nullable ViewDebug.ExportedProperty annotation,
+      StyleAccumulator styles) {
+    if (annotation == null || !annotation.deepExport() || value == null) {
+      return;
+    }
+
+    Field[] fields = value.getClass().getFields();
+
+    for (Field field : fields) {
+      Object propertyValue;
+      try {
+          field.setAccessible(true);
+          propertyValue = field.get(value);
+      } catch (IllegalAccessException e) {
+        LogUtil.e(
+            e,
+            "failed to get property of name: \"" + name + "\" of object: " + String.valueOf(value));
+        return;
+      }
+
+      String propertyName = field.getName();
+
+      switch (propertyName) {
+        case "bottomMargin":
+          propertyName = "margin-bottom";
+          break;
+        case "topMargin":
+          propertyName = "margin-top";
+          break;
+        case "leftMargin":
+          propertyName = "margin-left";
+          break;
+        case "rightMargin":
+          propertyName = "margin-right";
+          break;
+        default:
+          String annotationPrefix = annotation.prefix();
+          propertyName = convertViewPropertyNameToCSSName(
+              (annotationPrefix == null) ? propertyName : (annotationPrefix + propertyName));
+          break;
+      }
+
+      ViewDebug.ExportedProperty subAnnotation =
+          field.getAnnotation(ViewDebug.ExportedProperty.class);
+
+      getStyleFromValue(
+          view,
+          propertyName,
+          propertyValue,
+          subAnnotation,
+          styles);
+    }
   }
 
   private static String capitalize(String str) {
