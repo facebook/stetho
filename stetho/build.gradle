@@ -1,12 +1,13 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 21
-    buildToolsVersion "21.1.2"
+    compileSdkVersion 23
+    buildToolsVersion "23.0.1"
+    useLibrary  'org.apache.http.legacy'
 
     defaultConfig {
         minSdkVersion 9
-        targetSdkVersion 21
+        targetSdkVersion 23
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -17,7 +18,7 @@ dependencies {
     compile 'commons-cli:commons-cli:1.2'
     compile 'com.google.code.findbugs:jsr305:2.0.1'
 
-    compile 'com.android.support:appcompat-v7:22.0.0' // optional
+    compile 'com.android.support:appcompat-v7:23.0.1' // optional
 
     testCompile 'junit:junit:4.12'
     testCompile('org.robolectric:robolectric:2.4') {
