@@ -20,7 +20,7 @@ import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.annotations.JSFunction;
 
-class JsConsole extends ScriptableObject {
+public class JsConsole extends ScriptableObject {
 
   /**
    * Serial version UID.
