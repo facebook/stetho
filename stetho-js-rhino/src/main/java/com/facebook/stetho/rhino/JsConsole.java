@@ -9,7 +9,6 @@
 
 package com.facebook.stetho.rhino;
 
-import android.support.annotation.Nullable;
 import com.facebook.stetho.inspector.console.CLog;
 import com.facebook.stetho.inspector.protocol.module.Console.MessageLevel;
 import com.facebook.stetho.inspector.protocol.module.Console.MessageSource;
@@ -27,19 +26,14 @@ public class JsConsole extends ScriptableObject {
    */
   private static final long serialVersionUID = 1L;
 
-  private @Nullable
-  JsConsole thePrototypeInstance = null;
-
   /**
-   * The zero-parameter constructor.
+   * <p>The zero-parameter constructor.</p>
    *
-   * When Context.defineClass is called with this class, it will construct
-   * File.prototype using this constructor.
+   * <p>When Context.defineClass is called with this class, it will construct
+   * JsConsole.prototype using this constructor.</p>
    */
   public JsConsole() {
-    if (thePrototypeInstance == null) {
-      thePrototypeInstance = this;
-    }
+    // Empty
   }
 
   public JsConsole(ScriptableObject scope) {
