@@ -7,7 +7,7 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-package com.facebook.stetho.websocket;
+package com.facebook.stetho.server;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -17,7 +17,7 @@ import java.io.InputStream;
 import com.facebook.stetho.common.LogUtil;
 
 @NotThreadSafe
-class CompositeInputStream extends InputStream {
+public class CompositeInputStream extends InputStream {
   private final InputStream[] mStreams;
   private int mCurrentIndex;
 

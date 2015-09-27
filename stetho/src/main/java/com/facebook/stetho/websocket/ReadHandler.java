@@ -9,8 +9,6 @@
 
 package com.facebook.stetho.websocket;
 
-import javax.annotation.Nullable;
-
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

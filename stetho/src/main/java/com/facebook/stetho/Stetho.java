@@ -9,37 +9,25 @@
 
 package com.facebook.stetho;
 
-import com.facebook.stetho.dumpapp.plugins.CrashDumperPlugin;
-import com.facebook.stetho.dumpapp.plugins.FilesDumperPlugin;
-import com.facebook.stetho.dumpapp.plugins.HprofDumperPlugin;
-import com.facebook.stetho.inspector.console.RuntimeReplFactory;
-import com.facebook.stetho.inspector.database.DatabaseFilesProvider;
-import com.facebook.stetho.inspector.database.DefaultDatabaseFilesProvider;
-import com.facebook.stetho.inspector.database.SqliteDatabaseDriver;
-import javax.annotation.Nullable;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.ArrayList;
-import java.util.List;
-
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
-
 import com.facebook.stetho.common.LogUtil;
-import com.facebook.stetho.common.Utf8Charset;
 import com.facebook.stetho.common.Util;
+import com.facebook.stetho.dumpapp.DumpappHttpSocketLikeHandler;
+import com.facebook.stetho.dumpapp.DumpappSocketLikeHandler;
 import com.facebook.stetho.dumpapp.Dumper;
 import com.facebook.stetho.dumpapp.DumperPlugin;
-import com.facebook.stetho.dumpapp.RawDumpappHandler;
-import com.facebook.stetho.dumpapp.StreamingDumpappHandler;
+import com.facebook.stetho.dumpapp.plugins.CrashDumperPlugin;
+import com.facebook.stetho.dumpapp.plugins.FilesDumperPlugin;
+import com.facebook.stetho.dumpapp.plugins.HprofDumperPlugin;
 import com.facebook.stetho.dumpapp.plugins.SharedPreferencesDumperPlugin;
-import com.facebook.stetho.inspector.ChromeDevtoolsServer;
-import com.facebook.stetho.inspector.ChromeDiscoveryHandler;
+import com.facebook.stetho.inspector.DevtoolsSocketHandler;
+import com.facebook.stetho.inspector.console.RuntimeReplFactory;
+import com.facebook.stetho.inspector.database.DatabaseFilesProvider;
+import com.facebook.stetho.inspector.database.DefaultDatabaseFilesProvider;
+import com.facebook.stetho.inspector.database.SqliteDatabaseDriver;
 import com.facebook.stetho.inspector.elements.Document;
 import com.facebook.stetho.inspector.elements.DocumentProviderFactory;
 import com.facebook.stetho.inspector.elements.android.ActivityTracker;
@@ -61,18 +49,20 @@ import com.facebook.stetho.inspector.protocol.module.Profiler;
 import com.facebook.stetho.inspector.protocol.module.Runtime;
 import com.facebook.stetho.inspector.protocol.module.Worker;
 import com.facebook.stetho.inspector.runtime.RhinoDetectingRuntimeReplFactory;
-import com.facebook.stetho.server.LocalSocketHttpServer;
-import com.facebook.stetho.server.RegistryInitializer;
-import com.facebook.stetho.websocket.WebSocketHandler;
+import com.facebook.stetho.server.AddressNameHelper;
+import com.facebook.stetho.server.LazySocketHandler;
+import com.facebook.stetho.server.LocalSocketServer;
+import com.facebook.stetho.server.ServerManager;
+import com.facebook.stetho.server.ProtocolDetectingSocketHandler;
+import com.facebook.stetho.server.SocketHandler;
+import com.facebook.stetho.server.SocketHandlerFactory;
 
-import org.apache.http.HttpException;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpRequestHandler;
-import org.apache.http.protocol.HttpRequestHandlerRegistry;
+import javax.annotation.Nullable;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Initialization and configuration entry point for the Stetho debugging system.  Simple usage with
@@ -86,8 +76,6 @@ import org.apache.http.protocol.HttpRequestHandlerRegistry;
  * the {@code stetho-sample} for more information.
  */
 public class Stetho {
-  private static final String LISTENER_THREAD_NAME = "Stetho-Listener";
-
   private Stetho() {
   }
 
@@ -137,18 +125,7 @@ public class Stetho {
           "ActivityTracker methods manually!");
     }
 
-    Thread listener = new Thread(LISTENER_THREAD_NAME) {
-      @Override
-      public void run() {
-        LocalSocketHttpServer server = new LocalSocketHttpServer(initializer);
-        try {
-          server.run();
-        } catch (IOException e) {
-          LogUtil.e(e, "Could not start Stetho");
-        }
-      }
-    };
-    listener.start();
+    initializer.start();
   }
 
   public static DumperPluginsProvider defaultDumperPluginsProvider(final Context context) {
@@ -396,42 +373,11 @@ public class Stetho {
    * Callers can choose to subclass this directly to provide the initialization configuration
    * or they can construct a concrete instance using {@link #newInitializerBuilder(Context)}.
    */
-  public static abstract class Initializer implements RegistryInitializer {
+  public static abstract class Initializer {
     private final Context mContext;
 
     protected Initializer(Context context) {
       mContext = context.getApplicationContext();
-    }
-
-    @Override
-    public final HttpRequestHandlerRegistry getRegistry() {
-      HttpRequestHandlerRegistry registry = new HttpRequestHandlerRegistry();
-
-      Iterable<DumperPlugin> dumperPlugins = getDumperPlugins();
-      if (dumperPlugins != null) {
-        Dumper dumper = new Dumper(dumperPlugins);
-
-        registry.register("/dumpapp", new StreamingDumpappHandler(mContext, dumper));
-        registry.register("/dumpapp-raw", new RawDumpappHandler(mContext, dumper));
-      }
-
-      Iterable<ChromeDevtoolsDomain> inspectorModules = getInspectorModules();
-      if (inspectorModules != null) {
-        ChromeDiscoveryHandler discoveryHandler =
-            new ChromeDiscoveryHandler(
-                mContext,
-                ChromeDevtoolsServer.PATH);
-        discoveryHandler.register(registry);
-        registry.register(
-            ChromeDevtoolsServer.PATH,
-            new WebSocketHandler(mContext, new ChromeDevtoolsServer(inspectorModules)));
-      }
-
-      addCustomEntries(registry);
-
-      registry.register("/*", new LoggingCatchAllHandler());
-
-      return registry;
     }
 
     @Nullable
@@ -440,21 +386,53 @@ public class Stetho {
     @Nullable
     protected abstract Iterable<ChromeDevtoolsDomain> getInspectorModules();
 
-    protected void addCustomEntries(HttpRequestHandlerRegistry registry) {
-      // Override to add stuff...
+    final void start() {
+      // Note that _devtools_remote is a magic suffix understood by Chrome which causes
+      // the discovery process to begin.
+      LocalSocketServer server = new LocalSocketServer(
+          "main",
+          AddressNameHelper.createCustomAddress("_devtools_remote"),
+          new LazySocketHandler(new RealSocketHandlerFactory()));
+
+      ServerManager serverManager = new ServerManager(server);
+      serverManager.start();
     }
 
-    private static class LoggingCatchAllHandler implements HttpRequestHandler {
+    private class RealSocketHandlerFactory implements SocketHandlerFactory {
       @Override
-      public void handle(
-          HttpRequest request,
-          HttpResponse response,
-          HttpContext context)
-          throws HttpException, IOException {
-        LogUtil.w("Unsupported request received: " + request.getRequestLine());
-        response.setStatusCode(HttpStatus.SC_NOT_FOUND);
-        response.setReasonPhrase("Not Found");
-        response.setEntity(new StringEntity("Endpoint not implemented\n", Utf8Charset.NAME));
+      public SocketHandler create() {
+        ProtocolDetectingSocketHandler socketHandler =
+            new ProtocolDetectingSocketHandler(mContext);
+
+        Iterable<DumperPlugin> dumperPlugins = getDumperPlugins();
+        if (dumperPlugins != null) {
+          Dumper dumper = new Dumper(dumperPlugins);
+
+          socketHandler.addHandler(
+              new ProtocolDetectingSocketHandler.ExactMagicMatcher(
+                  DumpappSocketLikeHandler.PROTOCOL_MAGIC),
+              new DumpappSocketLikeHandler(dumper));
+
+          // Support the old HTTP-based protocol since it's relatively straight forward to do.
+          DumpappHttpSocketLikeHandler legacyHandler = new DumpappHttpSocketLikeHandler(dumper);
+          socketHandler.addHandler(
+              new ProtocolDetectingSocketHandler.ExactMagicMatcher(
+                  "GET /dumpapp".getBytes()),
+              legacyHandler);
+          socketHandler.addHandler(
+              new ProtocolDetectingSocketHandler.ExactMagicMatcher(
+                  "POST /dumpapp".getBytes()),
+              legacyHandler);
+        }
+
+        Iterable<ChromeDevtoolsDomain> inspectorModules = getInspectorModules();
+        if (inspectorModules != null) {
+          socketHandler.addHandler(
+              new ProtocolDetectingSocketHandler.AlwaysMatchMatcher(),
+              new DevtoolsSocketHandler(mContext, inspectorModules));
+        }
+
+        return socketHandler;
       }
     }
   }
