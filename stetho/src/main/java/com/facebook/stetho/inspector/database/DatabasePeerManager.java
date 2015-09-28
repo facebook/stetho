@@ -120,8 +120,8 @@ public class DatabasePeerManager extends ChromePeerManager {
       throws SQLiteException {
     SQLiteDatabase database = openDatabase(databaseName);
     try {
-      Cursor cursor = database.rawQuery("SELECT name FROM sqlite_master WHERE type=?",
-          new String[] { "table" });
+      Cursor cursor = database.rawQuery("SELECT name FROM sqlite_master WHERE type IN (?, ?)",
+          new String[] { "table", "view" });
       try {
         List<String> tableNames = new ArrayList<String>();
         while (cursor.moveToNext()) {
