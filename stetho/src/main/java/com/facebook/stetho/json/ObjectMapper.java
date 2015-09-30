@@ -101,7 +101,7 @@ public class ObjectMapper {
       Object value = jsonObject.opt(field.getName());
       Object setValue = getValueForField(field, value);
       try {
-        field.set(instance, getValueForField(field, value));
+        field.set(instance, setValue);
       } catch (IllegalArgumentException e) {
         throw new IllegalArgumentException(
             "Class: " + type.getSimpleName() + " " +
