@@ -19,7 +19,9 @@ import com.facebook.stetho.inspector.protocol.module.Console;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.ImporterTopLevel;
+import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
+import org.mozilla.javascript.Undefined;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -83,6 +85,9 @@ public class JsRuntimeReplFactoryBuilder {
 
     // We import the app's package name by default
     mPackages.add(context.getPackageName());
+
+    // Predefine $_ which holds the value of the last expression evaluated
+    mVariables.put("$_", Context.getUndefinedValue());
   }
 
   /**
@@ -221,7 +226,12 @@ public class JsRuntimeReplFactoryBuilder {
       String varName = entrySet.getKey();
       Object varValue = entrySet.getValue();
       try {
-        Object jsValue = Context.javaToJS(varValue, scope);
+        Object jsValue;
+        if (varValue instanceof Scriptable || varValue instanceof Undefined) {
+          jsValue = varValue;
+        } else {
+          jsValue = Context.javaToJS(varValue, scope);
+        }
         ScriptableObject.putProperty(scope, varName, jsValue);
       } catch (Exception e) {
         throw new StethoJsException(e, "Failed to setup variable: %s", varName);
