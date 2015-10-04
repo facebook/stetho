@@ -272,6 +272,18 @@ public class ObjectMapper {
     if (!canDirectlySerializeClass(clazz)) {
       return convertValue(value, JSONObject.class);
     }
+    // JSON has no support for NaN, Infinity or -Infinity, so we serialize
+    // then as strings. Google Chrome's inspector will accept them just fine.
+    if (clazz.equals(Double.class) || clazz.equals(Float.class)) {
+      double doubleValue = ((Number) value).doubleValue();
+      if (Double.isNaN(doubleValue)) {
+        return "NaN";
+      } else if (doubleValue == Double.POSITIVE_INFINITY) {
+        return "Infinity";
+      } else if (doubleValue == Double.NEGATIVE_INFINITY) {
+        return "-Infinity";
+      }
+    }
     // hmm we should be able to directly serialize here...
     return value;
   }
