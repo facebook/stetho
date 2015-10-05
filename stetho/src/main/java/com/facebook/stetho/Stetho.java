@@ -15,12 +15,15 @@ import com.facebook.stetho.dumpapp.plugins.HprofDumperPlugin;
 import com.facebook.stetho.inspector.console.RuntimeReplFactory;
 import com.facebook.stetho.inspector.database.DatabaseFilesProvider;
 import com.facebook.stetho.inspector.database.DefaultDatabaseFilesProvider;
+import com.facebook.stetho.inspector.database.SqliteDatabaseDriver;
 import javax.annotation.Nullable;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import android.app.Application;
 import android.content.Context;
@@ -255,7 +258,8 @@ public class Stetho {
 
     @Nullable private DocumentProviderFactory mDocumentProvider;
     @Nullable private RuntimeReplFactory mRuntimeRepl;
-    @Nullable private DatabaseFilesProvider mDatabaseFiles;
+    @Nullable private DatabaseFilesProvider mDatabaseFilesProvider;
+    @Nullable private List<Database.DatabaseDriver> mDatabaseDrivers;
 
     public DefaultInspectorModulesBuilder(Context context) {
       mContext = (Application)context.getApplicationContext();
@@ -290,7 +294,21 @@ public class Stetho {
      * {@link Context#getDatabasePath} method will be used by default if not overridden here.
      */
     public DefaultInspectorModulesBuilder databaseFiles(DatabaseFilesProvider provider) {
-      mDatabaseFiles = provider;
+      mDatabaseFilesProvider = provider;
+      return this;
+    }
+
+    /**
+     * Extend and provide additional database drivers. Currently two database drivers are supported
+     * in this lib: <br>
+     *   1. <code>SqliteDatabaseDriver</code> - Presents sqlite databases and all tables of the app.<br>
+     *   2. <code>ContentProviderDatabaseDriver</code> - Configure and present content providers data.
+     */
+    public DefaultInspectorModulesBuilder provideDatabaseDriver(Database.DatabaseDriver databaseDriver) {
+      if (mDatabaseDrivers == null) {
+        mDatabaseDrivers = new ArrayList<>();
+      }
+      mDatabaseDrivers.add(databaseDriver);
       return this;
     }
 
@@ -347,12 +365,17 @@ public class Stetho {
               new RhinoDetectingRuntimeReplFactory(mContext)));
       provideIfDesired(new Worker());
       if (Build.VERSION.SDK_INT >= DatabaseConstants.MIN_API_LEVEL) {
-        provideIfDesired(
-            new Database(
-                mContext,
-                mDatabaseFiles != null ?
-                    mDatabaseFiles :
-                    new DefaultDatabaseFilesProvider(mContext)));
+        Database database = new Database();
+        database.add(new SqliteDatabaseDriver(mContext,
+            mDatabaseFilesProvider != null ?
+                mDatabaseFilesProvider :
+                new DefaultDatabaseFilesProvider(mContext)));
+        if (mDatabaseDrivers != null) {
+          for (Database.DatabaseDriver databaseDriver : mDatabaseDrivers) {
+            database.add(databaseDriver);
+          }
+        }
+        provideIfDesired(database);
       }
       return mDelegate.finish();
     }

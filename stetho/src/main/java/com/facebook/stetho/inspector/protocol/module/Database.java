@@ -47,6 +47,7 @@ public class Database implements ChromeDevtoolsDomain {
 
   private List<DatabaseDriver> mDatabaseDrivers;
   private final ChromePeerManager mChromePeerManager;
+  private final DatabasePeerRegistrationListener mPeerListener;
   private final ObjectMapper mObjectMapper;
 
   /**
@@ -55,21 +56,8 @@ public class Database implements ChromeDevtoolsDomain {
   public Database() {
     mDatabaseDrivers = new ArrayList<>();
     mChromePeerManager = new ChromePeerManager();
-    mChromePeerManager.setListener(new PeerRegistrationListener() {
-      @Override
-      public void onPeerRegistered(JsonRpcPeer peer) {
-        for (DatabaseDriver databaseDriver : mDatabaseDrivers) {
-          databaseDriver.onRegistered(peer);
-        }
-      }
-
-      @Override
-      public void onPeerUnregistered(JsonRpcPeer peer) {
-        for (DatabaseDriver databaseDriver : mDatabaseDrivers) {
-          databaseDriver.onUnregistered(peer);
-        }
-      }
-    });
+    mPeerListener = new DatabasePeerRegistrationListener(mDatabaseDrivers);
+    mChromePeerManager.setListener(mPeerListener);
     mObjectMapper = new ObjectMapper();
   }
 
@@ -98,7 +86,7 @@ public class Database implements ChromeDevtoolsDomain {
 
     try {
       GetDatabaseTableNamesResponse response = new GetDatabaseTableNamesResponse();
-      response.tableNames = databaseDriver.getDatabaseTableNames(request.databaseId);
+      response.tableNames = databaseDriver.getTableNames(request.databaseId);
       return response;
     } catch (SQLiteException e) {
       throw new JsonRpcException(
@@ -168,10 +156,10 @@ public class Database implements ChromeDevtoolsDomain {
 
   private DatabaseDriver getDatabasePeer(String databaseId) {
     for (DatabaseDriver databaseDriver : mDatabaseDrivers) {
-      if (databaseDriver.contains(databaseId)) {
+      List<String> databaseNames = databaseDriver.getDatabaseNames();
+      if (databaseNames != null && databaseNames.contains(databaseId))
           return databaseDriver;
       }
-    }
     return null;
   }
 
@@ -217,6 +205,28 @@ public class Database implements ChromeDevtoolsDomain {
     return flatList;
   }
 
+  private static class DatabasePeerRegistrationListener implements PeerRegistrationListener {
+    private final List<DatabaseDriver> mDatabaseDrivers;
+
+    private DatabasePeerRegistrationListener(List<DatabaseDriver> databaseDrivers) {
+      mDatabaseDrivers = databaseDrivers;
+    }
+
+    @Override
+    public void onPeerRegistered(JsonRpcPeer peer) {
+      for (DatabaseDriver databaseDriver : mDatabaseDrivers) {
+        databaseDriver.onRegistered(peer);
+      }
+    }
+
+    @Override
+    public void onPeerUnregistered(JsonRpcPeer peer) {
+      for (DatabaseDriver databaseDriver : mDatabaseDrivers) {
+        databaseDriver.onUnregistered(peer);
+      }
+    }
+  }
+
   private static class GetDatabaseTableNamesRequest {
     @JsonProperty(required = true)
     public String databaseId;
@@ -227,7 +237,7 @@ public class Database implements ChromeDevtoolsDomain {
     public List<String> tableNames;
   }
 
-  private static class ExecuteSQLRequest {
+  public static class ExecuteSQLRequest {
     @JsonProperty(required = true)
     public String databaseId;
 
@@ -235,7 +245,7 @@ public class Database implements ChromeDevtoolsDomain {
     public String query;
   }
 
-  private static class ExecuteSQLResponse implements JsonRpcResult {
+  public static class ExecuteSQLResponse implements JsonRpcResult {
     @JsonProperty
     public List<String> columnNames;
 
@@ -281,25 +291,38 @@ public class Database implements ChromeDevtoolsDomain {
       mContext = context;
     }
 
-    protected abstract void onRegistered(JsonRpcPeer peer);
+    private final void onRegistered(JsonRpcPeer peer) {
+      List<String> databaseNames = getDatabaseNames();
+      for (String database : databaseNames) {
+        Database.DatabaseObject databaseParams = new Database.DatabaseObject();
+        databaseParams.id = database;
+        databaseParams.name = database;
+        databaseParams.domain = mContext.getPackageName();
+        databaseParams.version = "N/A";
+        Database.AddDatabaseEvent eventParams = new Database.AddDatabaseEvent();
+        eventParams.database = databaseParams;
+        peer.invokeMethod("Database.addDatabase", eventParams, null /* callback */);
+      }
+    }
 
-    protected abstract void onUnregistered(JsonRpcPeer peer);
+    private final void onUnregistered(JsonRpcPeer peer) {
+    }
 
-    public abstract List<String> getDatabaseTableNames(String databaseId);
+    public abstract List<String> getDatabaseNames();
 
-    public abstract <T> T executeSQL(String databaseName, String query, DatabaseDriver.ExecuteResultHandler<T> handler)
+    public abstract List<String> getTableNames(String databaseId);
+
+    public abstract ExecuteSQLResponse executeSQL(String databaseName, String query, ExecuteResultHandler<ExecuteSQLResponse> handler)
         throws SQLiteException;
 
-    public abstract boolean contains(String databaseId);
-
     public interface ExecuteResultHandler<T> {
-      public T handleRawQuery() throws SQLiteException;
+      T handleRawQuery() throws SQLiteException;
 
-      public T handleSelect(Cursor result) throws SQLiteException;
+      T handleSelect(Cursor result) throws SQLiteException;
 
-      public T handleInsert(long insertedId) throws SQLiteException;
+      T handleInsert(long insertedId) throws SQLiteException;
 
-      public T handleUpdateDelete(int count) throws SQLiteException;
+      T handleUpdateDelete(int count) throws SQLiteException;
     }
   }
 }

@@ -16,7 +16,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
 import com.facebook.stetho.common.Util;
-import com.facebook.stetho.inspector.jsonrpc.JsonRpcPeer;
 import com.facebook.stetho.inspector.protocol.module.Database;
 import com.facebook.stetho.inspector.protocol.module.DatabaseConstants;
 
@@ -39,7 +38,7 @@ public class SqliteDatabaseDriver extends Database.DatabaseDriver {
   };
 
   private final DatabaseFilesProvider mDatabaseFilesProvider;
-  private final Set<String> mDatabases;
+  private List<String> mDatabases;
 
   /**
    * Constructs the object with a {@link DatabaseFilesProvider} that supplies the database files
@@ -61,37 +60,22 @@ public class SqliteDatabaseDriver extends Database.DatabaseDriver {
    */
   public SqliteDatabaseDriver(Context context, DatabaseFilesProvider databaseFilesProvider) {
     super(context);
-    mDatabases = new HashSet<>();
     mDatabaseFilesProvider = databaseFilesProvider;
   }
 
   @Override
-  protected void onRegistered(JsonRpcPeer peer) {
-    List<File> potentialDatabaseFiles = mDatabaseFilesProvider.getDatabaseFiles();
-    Collections.sort(potentialDatabaseFiles);
-    Iterable<File> tidiedList = tidyDatabaseList(potentialDatabaseFiles);
-    for (File database : tidiedList) {
-      Database.DatabaseObject databaseParams = new Database.DatabaseObject();
-      databaseParams.id = database.getPath();
-      databaseParams.name = database.getName();
-      databaseParams.domain = mContext.getPackageName();
-      databaseParams.version = "N/A";
-      Database.AddDatabaseEvent eventParams = new Database.AddDatabaseEvent();
-      eventParams.database = databaseParams;
-
-      peer.invokeMethod("Database.addDatabase", eventParams, null /* callback */);
-      mDatabases.add(databaseParams.id);
+  public List<String> getDatabaseNames() {
+    if (mDatabases == null) {
+      mDatabases = new ArrayList<>();
+      List<File> potentialDatabaseFiles = mDatabaseFilesProvider.getDatabaseFiles();
+      Collections.sort(potentialDatabaseFiles);
+      Iterable<File> tidiedList = tidyDatabaseList(potentialDatabaseFiles);
+      for (File database : tidiedList) {
+        String name = database.getName();
+        mDatabases.add(name);
+      }
     }
-  }
-
-  @Override
-  protected void onUnregistered(JsonRpcPeer peer) {
-
-  }
-
-  @Override
-  public boolean contains(String databaseId) {
-    return mDatabases.contains(databaseId);
+    return mDatabases;
   }
 
   /**
@@ -125,7 +109,7 @@ public class SqliteDatabaseDriver extends Database.DatabaseDriver {
     return str;
   }
 
-  public List<String> getDatabaseTableNames(String databaseName)
+  public List<String> getTableNames(String databaseName)
       throws SQLiteException {
     SQLiteDatabase database = openDatabase(databaseName);
     try {
@@ -145,7 +129,7 @@ public class SqliteDatabaseDriver extends Database.DatabaseDriver {
     }
   }
 
-  public <T> T executeSQL(String databaseName, String query, ExecuteResultHandler<T> handler)
+  public Database.ExecuteSQLResponse executeSQL(String databaseName, String query, ExecuteResultHandler<Database.ExecuteSQLResponse> handler)
       throws SQLiteException {
     Util.throwIfNull(query);
     Util.throwIfNull(handler);

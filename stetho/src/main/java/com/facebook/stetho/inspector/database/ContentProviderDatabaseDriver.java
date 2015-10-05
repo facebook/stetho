@@ -13,7 +13,6 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
-import com.facebook.stetho.inspector.jsonrpc.JsonRpcPeer;
 import com.facebook.stetho.inspector.protocol.module.Database;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -27,6 +26,7 @@ public class ContentProviderDatabaseDriver extends Database.DatabaseDriver {
   private final static String sDatabaseName = "content-providers";
 
   private final ContentProviderSchema[] mContentProviderSchemas;
+  private List<String> mDatabaseNames;
   private List<String> mTableNames;
 
   public ContentProviderDatabaseDriver(Context context, ContentProviderSchema... contentProviderSchemas) {
@@ -35,26 +35,16 @@ public class ContentProviderDatabaseDriver extends Database.DatabaseDriver {
   }
 
   @Override
-  protected void onRegistered(JsonRpcPeer peer) {
-    if (mContentProviderSchemas != null) {
-      Database.DatabaseObject databaseParams = new Database.DatabaseObject();
-      databaseParams.id = sDatabaseName;
-      databaseParams.name = sDatabaseName;
-      databaseParams.domain = mContext.getPackageName();
-      databaseParams.version = "N/A";
-      Database.AddDatabaseEvent eventParams = new Database.AddDatabaseEvent();
-      eventParams.database = databaseParams;
-      peer.invokeMethod("Database.addDatabase", eventParams, null /* callback */);
+  public List<String> getDatabaseNames() {
+    if (mDatabaseNames == null && mContentProviderSchemas != null) {
+      mDatabaseNames = new ArrayList<>();
+      mDatabaseNames.add(sDatabaseName);
     }
+    return mDatabaseNames;
   }
 
   @Override
-  protected void onUnregistered(JsonRpcPeer peer) {
-
-  }
-
-  @Override
-  public List<String> getDatabaseTableNames(String databaseId) {
+  public List<String> getTableNames(String databaseId) {
     if (mTableNames == null) {
       mTableNames = new ArrayList<>();
       for (ContentProviderSchema schema : mContentProviderSchemas) {
@@ -65,7 +55,7 @@ public class ContentProviderDatabaseDriver extends Database.DatabaseDriver {
   }
 
   @Override
-  public <T> T executeSQL(String databaseName, String query, ExecuteResultHandler<T> handler) throws SQLiteException {
+  public Database.ExecuteSQLResponse executeSQL(String databaseName, String query, ExecuteResultHandler<Database.ExecuteSQLResponse> handler) throws SQLiteException {
 
     // resolve table name from query
     String tableName = fetchTableName(query);
@@ -99,11 +89,6 @@ public class ContentProviderDatabaseDriver extends Database.DatabaseDriver {
       }
     }
     return "";
-  }
-
-  @Override
-  public boolean contains(String databaseId) {
-    return sDatabaseName.equals(databaseId);
   }
 
 }
