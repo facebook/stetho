@@ -29,6 +29,10 @@ class JsRuntimeRepl implements RuntimeRepl {
       final Context jsContext = enterJsContext();
       try {
         result = jsContext.evaluateString(mJsScope, expression, "chrome", 1, null);
+
+        // Google chrome automatically saves the last expression to `$_`, we do the same
+        Object jsValue = Context.javaToJS(result, mJsScope);
+        ScriptableObject.putProperty(mJsScope, "$_", jsValue);
       } finally {
         Context.exit();
       }

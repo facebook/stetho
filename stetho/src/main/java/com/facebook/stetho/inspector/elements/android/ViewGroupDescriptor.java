@@ -45,7 +45,7 @@ final class ViewGroupDescriptor extends AbstractChainedDescriptor<ViewGroup> {
   }
 
   private boolean isChildVisible(View child) {
-    return !(child instanceof DOMHiddenView);
+    return !(child instanceof DocumentHiddenView);
   }
 
   private Object getElementForView(ViewGroup parentView, View childView) {

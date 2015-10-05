@@ -1,6 +1,42 @@
 Change Log
 ==========
 
+## Version 1.2.0
+
+_2015-09-11_
+
+ * **View properties support!**
+   The "Styles" and "Computed" sub-tabs in "Elements" are now implemented,
+   complete with the box model diagram and a summary of the most useful view
+   properties.
+
+ * **Screencasting**
+   Click the small screen icon in the upper right to view a live preview of
+   your phone's screen while using Stetho!  Coming soon: mouse/keyboard
+   support.
+
+ * **Console tab support**
+   Arbitrary Java/JavaScript support added to the Console with the optional
+   `stetho-js-rhino` dependency.  See
+   [`stetho-sample/build.gradle`](stetho-sample/build.gradle) for details.
+
+ * **New simpler initialization and customization API**
+   Most callers can now just use `Stetho.initializeWithDefaults(context)`.
+
+ * New #218: Ability to pass pretty printers for binary data in the Network tab.
+ * New #248: Implement transparent request decompression.
+ * New #225: Ability to search View hierarchy (invoke with CTRL+F on the Elements tab).
+ * New #238: Add EXPLAIN support in SQL console.
+ * New #222: Add PRAGMA support in SQL console. 
+ * New #207: Add `dumpapp files` plugin.
+ * New #181: Highlight view margins and padding when hovering over DOM entry.
+ * New #211: Implement DialogFragment in Elements tab.
+ * Fix #231: Sort database and shared preferences entries by name.
+ * Fix #206: Fix small memory leak in View hierarchy support.
+ * Fix #204: Use DOM tree diffing to fix ListView and a number of other edge
+   case view hierarchies.
+ * Fix #183: Fix Fragment support in Elements tab.
+
 ## Version 1.1.1
 
 _2015-05-01_

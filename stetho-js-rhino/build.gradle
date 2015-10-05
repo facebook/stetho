@@ -1,12 +1,12 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 21
-    buildToolsVersion "21.1.2"
+    compileSdkVersion 23
+    buildToolsVersion "23.0.1"
 
     defaultConfig {
         minSdkVersion 9
-        targetSdkVersion 21
+        targetSdkVersion 23
         versionCode 1
         versionName "1.0"
     }
@@ -21,6 +21,9 @@ dependencies {
     compile project(':stetho')
     compile 'com.google.code.findbugs:jsr305:2.0.1'
     compile 'org.mozilla:rhino:1.7.6'
+
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.robolectric:robolectric:2.4'
 }
 
 apply from: rootProject.file('release.gradle')

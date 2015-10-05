@@ -282,7 +282,7 @@ public final class ShadowDocument implements DocumentView {
 
     public ElementInfo getElementInfo(Object element) {
       // Return ElementInfo for the new (albeit uncommitted and pre-garbage collected) view of the
-      // DOM. If element is garbage then you'll still get its info (feature, not a bug :)).
+      // Document. If element is garbage then you'll still get its info (feature, not a bug :)).
       ElementInfo elementInfo = mElementToInfoChangesMap.get(element);
       if (elementInfo != null) {
         return elementInfo;

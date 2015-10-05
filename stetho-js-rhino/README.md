@@ -7,40 +7,44 @@ This [Stetho](https://facebook.github.io/stetho) plugin adds a JavaScript consol
 ### Download
 Download [the latest JARs](https://github.com/facebook/stetho/releases/latest) or grab via Gradle:
 ```groovy
-compile 'com.facebook.stetho:stetho-js-rhino:1.1.1'
+compile 'com.facebook.stetho:stetho-js-rhino:1.2.0'
 ```
 or Maven:
 ```xml
 <dependency>
   <groupId>com.facebook.stetho</groupId>
   <artifactId>stetho-js-rhino</artifactId>
-  <version>1.1.1</version>
+  <version>1.2.0</version>
 </dependency>
 ```
 
 Make sure that you depend on the main `stetho` dependency too.
 
 ### Putting it together
-The JavaScript integration is similar to standard Stetho integration.
-The main difference is with the WebKitInspector used.
-There is a simple initialization step which occurs in your `Application` class:
+
+The Rhino JavaScript integration is automatically detected by Stetho and is
+enabled simply by adding the `stetho-js-rhino` dependency to your project.
+
+If you want to configure the JavaScript environment you can pass your own
+variables, classes, packages and functions and provide this custom runtime REPL using:
 
 ```java
-public class MyApplication extends Application {
-  public void onCreate() {
-    super.onCreate();
-+   JsRuntimeBuilder jsRuntimeBuilder = new JsRuntimeBuilder(this);
-    Stetho.initialize(
-        Stetho.newInitializerBuilder(this)
-            .enableDumpapp(Stetho.defaultDumperPluginsProvider(this))
--           .enableWebKitInspector(Stetho.defaultInspectorModulesProvider(context))
-+           .enableWebKitInspector(jsRuntimeBuilder.jsInspectorModulesProvider())
-            .build());
-  }
-}
+    Stetho.initialize(Stetho.newInitializerBuilder(context)
+        .enableWebKitInspector(new InspectorModulesProvider() {
+          @Override
+          public Iterable<ChromeDevtoolsDomain> get() {
+            return new DefaultInspectorModulesBuilder(context).runtimeRepl(
+                new JsRuntimeReplFactoryBuilder(context)
+                    // Pass to JavaScript: var foo = "bar";
+                    .addVariable("foo", "bar")
+                    .build()
+            ).finish();
+          }
+        })
+        .build());
 ```
 
-You can still use other Stetho plugins with this approach, for instance the network helpers stetho-okhttp and stetho-urlconnection will still work if activated properly.
+For more details see the next sections.
 
 ### How it works
 

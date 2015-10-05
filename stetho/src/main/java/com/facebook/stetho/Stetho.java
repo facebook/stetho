@@ -12,6 +12,8 @@ package com.facebook.stetho;
 import com.facebook.stetho.dumpapp.plugins.CrashDumperPlugin;
 import com.facebook.stetho.dumpapp.plugins.FilesDumperPlugin;
 import com.facebook.stetho.dumpapp.plugins.HprofDumperPlugin;
+import com.facebook.stetho.inspector.console.RuntimeReplFactory;
+import com.facebook.stetho.inspector.database.DatabaseFilesProvider;
 import com.facebook.stetho.inspector.database.DefaultDatabaseFilesProvider;
 import javax.annotation.Nullable;
 
@@ -35,10 +37,10 @@ import com.facebook.stetho.dumpapp.StreamingDumpappHandler;
 import com.facebook.stetho.dumpapp.plugins.SharedPreferencesDumperPlugin;
 import com.facebook.stetho.inspector.ChromeDevtoolsServer;
 import com.facebook.stetho.inspector.ChromeDiscoveryHandler;
-import com.facebook.stetho.inspector.database.SqliteDatabaseDriver;
 import com.facebook.stetho.inspector.elements.Document;
+import com.facebook.stetho.inspector.elements.DocumentProviderFactory;
 import com.facebook.stetho.inspector.elements.android.ActivityTracker;
-import com.facebook.stetho.inspector.elements.android.AndroidDOMConstants;
+import com.facebook.stetho.inspector.elements.android.AndroidDocumentConstants;
 import com.facebook.stetho.inspector.elements.android.AndroidDocumentProviderFactory;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
 import com.facebook.stetho.inspector.protocol.module.CSS;
@@ -55,6 +57,7 @@ import com.facebook.stetho.inspector.protocol.module.Page;
 import com.facebook.stetho.inspector.protocol.module.Profiler;
 import com.facebook.stetho.inspector.protocol.module.Runtime;
 import com.facebook.stetho.inspector.protocol.module.Worker;
+import com.facebook.stetho.inspector.runtime.RhinoDetectingRuntimeReplFactory;
 import com.facebook.stetho.server.LocalSocketHttpServer;
 import com.facebook.stetho.server.RegistryInitializer;
 import com.facebook.stetho.websocket.WebSocketHandler;
@@ -203,6 +206,11 @@ public class Stetho {
     }
   }
 
+  /**
+   * Convenience mechanism to extend the default set of dumper plugins provided by Stetho.
+   *
+   * @see #initializeWithDefaults(Context)
+   */
   public static final class DefaultDumperPluginsBuilder {
     private final Context mContext;
     private final PluginBuilder<DumperPlugin> mDelegate = new PluginBuilder<>();
@@ -235,14 +243,65 @@ public class Stetho {
     }
   }
 
+  /**
+   * Configuration mechanism to customize the behaviour of the standard set of inspector
+   * modules satisfying the Chrome DevTools protocol.  Note that while it is still technically
+   * possible to manually control these modules, this API is strongly discouraged and will not
+   * necessarily be supported in future releases.
+   */
   public static final class DefaultInspectorModulesBuilder {
-    private final Context mContext;
+    private final Application mContext;
     private final PluginBuilder<ChromeDevtoolsDomain> mDelegate = new PluginBuilder<>();
 
+    @Nullable private DocumentProviderFactory mDocumentProvider;
+    @Nullable private RuntimeReplFactory mRuntimeRepl;
+    @Nullable private DatabaseFilesProvider mDatabaseFiles;
+
     public DefaultInspectorModulesBuilder(Context context) {
-      mContext = context;
+      mContext = (Application)context.getApplicationContext();
     }
 
+    /**
+     * Provide a custom document provider factory which can operate on the logical DOM exposed to
+     * Chrome in the Elements tab.  An Android View hierarchy instance is provided by
+     * default if this method is not called.
+     * <p />
+     * <i>Experimental.</i>  This API may be changed or removed in the future.
+     */
+    public DefaultInspectorModulesBuilder documentProvider(DocumentProviderFactory factory) {
+      mDocumentProvider = factory;
+      return this;
+    }
+
+    /**
+     * Provide a custom runtime REPL (read-eval-print loop) implementation for the Console tab.
+     * By default an implementation will be provided for you that automatically detects
+     * the existence of {@code stetho-js-rhino} (Mozilla's Rhino engine) and uses it if available.
+     * <p />
+     * To customize the Rhino implementation, see {@code stetho-js-rhino} documentation.
+     */
+    public DefaultInspectorModulesBuilder runtimeRepl(RuntimeReplFactory factory) {
+      mRuntimeRepl = factory;
+      return this;
+    }
+
+    /**
+     * Customize the location of database files that Stetho will propogate in the UI.  Android's
+     * {@link Context#getDatabasePath} method will be used by default if not overridden here.
+     */
+    public DefaultInspectorModulesBuilder databaseFiles(DatabaseFilesProvider provider) {
+      mDatabaseFiles = provider;
+      return this;
+    }
+
+    /**
+     * Provide either a new domain module or override an existing one.
+     *
+     * @deprecated This fine-grained control of the devtools modules is no longer supportable
+     *     given the lack of isolation of modules in the actual protocol (many cross dependencies
+     *     emerge when you implement more and more of the real protocol).
+     */
+    @Deprecated
     public DefaultInspectorModulesBuilder provide(ChromeDevtoolsDomain module) {
       mDelegate.provide(module.getClass().getName(), module);
       return this;
@@ -253,6 +312,14 @@ public class Stetho {
       return this;
     }
 
+    /**
+     * Remove an existing domain module.
+     *
+     * @deprecated This fine-grained control of the devtools modules is no longer supportable
+     *     given the lack of isolation of modules in the actual protocol (many cross dependencies
+     *     emerge when you implement more and more of the real protocol).
+     */
+    @Deprecated
     public DefaultInspectorModulesBuilder remove(String moduleName) {
       mDelegate.remove(moduleName);
       return this;
@@ -260,14 +327,12 @@ public class Stetho {
 
     public Iterable<ChromeDevtoolsDomain> finish() {
       provideIfDesired(new Console());
-      provideIfDesired(new CSS());
       provideIfDesired(new Debugger());
-      if (Build.VERSION.SDK_INT >= AndroidDOMConstants.MIN_API_LEVEL) {
-        Document document = new Document(
-            new AndroidDocumentProviderFactory(
-                (Application) mContext.getApplicationContext()));
-
+      DocumentProviderFactory documentModel = resolveDocumentProvider();
+      if (documentModel != null) {
+        Document document = new Document(documentModel);
         provideIfDesired(new DOM(document));
+        provideIfDesired(new CSS(document));
       }
       provideIfDesired(new DOMStorage(mContext));
       provideIfDesired(new HeapProfiler());
@@ -275,14 +340,32 @@ public class Stetho {
       provideIfDesired(new Network(mContext));
       provideIfDesired(new Page(mContext));
       provideIfDesired(new Profiler());
-      provideIfDesired(new Runtime());
+      provideIfDesired(
+          new Runtime(
+              mRuntimeRepl != null ?
+              mRuntimeRepl :
+              new RhinoDetectingRuntimeReplFactory(mContext)));
       provideIfDesired(new Worker());
       if (Build.VERSION.SDK_INT >= DatabaseConstants.MIN_API_LEVEL) {
-        Database database = new Database();
-        database.add(new SqliteDatabaseDriver(mContext, new DefaultDatabaseFilesProvider(mContext)));
-        provideIfDesired(database);
+        provideIfDesired(
+            new Database(
+                mContext,
+                mDatabaseFiles != null ?
+                    mDatabaseFiles :
+                    new DefaultDatabaseFilesProvider(mContext)));
       }
       return mDelegate.finish();
+    }
+
+    @Nullable
+    private DocumentProviderFactory resolveDocumentProvider() {
+      if (mDocumentProvider != null) {
+        return mDocumentProvider;
+      }
+      if (Build.VERSION.SDK_INT >= AndroidDocumentConstants.MIN_API_LEVEL) {
+        return new AndroidDocumentProviderFactory(mContext);
+      }
+      return null;
     }
   }
 

@@ -18,9 +18,10 @@ import com.facebook.stetho.common.UncheckedCallable;
 import com.facebook.stetho.common.Util;
 import com.facebook.stetho.common.android.HandlerUtil;
 import com.facebook.stetho.inspector.elements.DocumentProvider;
+import com.facebook.stetho.inspector.elements.DocumentProviderFactory;
 
 public final class AndroidDocumentProviderFactory
-    implements DocumentProvider.Factory, ThreadBound {
+    implements DocumentProviderFactory, ThreadBound {
   private final Application mApplication;
   private final Handler mHandler;
 

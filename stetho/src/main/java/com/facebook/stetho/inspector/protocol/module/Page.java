@@ -9,25 +9,30 @@
 
 package com.facebook.stetho.inspector.protocol.module;
 
+import android.content.Context;
+import android.support.annotation.Nullable;
+import com.facebook.stetho.common.ProcessUtil;
+import com.facebook.stetho.inspector.domstorage.SharedPreferencesHelper;
+import com.facebook.stetho.inspector.jsonrpc.JsonRpcPeer;
+import com.facebook.stetho.inspector.jsonrpc.JsonRpcResult;
+import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
+import com.facebook.stetho.inspector.protocol.ChromeDevtoolsMethod;
+import com.facebook.stetho.inspector.screencast.ScreencastDispatcher;
+import com.facebook.stetho.json.ObjectMapper;
+import com.facebook.stetho.json.annotation.JsonProperty;
+import com.facebook.stetho.json.annotation.JsonValue;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import android.content.Context;
-import com.facebook.stetho.common.ProcessUtil;
-import com.facebook.stetho.inspector.jsonrpc.JsonRpcPeer;
-import com.facebook.stetho.inspector.jsonrpc.JsonRpcResult;
-import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
-import com.facebook.stetho.inspector.protocol.ChromeDevtoolsMethod;
-import com.facebook.stetho.inspector.domstorage.SharedPreferencesHelper;
-import com.facebook.stetho.json.annotation.JsonProperty;
-import com.facebook.stetho.json.annotation.JsonValue;
-
-import org.json.JSONObject;
-
 public class Page implements ChromeDevtoolsDomain {
   private final Context mContext;
+  private final ObjectMapper mObjectMapper = new ObjectMapper();
+  @Nullable
+  private ScreencastDispatcher mScreencastDispatcher;
 
   public Page(Context context) {
     mContext = context;
@@ -130,7 +135,7 @@ public class Page implements ChromeDevtoolsDomain {
 
   @ChromeDevtoolsMethod
   public JsonRpcResult canScreencast(JsonRpcPeer peer, JSONObject params) {
-    return new SimpleBooleanResult(false);
+    return new SimpleBooleanResult(true);
   }
 
   @ChromeDevtoolsMethod
@@ -144,6 +149,30 @@ public class Page implements ChromeDevtoolsDomain {
 
   @ChromeDevtoolsMethod
   public void clearDeviceOrientationOverride(JsonRpcPeer peer, JSONObject params) {
+  }
+
+  @ChromeDevtoolsMethod
+  public void startScreencast(final JsonRpcPeer peer, JSONObject params) {
+    final StartScreencastRequest request = mObjectMapper.convertValue(
+        params, StartScreencastRequest.class);
+    if (mScreencastDispatcher == null) {
+      mScreencastDispatcher = new ScreencastDispatcher();
+      mScreencastDispatcher.startScreencast(peer, request);
+    }
+  }
+
+  @ChromeDevtoolsMethod
+  public void stopScreencast(JsonRpcPeer peer, JSONObject params) {
+    if (mScreencastDispatcher != null) {
+      mScreencastDispatcher.stopScreencast();
+      mScreencastDispatcher = null;
+    }
+  }
+
+  @ChromeDevtoolsMethod
+  public void screencastFrameAck(JsonRpcPeer peer, JSONObject params) {
+    // Nothing to do here, just need to make sure Chrome doesn't get an error that this method
+    // isn't implemented
   }
 
   @ChromeDevtoolsMethod
@@ -238,5 +267,39 @@ public class Page implements ChromeDevtoolsDomain {
 
     @JsonProperty(required = true)
     public int id;
+  }
+
+  public static class ScreencastFrameEvent {
+    @JsonProperty(required = true)
+    public String data;
+
+    @JsonProperty(required = true)
+    public ScreencastFrameEventMetadata metadata;
+  }
+
+  public static class ScreencastFrameEventMetadata {
+    @JsonProperty(required = true)
+    public int pageScaleFactor;
+    @JsonProperty(required = true)
+    public int offsetTop;
+    @JsonProperty(required = true)
+    public int deviceWidth;
+    @JsonProperty(required = true)
+    public int deviceHeight;
+    @JsonProperty(required = true)
+    public int scrollOffsetX;
+    @JsonProperty(required = true)
+    public int scrollOffsetY;
+  }
+
+  public static class StartScreencastRequest {
+    @JsonProperty
+    public String format;
+    @JsonProperty
+    public int quality;
+    @JsonProperty
+    public int maxWidth;
+    @JsonProperty
+    public int maxHeight;
   }
 }

@@ -14,7 +14,6 @@ import android.app.Application;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Canvas;
-import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,13 +24,12 @@ import android.widget.TextView;
 import com.facebook.stetho.common.Accumulator;
 import com.facebook.stetho.common.Predicate;
 import com.facebook.stetho.common.ThreadBound;
-import com.facebook.stetho.common.UncheckedCallable;
 import com.facebook.stetho.common.Util;
-import com.facebook.stetho.common.android.HandlerUtil;
 import com.facebook.stetho.common.android.ViewUtil;
 import com.facebook.stetho.inspector.elements.DocumentProvider;
 import com.facebook.stetho.inspector.elements.Descriptor;
 import com.facebook.stetho.inspector.elements.DescriptorMap;
+import com.facebook.stetho.inspector.elements.DocumentProviderListener;
 import com.facebook.stetho.inspector.elements.NodeDescriptor;
 import com.facebook.stetho.inspector.elements.ObjectDescriptor;
 import com.facebook.stetho.inspector.helper.ThreadBoundProxy;
@@ -51,12 +49,13 @@ final class AndroidDocumentProvider extends ThreadBoundProxy
   private final AndroidDocumentRoot mDocumentRoot;
   private final ViewHighlighter mHighlighter;
   private final InspectModeHandler mInspectModeHandler;
-  private @Nullable Listener mListener;
+  private @Nullable DocumentProviderListener mListener;
 
   // We don't yet have an an implementation for reliably detecting fine-grained changes in the
   // View tree. So, for now at least, we have a timer that runs every so often and just reports
-  // that we changed. Our listener will then read the entire DOM from us and transmit the changes to
-  // Chrome. Detecting, reporting, and traversing fine-grained changes is a future work item.
+  // that we changed. Our listener will then read the entire Document from us and transmit the
+  // changes to Chrome. Detecting, reporting, and traversing fine-grained changes is a future work
+  // item (see Issue #210).
   private static final long REPORT_CHANGED_INTERVAL_MS = 1000;
   private boolean mIsReportChangesTimerPosted = false;
   private final Runnable mReportChangesTimer = new Runnable() {
@@ -110,7 +109,7 @@ final class AndroidDocumentProvider extends ThreadBoundProxy
   }
 
   @Override
-  public void setListener(Listener listener) {
+  public void setListener(DocumentProviderListener listener) {
     verifyThreadAccess();
 
     mListener = listener;
@@ -249,7 +248,7 @@ final class AndroidDocumentProvider extends ThreadBoundProxy
     private final Predicate<View> mViewSelector = new Predicate<View>() {
       @Override
       public boolean apply(View view) {
-        return !(view instanceof DOMHiddenView);
+        return !(view instanceof DocumentHiddenView);
       }
     };
 
@@ -301,7 +300,7 @@ final class AndroidDocumentProvider extends ThreadBoundProxy
       mOverlays = null;
     }
 
-    private final class OverlayView extends DOMHiddenView {
+    private final class OverlayView extends DocumentHiddenView {
       public OverlayView(Context context) {
         super(context);
       }
