@@ -1,5 +1,7 @@
 /*
  * Copyright (c) 2014-present, Facebook, Inc.
+ * Copyright (c) 2007 The Guava Authors
+ *
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -9,7 +11,6 @@
 
 package com.facebook.stetho.common;
 
-/** Copyright (C) 2007 The Guava Authors */
 public final class Ascii {
   /**
    * If the argument is a {@linkplain #isLowerCase(char) lowercase ASCII character} returns the
