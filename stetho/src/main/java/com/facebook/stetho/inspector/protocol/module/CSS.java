@@ -110,7 +110,8 @@ public class CSS implements ChromeDevtoolsDomain {
         try {
           nodeId = Integer.valueOf(request.styleSheetId);
         } catch (NumberFormatException e) {
-          LogUtil.w("Failed to set style of an element, cannot nodeid=" + request.styleSheetId);
+          LogUtil.w("Failed to set style of an element, cannot find element with nodeid=" +
+              request.styleSheetId);
           return;
         }
         Object elementForNodeId = mDocument.getElementForNodeId(nodeId);
