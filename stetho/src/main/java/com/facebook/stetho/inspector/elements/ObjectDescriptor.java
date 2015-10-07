@@ -55,4 +55,8 @@ public final class ObjectDescriptor extends Descriptor {
   @Override
   public void getStyles(Object element, StyleAccumulator accumulator) {
   }
+
+  @Override
+  public void setStyle(Object element, String text) {
+  }
 }

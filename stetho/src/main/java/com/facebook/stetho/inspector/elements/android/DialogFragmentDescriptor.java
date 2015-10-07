@@ -130,4 +130,8 @@ final class DialogFragmentDescriptor
   @Override
   public void getStyles(Object element, StyleAccumulator styles) {
   }
+
+  @Override
+  public void setStyle(Object element, String text) {
+  }
 }

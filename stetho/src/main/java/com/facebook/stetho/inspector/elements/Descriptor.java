@@ -9,11 +9,14 @@
 
 package com.facebook.stetho.inspector.elements;
 
+import android.util.Pair;
+import com.facebook.stetho.common.Ascii;
 import com.facebook.stetho.common.ThreadBound;
 import com.facebook.stetho.common.UncheckedCallable;
 import com.facebook.stetho.common.Util;
 
 import javax.annotation.Nullable;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -100,6 +103,39 @@ public abstract class Descriptor implements NodeDescriptor {
       keyValuePairs.put(key, value);
     }
     return keyValuePairs;
+  }
+
+  /**
+   * Parses the text argument text from CSS.setPropertyText()
+   * Text will be in the format "attribute: value;"
+   * @param text the text argument to be parsed
+   * @return a pair of method name corresponding to the attribute and value to be set.
+   */
+  protected static Pair<String, String> parseSetPropertyTextArg(String text) {
+    int spaceIndex = text.indexOf(" ");
+    String key = text.substring(0, spaceIndex - 1);
+    String value = text.substring(spaceIndex + 1, text.length() - 1);
+    return new Pair<>(propertyKeyToSetterMethodName(key), value);
+  }
+
+  /** Converts an attribute name from CSS.setPropertyText() into a setter method name */
+  private static String propertyKeyToSetterMethodName(String text) {
+    boolean uppercaseNextChar = false;
+    StringBuilder buffer = new StringBuilder(text.length());
+    for (int i = 0, N = text.length(); i < N; ++i) {
+      final char c = text.charAt(i);
+      if (c == '-') {
+        uppercaseNextChar = true;
+      } else {
+        buffer.append(!uppercaseNextChar ? c : Ascii.toUpperCase(c));
+        uppercaseNextChar = false;
+      }
+    }
+    return "set" + firstCharToUpper(buffer.toString());
+  }
+
+  private static String firstCharToUpper(String word) {
+    return word.isEmpty() ? word : Ascii.toUpperCase(word.charAt(0)) + word.substring(1);
   }
 
   public interface Host extends ThreadBound {
