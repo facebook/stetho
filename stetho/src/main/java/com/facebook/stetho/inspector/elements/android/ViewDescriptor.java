@@ -30,8 +30,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 final class ViewDescriptor extends AbstractChainedDescriptor<View> implements HighlightableDescriptor {
@@ -66,12 +64,7 @@ final class ViewDescriptor extends AbstractChainedDescriptor<View> implements Hi
     if (mViewProperties == null) {
       synchronized (this) {
         if (mViewProperties == null) {
-          Set<ViewCSSProperty> props = new TreeSet<>(new Comparator<ViewCSSProperty>() {
-            @Override
-            public int compare(ViewCSSProperty lhs, ViewCSSProperty rhs) {
-              return lhs.getCSSName().compareTo(rhs.getCSSName());
-            }
-          });
+          List<ViewCSSProperty> props = new ArrayList<>();
 
           for (final Method method : View.class.getDeclaredMethods()) {
             ViewDebug.ExportedProperty annotation =
@@ -99,7 +92,13 @@ final class ViewDescriptor extends AbstractChainedDescriptor<View> implements Hi
             }
           }
 
-          mViewProperties = Collections.unmodifiableList(new ArrayList<>(props));
+          Collections.sort(props, new Comparator<ViewCSSProperty>() {
+            @Override
+            public int compare(ViewCSSProperty lhs, ViewCSSProperty rhs) {
+              return lhs.getCSSName().compareTo(rhs.getCSSName());
+            }
+          });
+          mViewProperties = Collections.unmodifiableList(props);
         }
       }
     }
