@@ -27,6 +27,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -91,6 +92,12 @@ final class ViewDescriptor extends AbstractChainedDescriptor<View> implements Hi
             }
           }
 
+          Collections.sort(props, new Comparator<ViewCSSProperty>() {
+            @Override
+            public int compare(ViewCSSProperty lhs, ViewCSSProperty rhs) {
+              return lhs.getCSSName().compareTo(rhs.getCSSName());
+            }
+          });
           mViewProperties = Collections.unmodifiableList(props);
         }
       }
