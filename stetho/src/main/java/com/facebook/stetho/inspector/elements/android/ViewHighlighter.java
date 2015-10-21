@@ -103,10 +103,10 @@ abstract class ViewHighlighter {
       }
 
       if (viewToHighlight != null) {
-
         mHighlightOverlays.highlightView(viewToHighlight, mContentColor.get());
-        mHighlightedView = viewToHighlight;
       }
+
+      mHighlightedView = viewToHighlight;
     }
   }
 }

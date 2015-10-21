@@ -16,11 +16,13 @@ import com.facebook.stetho.common.Accumulator;
 import com.facebook.stetho.common.android.FragmentCompatUtil;
 import com.facebook.stetho.inspector.elements.AbstractChainedDescriptor;
 
+import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
 
 final class ViewGroupDescriptor extends AbstractChainedDescriptor<ViewGroup> {
+
   /**
    * This is a cache that maps from a View to the Fragment that contains it. If the View isn't
    * contained by a Fragment, then this maps the View to itself. For Views contained by Fragments,
@@ -49,11 +51,13 @@ final class ViewGroupDescriptor extends AbstractChainedDescriptor<ViewGroup> {
   }
 
   private Object getElementForView(ViewGroup parentView, View childView) {
-    Object element = mViewToElementMap.get(childView);
-    if (element != null) {
+    Object value = mViewToElementMap.get(childView);
+    if (value != null) {
+      Object element = getElement(childView, value);
+
       // The parent of a View may have changed since we stashed it into the cache.
       // If that's the case then we can't use the cache's answer.
-      if (childView.getParent() == parentView) {
+      if (element != null && childView.getParent() == parentView) {
         return element;
       }
       mViewToElementMap.remove(childView);
@@ -67,11 +71,23 @@ final class ViewGroupDescriptor extends AbstractChainedDescriptor<ViewGroup> {
 
     Object fragment = FragmentCompatUtil.findFragmentForView(childView);
     if (fragment != null && !FragmentCompatUtil.isDialogFragment(fragment)) {
-      mViewToElementMap.put(childView, fragment);
+      mViewToElementMap.put(childView, new WeakReference<>(fragment));
       return fragment;
     } else {
-      mViewToElementMap.put(childView, childView);
+      // No need to store a strong reference to the childView in the value. We'll just store this
+      // object and when pull the value out of the map we'll check for this object and just use the
+      // key instead.
+      mViewToElementMap.put(childView, this);
       return childView;
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private Object getElement(View childView, Object value) {
+    if (value == this) {
+      return childView;
+    } else {
+      return ((WeakReference<Object>) value).get();
     }
   }
 }
