@@ -12,6 +12,7 @@ package com.facebook.stetho.json;
 import android.os.Build;
 import com.facebook.stetho.json.annotation.JsonProperty;
 import com.facebook.stetho.json.annotation.JsonValue;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Before;
@@ -146,6 +147,34 @@ public class ObjectMapperTest {
     String str = jsonObj.toString();
 
     assertEquals(expected, str);
+  }
+
+  @Test
+  public void testObjectToPrimitive() throws JSONException {
+    ArrayOfPrimitivesContainer container = new ArrayOfPrimitivesContainer();
+    ArrayList<Object> primitives = container.primitives;
+    primitives.add(Long.MIN_VALUE);
+    primitives.add(Long.MAX_VALUE);
+    primitives.add(Integer.MIN_VALUE);
+    primitives.add(Integer.MAX_VALUE);
+    primitives.add(Float.MIN_VALUE);
+    primitives.add(Float.MAX_VALUE);
+    primitives.add(Double.MIN_VALUE);
+    primitives.add(Double.MAX_VALUE);
+
+    String json = mObjectMapper.convertValue(container, JSONObject.class).toString();
+    JSONObject obj = new JSONObject(json);
+    JSONArray array = obj.getJSONArray("primitives");
+    ArrayList<Object> actual = new ArrayList<>();
+    for (int i = 0, N = array.length(); i < N; i++) {
+      actual.add(array.get(i));
+    }
+    assertEquals(primitives.toString(), actual.toString());
+  }
+
+  public static class ArrayOfPrimitivesContainer {
+    @JsonProperty
+    public final ArrayList<Object> primitives = new ArrayList<>();
   }
 
   public static class NestedJsonProperty {
