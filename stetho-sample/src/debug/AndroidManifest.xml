@@ -4,6 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.facebook.stetho.sample">
 
+  <uses-permission android:name="android.permission.READ_CALENDAR" />
+
   <application
       tools:replace="android:name"
       android:name=".SampleDebugApplication" />

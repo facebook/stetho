@@ -9,12 +9,6 @@
 
 package com.facebook.stetho.inspector.protocol.module;
 
-import com.facebook.stetho.inspector.database.DatabaseFilesProvider;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.database.Cursor;
@@ -22,7 +16,8 @@ import android.database.sqlite.SQLiteException;
 import android.os.Build;
 
 import com.facebook.stetho.common.Util;
-import com.facebook.stetho.inspector.database.DatabasePeerManager;
+import com.facebook.stetho.inspector.helper.ChromePeerManager;
+import com.facebook.stetho.inspector.helper.PeerRegistrationListener;
 import com.facebook.stetho.inspector.jsonrpc.JsonRpcException;
 import com.facebook.stetho.inspector.jsonrpc.JsonRpcPeer;
 import com.facebook.stetho.inspector.jsonrpc.JsonRpcResult;
@@ -33,6 +28,10 @@ import com.facebook.stetho.json.ObjectMapper;
 import com.facebook.stetho.json.annotation.JsonProperty;
 
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class Database implements ChromeDevtoolsDomain {
@@ -46,36 +45,34 @@ public class Database implements ChromeDevtoolsDomain {
    */
   private static final int MAX_EXECUTE_RESULTS = 250;
 
-  private final DatabasePeerManager mDatabasePeerManager;
+  private List<DatabaseDriver> mDatabaseDrivers;
+  private final ChromePeerManager mChromePeerManager;
+  private final DatabasePeerRegistrationListener mPeerListener;
   private final ObjectMapper mObjectMapper;
 
   /**
-   * Constructs the object with the default {@link DatabasePeerManager}.
-   * @param context the context
+   * Constructs the object.
    */
-  @Deprecated
-  public Database(Context context) {
-    mDatabasePeerManager = new DatabasePeerManager(context);
+  public Database() {
+    mDatabaseDrivers = new ArrayList<>();
+    mChromePeerManager = new ChromePeerManager();
+    mPeerListener = new DatabasePeerRegistrationListener(mDatabaseDrivers);
+    mChromePeerManager.setListener(mPeerListener);
     mObjectMapper = new ObjectMapper();
   }
 
-  /**
-   * @param context the context
-   * @param databaseFilesProvider a database files provider
-   */
-  public Database(Context context, DatabaseFilesProvider databaseFilesProvider) {
-    mDatabasePeerManager = new DatabasePeerManager(context, databaseFilesProvider);
-    mObjectMapper = new ObjectMapper();
+  public void add(DatabaseDriver databaseDriver) {
+    mDatabaseDrivers.add(databaseDriver);
   }
 
   @ChromeDevtoolsMethod
   public void enable(JsonRpcPeer peer, JSONObject params) {
-    mDatabasePeerManager.addPeer(peer);
+    mChromePeerManager.addPeer(peer);
   }
 
   @ChromeDevtoolsMethod
   public void disable(JsonRpcPeer peer, JSONObject params) {
-    mDatabasePeerManager.removePeer(peer);
+    mChromePeerManager.removePeer(peer);
   }
 
   @ChromeDevtoolsMethod
@@ -83,9 +80,13 @@ public class Database implements ChromeDevtoolsDomain {
       throws JsonRpcException {
     GetDatabaseTableNamesRequest request = mObjectMapper.convertValue(params,
         GetDatabaseTableNamesRequest.class);
+
+    String databaseId = request.databaseId;
+    DatabaseDriver databaseDriver = getDatabasePeer(databaseId);
+
     try {
       GetDatabaseTableNamesResponse response = new GetDatabaseTableNamesResponse();
-      response.tableNames = mDatabasePeerManager.getDatabaseTableNames(request.databaseId);
+      response.tableNames = databaseDriver.getTableNames(request.databaseId);
       return response;
     } catch (SQLiteException e) {
       throw new JsonRpcException(
@@ -100,9 +101,15 @@ public class Database implements ChromeDevtoolsDomain {
   public JsonRpcResult executeSQL(JsonRpcPeer peer, JSONObject params) {
     ExecuteSQLRequest request = mObjectMapper.convertValue(params,
         ExecuteSQLRequest.class);
+
+    String databaseId = request.databaseId;
+    String query = request.query;
+
+    DatabaseDriver databaseDriver = getDatabasePeer(databaseId);
+
     try {
-      return mDatabasePeerManager.executeSQL(request.databaseId, request.query,
-          new DatabasePeerManager.ExecuteResultHandler<ExecuteSQLResponse>() {
+      return databaseDriver.executeSQL(request.databaseId, request.query,
+          new DatabaseDriver.ExecuteResultHandler<ExecuteSQLResponse>() {
         @Override
         public ExecuteSQLResponse handleRawQuery() throws SQLiteException {
           ExecuteSQLResponse response = new ExecuteSQLResponse();
@@ -147,6 +154,15 @@ public class Database implements ChromeDevtoolsDomain {
     }
   }
 
+  private DatabaseDriver getDatabasePeer(String databaseId) {
+    for (DatabaseDriver databaseDriver : mDatabaseDrivers) {
+      List<String> databaseNames = databaseDriver.getDatabaseNames();
+      if (databaseNames != null && databaseNames.contains(databaseId))
+          return databaseDriver;
+      }
+    return null;
+  }
+
   /**
    * Flatten all columns and all rows of a cursor to a single array.  The array cannot be
    * interpreted meaningfully without the number of columns.
@@ -189,6 +205,28 @@ public class Database implements ChromeDevtoolsDomain {
     return flatList;
   }
 
+  private static class DatabasePeerRegistrationListener implements PeerRegistrationListener {
+    private final List<DatabaseDriver> mDatabaseDrivers;
+
+    private DatabasePeerRegistrationListener(List<DatabaseDriver> databaseDrivers) {
+      mDatabaseDrivers = databaseDrivers;
+    }
+
+    @Override
+    public void onPeerRegistered(JsonRpcPeer peer) {
+      for (DatabaseDriver databaseDriver : mDatabaseDrivers) {
+        databaseDriver.onRegistered(peer);
+      }
+    }
+
+    @Override
+    public void onPeerUnregistered(JsonRpcPeer peer) {
+      for (DatabaseDriver databaseDriver : mDatabaseDrivers) {
+        databaseDriver.onUnregistered(peer);
+      }
+    }
+  }
+
   private static class GetDatabaseTableNamesRequest {
     @JsonProperty(required = true)
     public String databaseId;
@@ -199,7 +237,7 @@ public class Database implements ChromeDevtoolsDomain {
     public List<String> tableNames;
   }
 
-  private static class ExecuteSQLRequest {
+  public static class ExecuteSQLRequest {
     @JsonProperty(required = true)
     public String databaseId;
 
@@ -207,7 +245,7 @@ public class Database implements ChromeDevtoolsDomain {
     public String query;
   }
 
-  private static class ExecuteSQLResponse implements JsonRpcResult {
+  public static class ExecuteSQLResponse implements JsonRpcResult {
     @JsonProperty
     public List<String> columnNames;
 
@@ -243,5 +281,48 @@ public class Database implements ChromeDevtoolsDomain {
 
     @JsonProperty(required = true)
     public int code;
+  }
+
+  public static abstract class DatabaseDriver {
+
+    protected Context mContext;
+
+    public DatabaseDriver(Context context) {
+      mContext = context;
+    }
+
+    private final void onRegistered(JsonRpcPeer peer) {
+      List<String> databaseNames = getDatabaseNames();
+      for (String database : databaseNames) {
+        Database.DatabaseObject databaseParams = new Database.DatabaseObject();
+        databaseParams.id = database;
+        databaseParams.name = database;
+        databaseParams.domain = mContext.getPackageName();
+        databaseParams.version = "N/A";
+        Database.AddDatabaseEvent eventParams = new Database.AddDatabaseEvent();
+        eventParams.database = databaseParams;
+        peer.invokeMethod("Database.addDatabase", eventParams, null /* callback */);
+      }
+    }
+
+    private final void onUnregistered(JsonRpcPeer peer) {
+    }
+
+    public abstract List<String> getDatabaseNames();
+
+    public abstract List<String> getTableNames(String databaseId);
+
+    public abstract ExecuteSQLResponse executeSQL(String databaseName, String query, ExecuteResultHandler<ExecuteSQLResponse> handler)
+        throws SQLiteException;
+
+    public interface ExecuteResultHandler<T> {
+      T handleRawQuery() throws SQLiteException;
+
+      T handleSelect(Cursor result) throws SQLiteException;
+
+      T handleInsert(long insertedId) throws SQLiteException;
+
+      T handleUpdateDelete(int count) throws SQLiteException;
+    }
   }
 }
