@@ -9,16 +9,13 @@
 
 package com.facebook.stetho.rhino;
 
-import android.os.Build;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
+import org.junit.runners.JUnit4;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
-@Config(emulateSdk = Build.VERSION_CODES.JELLY_BEAN)
-@RunWith(RobolectricTestRunner.class)
+@RunWith(JUnit4.class)
 public class JsFormatTest {
 
   @Test

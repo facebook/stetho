@@ -24,7 +24,6 @@ dependencies {
     compile 'org.mozilla:rhino:1.7.6'
 
     testCompile 'junit:junit:4.12'
-    testCompile 'org.robolectric:robolectric:2.4'
 }
 
 apply from: rootProject.file('release.gradle')
