@@ -47,6 +47,7 @@ public class StethoTree extends Timber.Tree {
         logLevel = Console.MessageLevel.WARNING;
         break;
       case Log.ERROR:
+      case Log.ASSERT:
         logLevel = Console.MessageLevel.ERROR;
         break;
       default:
