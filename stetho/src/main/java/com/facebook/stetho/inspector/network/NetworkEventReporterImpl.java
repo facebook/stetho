@@ -15,7 +15,6 @@ import com.facebook.stetho.inspector.console.CLog;
 import com.facebook.stetho.inspector.protocol.module.Console;
 import com.facebook.stetho.inspector.protocol.module.Network;
 import com.facebook.stetho.inspector.protocol.module.Page;
-import org.apache.http.protocol.HTTP;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -319,7 +318,7 @@ public class NetworkEventReporterImpl implements NetworkEventReporter {
   private String getContentType(InspectorHeaders headers) {
     // This may need to change in the future depending on how cumbersome header simulation
     // is for the various hooks we expose.
-    return headers.firstHeaderValue(HTTP.CONTENT_TYPE);
+    return headers.firstHeaderValue("Content-Type");
   }
 
   private static JSONObject formatHeadersAsJSON(InspectorHeaders headers) {

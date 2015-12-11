@@ -9,32 +9,24 @@
 
 package com.facebook.stetho.inspector;
 
-import javax.annotation.Nullable;
-
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-
 import com.facebook.stetho.common.ProcessUtil;
-import com.facebook.stetho.common.Utf8Charset;
-import com.facebook.stetho.server.LocalSocketHttpServer;
-import com.facebook.stetho.server.SecureHttpRequestHandler;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpException;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpRequestHandlerRegistry;
+import com.facebook.stetho.server.http.ExactPathMatcher;
+import com.facebook.stetho.server.http.HandlerRegistry;
+import com.facebook.stetho.server.http.HttpHandler;
+import com.facebook.stetho.server.http.HttpStatus;
+import com.facebook.stetho.server.SocketLike;
+import com.facebook.stetho.server.http.LightHttpBody;
+import com.facebook.stetho.server.http.LightHttpRequest;
+import com.facebook.stetho.server.http.LightHttpResponse;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import javax.annotation.Nullable;
 
 /**
  * Provides sufficient responses to convince Chrome's {@code chrome://inspect/devices} that we're
@@ -42,7 +34,7 @@ import org.json.JSONObject;
  * as defined in {@link LocalSocketHttpServer}.  After discovery, we're required to provide
  * some context on how exactly to display and inspect what we have.
  */
-public class ChromeDiscoveryHandler extends SecureHttpRequestHandler {
+public class ChromeDiscoveryHandler implements HttpHandler {
   private static final String PAGE_ID = "1";
 
   private static final String PATH_PAGE_LIST = "/json";
@@ -65,29 +57,23 @@ public class ChromeDiscoveryHandler extends SecureHttpRequestHandler {
   private final Context mContext;
   private final String mInspectorPath;
 
-  @Nullable private StringEntity mVersionResponse;
-  @Nullable private StringEntity mPageListResponse;
+  @Nullable private LightHttpBody mVersionResponse;
+  @Nullable private LightHttpBody mPageListResponse;
 
   public ChromeDiscoveryHandler(Context context, String inspectorPath) {
-    super(context);
     mContext = context;
     mInspectorPath = inspectorPath;
   }
 
-  public void register(HttpRequestHandlerRegistry registry) {
-    registry.register(PATH_PAGE_LIST, this);
-    registry.register(PATH_VERSION, this);
-    registry.register(PATH_ACTIVATE + "*", this);
+  public void register(HandlerRegistry registry) {
+    registry.register(new ExactPathMatcher(PATH_PAGE_LIST), this);
+    registry.register(new ExactPathMatcher(PATH_VERSION), this);
+    registry.register(new ExactPathMatcher(PATH_ACTIVATE), this);
   }
 
   @Override
-  protected void handleSecured(
-      HttpRequest request,
-      HttpResponse response,
-      HttpContext context)
-      throws HttpException, IOException {
-    Uri uri = Uri.parse(request.getRequestLine().getUri());
-    String path = uri.getPath();
+  public boolean handleRequest(SocketLike socket, LightHttpRequest request, LightHttpResponse response) {
+    String path = request.uri.getPath();
     try {
       if (PATH_VERSION.equals(path)) {
         handleVersion(response);
@@ -96,19 +82,20 @@ public class ChromeDiscoveryHandler extends SecureHttpRequestHandler {
       } else if (PATH_ACTIVATE.equals(path)) {
         handleActivate(response);
       } else {
-        response.setStatusCode(HttpStatus.SC_NOT_IMPLEMENTED);
-        response.setReasonPhrase("Not Implemented");
-        response.setEntity(new StringEntity("No support for " + uri.getPath()));
+        response.code = HttpStatus.HTTP_NOT_IMPLEMENTED;
+        response.reasonPhrase = "Not implemented";
+        response.body = LightHttpBody.create("No support for " + path + "\n", "text/plain");
       }
     } catch (JSONException e) {
-      response.setStatusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
-      response.setReasonPhrase("Internal Server Error");
-      response.setEntity(new StringEntity(e.toString(), Utf8Charset.NAME));
+      response.code = HttpStatus.HTTP_INTERNAL_SERVER_ERROR;
+      response.reasonPhrase = "Internal server error";
+      response.body = LightHttpBody.create(e.toString() + "\n", "text/plain");
     }
+    return true;
   }
 
-  private void handleVersion(HttpResponse response)
-      throws JSONException, UnsupportedEncodingException {
+  private void handleVersion(LightHttpResponse response)
+      throws JSONException {
     if (mVersionResponse == null) {
       JSONObject reply = new JSONObject();
       reply.put("WebKit-Version", WEBKIT_VERSION);
@@ -116,13 +103,13 @@ public class ChromeDiscoveryHandler extends SecureHttpRequestHandler {
       reply.put("Protocol-Version", PROTOCOL_VERSION);
       reply.put("Browser", getAppLabelAndVersion());
       reply.put("Android-Package", mContext.getPackageName());
-      mVersionResponse = createStringEntity("application/json", reply.toString());
+      mVersionResponse = LightHttpBody.create(reply.toString(), "application/json");
     }
     setSuccessfulResponse(response, mVersionResponse);
   }
 
-  private void handlePageList(HttpResponse response)
-      throws JSONException, UnsupportedEncodingException {
+  private void handlePageList(LightHttpResponse response)
+      throws JSONException {
     if (mPageListResponse == null) {
       JSONArray reply = new JSONArray();
       JSONObject page = new JSONObject();
@@ -143,7 +130,7 @@ public class ChromeDiscoveryHandler extends SecureHttpRequestHandler {
       page.put("devtoolsFrontendUrl", chromeFrontendUrl.toString());
 
       reply.put(page);
-      mPageListResponse = createStringEntity("application/json", reply.toString());
+      mPageListResponse = LightHttpBody.create(reply.toString(), "application/json");
     }
     setSuccessfulResponse(response, mPageListResponse);
   }
@@ -164,24 +151,19 @@ public class ChromeDiscoveryHandler extends SecureHttpRequestHandler {
     return b.toString();
   }
 
-  private void handleActivate(HttpResponse response) throws UnsupportedEncodingException {
+  private void handleActivate(LightHttpResponse response) {
     // Arbitrary response seem acceptable :)
-    setSuccessfulResponse(response, createStringEntity("text/plain", "Target activation ignored"));
-  }
-
-  private static StringEntity createStringEntity(String contentType, String responseJson)
-      throws UnsupportedEncodingException {
-    StringEntity entity = new StringEntity(responseJson, Utf8Charset.NAME);
-    entity.setContentType(contentType);
-    return entity;
+    setSuccessfulResponse(
+        response,
+        LightHttpBody.create("Target activation ignored\n", "text/plain"));
   }
 
   private static void setSuccessfulResponse(
-      HttpResponse response,
-      HttpEntity entity) {
-    response.setStatusCode(HttpStatus.SC_OK);
-    response.setReasonPhrase("OK");
-    response.setEntity(entity);
+      LightHttpResponse response,
+      LightHttpBody body) {
+    response.code = HttpStatus.HTTP_OK;
+    response.reasonPhrase = "OK";
+    response.body = body;
   }
 
   private String getAppLabelAndVersion() {

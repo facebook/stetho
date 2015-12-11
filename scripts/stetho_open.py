@@ -57,7 +57,7 @@ def _find_only_stetho_socket(device):
     if len(process_names) > 1:
       raise HumanReadableError(
           'Multiple stetho-enabled processes available:%s\n' % (
-              '\n\t'.join([''] + process_names)) +
+              '\n\t'.join([''] + list(set(process_names)))) +
           'Use -p <process> or the environment variable STETHO_PROCESS to ' +
           'select one')
     elif last_stetho_socket_name == None:
@@ -83,13 +83,13 @@ def _connect_to_device(device=None):
         'Failure to target device %s: %s' % (device, e.reason))
 
 def _parse_process_from_stetho_socket(socket_name):
-  m = re.match("^\@stetho_(.+)_devtools_remote$", socket_name)
+  m = re.match("^\@stetho_(.+)_(dumpapp|devtools_remote)$", socket_name)
   if m is None:
     raise Exception('Unexpected Stetho socket formatting: %s' % (socket_name))
   return m.group(1)
 
 def _format_process_as_stetho_socket(process):
-  return 'stetho_%s_devtools_remote' % (process)
+  return 'stetho_%s_dumpapp' % (process)
 
 class AdbSmartSocketClient(object):
   """Implements the smartsockets system defined by:
