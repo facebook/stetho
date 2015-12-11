@@ -83,13 +83,13 @@ def _connect_to_device(device=None):
         'Failure to target device %s: %s' % (device, e.reason))
 
 def _parse_process_from_stetho_socket(socket_name):
-  m = re.match("^\@stetho_(.+)_(dumpapp|devtools_remote)$", socket_name)
+  m = re.match("^\@stetho_(.+)_devtools_remote$", socket_name)
   if m is None:
     raise Exception('Unexpected Stetho socket formatting: %s' % (socket_name))
   return m.group(1)
 
 def _format_process_as_stetho_socket(process):
-  return 'stetho_%s_dumpapp' % (process)
+  return 'stetho_%s_devtools_remote' % (process)
 
 class AdbSmartSocketClient(object):
   """Implements the smartsockets system defined by:
