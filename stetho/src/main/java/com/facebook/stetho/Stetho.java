@@ -106,6 +106,11 @@ public class Stetho {
       protected Iterable<ChromeDevtoolsDomain> getInspectorModules() {
         return new DefaultInspectorModulesBuilder(context).finish();
       }
+
+      @Override
+      protected boolean enableViewInspection() {
+        return true;
+      }
     });
   }
 
@@ -118,8 +123,8 @@ public class Stetho {
   public static void initialize(final Initializer initializer) {
     // Hook activity tracking so that after Stetho is attached we can figure out what
     // activities are present.
-    boolean isTrackingActivities = ActivityTracker.get().beginTrackingIfPossible(
-        (Application)initializer.mContext.getApplicationContext());
+    boolean isTrackingActivities = initializer.enableViewInspection() && ActivityTracker.get()
+      .beginTrackingIfPossible((Application)initializer.mContext.getApplicationContext());
     if (!isTrackingActivities) {
       LogUtil.w("Automatic activity tracking not available on this API level, caller must invoke " +
           "ActivityTracker methods manually!");
@@ -386,6 +391,8 @@ public class Stetho {
     @Nullable
     protected abstract Iterable<ChromeDevtoolsDomain> getInspectorModules();
 
+    protected abstract boolean enableViewInspection();
+
     final void start() {
       // Note that _devtools_remote is a magic suffix understood by Chrome which causes
       // the discovery process to begin.
@@ -445,6 +452,7 @@ public class Stetho {
 
     @Nullable DumperPluginsProvider mDumperPlugins;
     @Nullable InspectorModulesProvider mInspectorModules;
+    boolean mEnableViewInspection = true;
 
     private InitializerBuilder(Context context) {
       mContext = context.getApplicationContext();
@@ -473,6 +481,11 @@ public class Stetho {
       return this;
     }
 
+    public InitializerBuilder enableViewInspection(boolean enable) {
+      mEnableViewInspection = enable;
+      return this;
+    }
+
     public Initializer build() {
       return new BuilderBasedInitializer(this);
     }
@@ -481,11 +494,13 @@ public class Stetho {
   private static class BuilderBasedInitializer extends Initializer {
     @Nullable private final DumperPluginsProvider mDumperPlugins;
     @Nullable private final InspectorModulesProvider mInspectorModules;
+    private final boolean mEnableViewInspection;
 
     private BuilderBasedInitializer(InitializerBuilder b) {
       super(b.mContext);
       mDumperPlugins = b.mDumperPlugins;
       mInspectorModules = b.mInspectorModules;
+      mEnableViewInspection = b.mEnableViewInspection;
     }
 
     @Nullable
@@ -498,6 +513,11 @@ public class Stetho {
     @Override
     protected Iterable<ChromeDevtoolsDomain> getInspectorModules() {
       return mInspectorModules != null ? mInspectorModules.get() : null;
+    }
+
+    @Override
+    protected boolean enableViewInspection() {
+      return mEnableViewInspection;
     }
   }
 }
