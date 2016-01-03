@@ -1,6 +1,7 @@
 include ':stetho'
 include ':stetho-urlconnection'
 include ':stetho-okhttp'
+include ':stetho-okhttp3'
 include ':stetho-js-rhino'
 include ':stetho-sample'
 include ':stetho-timber'

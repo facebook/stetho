@@ -63,14 +63,15 @@ details on individual subsystems.
 
 ### Enable network inspection
 If you are using the popular [OkHttp](https://github.com/square/okhttp)
-library at the 2.2.x+ release, you can use the
+library at the 3.x release, you can use the
 [Interceptors](https://github.com/square/okhttp/wiki/Interceptors) system to
 automatically hook into your existing stack.  This is currently the simplest
 and most straightforward way to enable network inspection:
 
 ```java
-OkHttpClient client = new OkHttpClient();
-client.networkInterceptors().add(new StethoInterceptor());
+new OkHttpClient.Builder()
+    .addNetworkInterceptor(mInterceptor)
+    .build()
 ```
 
 If you are using `HttpURLConnection`, you can use `StethoURLConnectionManager`

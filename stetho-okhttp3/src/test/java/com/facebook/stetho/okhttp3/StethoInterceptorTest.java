@@ -7,7 +7,7 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-package com.facebook.stetho.okhttp;
+package com.facebook.stetho.okhttp3;
 
 import android.net.Uri;
 import android.os.Build;
@@ -15,17 +15,17 @@ import com.facebook.stetho.inspector.network.DecompressionHelper;
 import com.facebook.stetho.inspector.network.NetworkEventReporter;
 import com.facebook.stetho.inspector.network.NetworkEventReporterImpl;
 import com.facebook.stetho.inspector.network.ResponseHandler;
-import com.squareup.okhttp.Connection;
-import com.squareup.okhttp.Interceptor;
-import com.squareup.okhttp.MediaType;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Protocol;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.RequestBody;
-import com.squareup.okhttp.Response;
-import com.squareup.okhttp.ResponseBody;
-import com.squareup.okhttp.mockwebserver.MockResponse;
-import com.squareup.okhttp.mockwebserver.MockWebServer;
+import okhttp3.Connection;
+import okhttp3.Interceptor;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Protocol;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
 import okio.Buffer;
 import org.junit.Before;
 import org.junit.Rule;
@@ -74,8 +74,9 @@ public class StethoInterceptorTest {
     PowerMockito.when(NetworkEventReporterImpl.get()).thenReturn(mMockEventReporter);
 
     mInterceptor = new StethoInterceptor();
-    mClientWithInterceptor = new OkHttpClient();
-    mClientWithInterceptor.networkInterceptors().add(mInterceptor);
+    mClientWithInterceptor = new OkHttpClient.Builder()
+            .addNetworkInterceptor(mInterceptor)
+            .build();
   }
 
   @Test
@@ -147,7 +148,7 @@ public class StethoInterceptorTest {
         MediaType.parse("text/plain"),
         compress(decompressed));
     Request request = new Request.Builder()
-        .url(server.getUrl("/"))
+        .url(server.url("/"))
         .addHeader("Content-Encoding", "gzip")
         .post(compressedBody)
         .build();
