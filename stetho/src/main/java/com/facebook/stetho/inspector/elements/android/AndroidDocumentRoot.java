@@ -10,7 +10,7 @@
 package com.facebook.stetho.inspector.elements.android;
 
 import android.app.Application;
-
+import android.view.View;
 import com.facebook.stetho.common.Accumulator;
 import com.facebook.stetho.common.Util;
 import com.facebook.stetho.inspector.elements.AbstractChainedDescriptor;
@@ -20,9 +20,11 @@ import com.facebook.stetho.inspector.elements.NodeType;
 
 final class AndroidDocumentRoot extends AbstractChainedDescriptor<AndroidDocumentRoot> {
   private final Application mApplication;
+  private final RootsOracle rootsOracle;
 
   public AndroidDocumentRoot(Application application) {
     mApplication = Util.throwIfNull(application);
+    rootsOracle = new RootsOracle();
   }
 
   @Override
@@ -38,5 +40,8 @@ final class AndroidDocumentRoot extends AbstractChainedDescriptor<AndroidDocumen
   @Override
   protected void onGetChildren(AndroidDocumentRoot element, Accumulator<Object> children) {
     children.store(mApplication);
+    for (View view : rootsOracle.findAllRootViews()) {
+      children.store(view);
+    }
   }
 }

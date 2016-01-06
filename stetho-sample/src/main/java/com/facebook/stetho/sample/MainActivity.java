@@ -10,6 +10,7 @@
 package com.facebook.stetho.sample;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -33,6 +34,8 @@ public class MainActivity extends Activity {
 
     findViewById(R.id.settings_btn).setOnClickListener(mMainButtonClicked);
     findViewById(R.id.apod_btn).setOnClickListener(mMainButtonClicked);
+    findViewById(R.id.chathead_btn).setOnClickListener(mMainButtonClicked);
+    findViewById(R.id.dialog_btn).setOnClickListener(mMainButtonClicked);
   }
 
   private static boolean isStethoPresent() {
@@ -61,6 +64,9 @@ public class MainActivity extends Activity {
   }
 
   private final View.OnClickListener mMainButtonClicked = new View.OnClickListener() {
+
+    boolean chatHeadServiceStarted;
+
     @Override
     public void onClick(View v) {
       int id = v.getId();
@@ -68,6 +74,20 @@ public class MainActivity extends Activity {
         SettingsActivity.show(MainActivity.this);
       } else if (id == R.id.apod_btn) {
         APODActivity.show(MainActivity.this);
+      } else if (id == R.id.chathead_btn) {
+        if (chatHeadServiceStarted) {
+          chatHeadServiceStarted = false;
+          ChatHeadService.stop(MainActivity.this);
+        } else {
+          chatHeadServiceStarted = true;
+          ChatHeadService.start(MainActivity.this);
+        }
+      } else if (id == R.id.dialog_btn) {
+        new AlertDialog.Builder(MainActivity.this)
+            .setTitle(R.string.dialog_title)
+            .setMessage(R.string.dialog_message)
+            .setPositiveButton(android.R.string.ok, null)
+            .show();
       }
     }
   };

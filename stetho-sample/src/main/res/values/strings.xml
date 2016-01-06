@@ -4,6 +4,10 @@
   <string name="app_name">Stetho Sample</string>
   <string name="settings_btn">Settings</string>
   <string name="apod_btn">APOD RSS Feed</string>
+  <string name="chathead_btn">Chat Head</string>
+  <string name="dialog_btn">New Dialog</string>
+  <string name="dialog_title">Dialog fast and break bread.</string>
+  <string name="dialog_message">This alert dialog is visible in Stetho.</string>
   <string name="settings_title">Settings</string>
   <string name="pref_category1_title">General</string>
   <string name="pref_checkbox_title">Boolean setting</string>
