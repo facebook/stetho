@@ -7,19 +7,13 @@
  * of patent rights can be found in the PATENTS file in the same directory.
 */
 
-package com.facebook.stetho.okhttp;
+package com.facebook.stetho.okhttp3;
 
 import com.facebook.stetho.inspector.network.DefaultResponseHandler;
 import com.facebook.stetho.inspector.network.NetworkEventReporter;
 import com.facebook.stetho.inspector.network.NetworkEventReporterImpl;
 import com.facebook.stetho.inspector.network.RequestBodyHelper;
-import com.squareup.okhttp.Connection;
-import com.squareup.okhttp.Interceptor;
-import com.squareup.okhttp.MediaType;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.RequestBody;
-import com.squareup.okhttp.Response;
-import com.squareup.okhttp.ResponseBody;
+import okhttp3.*;
 import okio.BufferedSink;
 import okio.BufferedSource;
 import okio.Okio;
@@ -32,17 +26,15 @@ import java.io.OutputStream;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Provides easy integration with <a href="http://square.github.io/okhttp/">OkHttp</a> 2.2.0+
- * by way of the new <a href="https://github.com/square/okhttp/wiki/Interceptors">Interceptor</a>
- * system. To use:
+ * Provides easy integration with <a href="http://square.github.io/okhttp/">OkHttp</a> 3.x by way of
+ * the new <a href="https://github.com/square/okhttp/wiki/Interceptors">Interceptor</a> system. To
+ * use:
  * <pre>
- *   OkHttpClient client = new OkHttpClient();
- *   client.networkInterceptors().add(new StethoInterceptor());
+ *   OkHttpClient client = new OkHttpClient.Builder()
+ *       .addNetworkInterceptor(new StethoInterceptor())
+ *       .build();
  * </pre>
- *
- * @deprecated replaced with {@code com.facebook.stetho.okhttp3.StethoInterceptor}.
  */
-@Deprecated
 public class StethoInterceptor implements Interceptor {
   private final NetworkEventReporter mEventReporter = NetworkEventReporterImpl.get();
 
@@ -142,7 +134,7 @@ public class StethoInterceptor implements Interceptor {
 
     @Override
     public String url() {
-      return mRequest.urlString();
+      return mRequest.url().toString();
     }
 
     @Override
@@ -213,7 +205,7 @@ public class StethoInterceptor implements Interceptor {
 
     @Override
     public String url() {
-      return mRequest.urlString();
+      return mRequest.url().toString();
     }
 
     @Override
@@ -279,7 +271,7 @@ public class StethoInterceptor implements Interceptor {
     }
 
     @Override
-    public long contentLength() throws IOException {
+    public long contentLength() {
       return mBody.contentLength();
     }
 
