@@ -365,7 +365,35 @@ public final class Document extends ThreadBoundProxy {
       }
     });
 
-    // Transmit other Document changes to our listener
+    // Second, remove all elements that have been reparented. Otherwise we get into trouble if we
+    // transmit an event to insert under the new parent before we've transmitted an event to remove
+    // it from the old parent. The removal event is ignored because the parent doesn't match the
+    // listener's expectations, so we get ghost elements that are stuck and can't be exorcised.
+    docUpdate.getChangedElements(new Accumulator<Object>() {
+      @Override
+      public void store(Object element) {
+        // If this returns false then it means the element was garbage and has already been removed
+        if (!mObjectIdMapper.containsObject(element)) {
+          return;
+        }
+
+        final ElementInfo oldElementInfo = mShadowDocument.getElementInfo(element);
+        if (oldElementInfo == null) {
+          return;
+        }
+
+        final ElementInfo newElementInfo = docUpdate.getElementInfo(element);
+
+        if (newElementInfo.parentElement != oldElementInfo.parentElement) {
+          int parentNodeId = mObjectIdMapper.getIdForObject(oldElementInfo.parentElement);
+          int nodeId = mObjectIdMapper.getIdForObject(element);
+          mUpdateListeners.onChildNodeRemoved(parentNodeId, nodeId);
+        }
+      }
+    });
+
+    // Third, transmit all other changes to our listener. This includes inserting reparented
+    // elements that we removed in the 2nd stage.
     docUpdate.getChangedElements(new Accumulator<Object>() {
       private final HashSet<Object> listenerInsertedElements = new HashSet<>();
 
@@ -383,7 +411,7 @@ public final class Document extends ThreadBoundProxy {
 
       @Override
       public void store(Object element) {
-        // If this returns false then it means the element was garbage, and has already been removed
+        // If this returns false then it means the element was garbage and has already been removed
         if (!mObjectIdMapper.containsObject(element)) {
           return;
         }
@@ -395,8 +423,8 @@ public final class Document extends ThreadBoundProxy {
           return;
         }
 
-        final ElementInfo newElementInfo = docUpdate.getElementInfo(element);
         final ElementInfo oldElementInfo = mShadowDocument.getElementInfo(element);
+        final ElementInfo newElementInfo = docUpdate.getElementInfo(element);
 
         final List<Object> oldChildren = (oldElementInfo != null)
             ? oldElementInfo.children
@@ -410,9 +438,16 @@ public final class Document extends ThreadBoundProxy {
         for (int i = 0, N = oldChildren.size(); i < N; ++i) {
           final Object childElement = oldChildren.get(i);
           if (mObjectIdMapper.containsObject(childElement)) {
-            listenerChildren.add(childElement);
+            final ElementInfo newChildElementInfo = docUpdate.getElementInfo(childElement);
+            if (newChildElementInfo != null &&
+                newChildElementInfo.parentElement != element) {
+              // This element was reparented, so we already told our listener to remove it.
+            } else {
+              listenerChildren.add(childElement);
+            }
           }
         }
+
         updateListenerChildren(listenerChildren, newChildren, insertedElements);
         releaseChildEventingList(listenerChildren);
       }
