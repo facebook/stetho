@@ -233,6 +233,8 @@ public final class ShadowDocument implements DocumentView {
 
       if (parentElement == null) {
         mRootElementChanges.add(element);
+      } else {
+        mRootElementChanges.remove(element);
       }
     }
 
