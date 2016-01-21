@@ -71,11 +71,19 @@ This brings up most of the default configuration but does not enable some additi
 
 ### Enable Network Inspection
 
-If you are using the popular OkHttp library at the 2.2.x+ release, you can use the Interceptors system to automatically hook into your existing stack. This is currently the simplest and most straightforward way to enable network inspection: 
+If you are using the popular OkHttp library at the 2.2.x+ or 3.x release, you can use the Interceptors system to automatically hook into your existing stack. This is currently the simplest and most straightforward way to enable network inspection: 
     
 ```java    
 OkHttpClient client = new OkHttpClient();
 client.networkInterceptors().add(new StethoInterceptor());
+```
+
+or:
+
+```java
+new OkHttpClient.Builder()
+    .addNetworkInterceptor(new StethoInterceptor())
+    .build();
 ```
 
 If you are using `HttpURLConnection`, you can use `StethoURLConnectionManager` to assist with integration though you should be aware that there are some caveats with this approach. In particular, you must explicitly add `Accept-Encoding: gzip` to the request headers and manually handle compressed responses in order for Stetho to report compressed payload sizes.
