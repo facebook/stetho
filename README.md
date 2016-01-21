@@ -70,7 +70,7 @@ and most straightforward way to enable network inspection:
 
 ```java
 new OkHttpClient.Builder()
-    .addNetworkInterceptor(mInterceptor)
+    .addNetworkInterceptor(new StethoInterceptor())
     .build()
 ```
 
