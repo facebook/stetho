@@ -1,6 +1,38 @@
 Change Log
 ==========
 
+## Version 1.3.0
+
+_2016-01-20_
+
+ * **okhttp3 support!**
+   A new module, stetho-okhttp3, has been added which supports the new
+   okhttp3 APIs.  Note that stetho-okhttp is now deprecated.
+
+ * **Removed Apache HttpClient dependency**
+   A new, lightweight HTTP server implementation replaces it in Stetho
+   and the dumpapp protocol has been modified to no longer use HTTP.
+   Old dumpapp scripts will still work with new clients, however the
+   opposite will hang!
+
+ * **Custom database drivers**
+   Completely custom or ContentProvider-based database drivers are available
+   which allow greater inspection options with some configuration.  See
+   `DefaultInspectorModulesBuilder#provideDatabaseDriver`.
+
+ * New #282: Show view margins in "Styles" subtab.
+ * New #289: Show SQLite views as tables.
+ * New #294: dumpapp now responds to `STETHO_PROCESS` env variable in addition
+   to the `--process` flag.
+ * Fix #286: Minor JsConsole improvements.
+ * Fix #297: Sort CSS properties by name.
+ * Fix #292: Minor JSON serialization fixes.
+ * Fix #299: Memory leak fixes in view inspection (still some likely remain).
+ * Fix #305: Add proguard rules to stetho-js-rhino aar artifact.
+ * Fix #313: Work around issues formatting `Long.MIN_VALUE` and possibly others
+   when showing in the database view.
+ * Fix #332: NPE in ShadowDocument.getGarbageElements().
+
 ## Version 1.2.0
 
 _2015-09-11_
