@@ -29,7 +29,7 @@ or Maven:
 Only the main `stetho` dependency is strictly required; however, you may also wish to use one of the network helpers:
 
 ```groovy
-compile 'com.facebook.stetho:stetho-okhttp:1.3.0'
+compile 'com.facebook.stetho:stetho-okhttp3:1.3.0'
 ```
 or:
 ```groovy
@@ -73,6 +73,8 @@ new OkHttpClient.Builder()
     .addNetworkInterceptor(mInterceptor)
     .build()
 ```
+
+Note that okhttp 2.x will work as well, but with slightly different syntax and you must use the `stetho-okhttp` artifact (not `stetho-okhttp3`).
 
 If you are using `HttpURLConnection`, you can use `StethoURLConnectionManager`
 to assist with integration though you should be aware that there are some
