@@ -29,6 +29,7 @@ import java.util.ListIterator;
 import java.util.Objects;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for {@link ObjectMapper}
@@ -69,14 +70,23 @@ public class ObjectMapperTest {
     njp.child1.testString = "testString";
     njp.child2.i = 4;
 
-    String expected = "{\"child1\":{\"testString\":\"testString\"},\"child2\":{\"i\":4}}";
-    NestedJsonProperty parsed = mObjectMapper.convertValue(
-        new JSONObject(expected),
+    // The ordering of serialization changes depending on Java 7 vs Java 8.
+    String expected7 = "{\"child1\":{\"testString\":\"testString\"},\"child2\":{\"i\":4}}";
+    String expected8 = "{\"child2\":{\"i\":4},\"child1\":{\"testString\":\"testString\"}}";
+
+    NestedJsonProperty parsed7 = mObjectMapper.convertValue(
+        new JSONObject(expected7),
         NestedJsonProperty.class);
-    assertEquals(njp, parsed);
+    assertEquals(njp, parsed7);
+
+    NestedJsonProperty parsed8 = mObjectMapper.convertValue(
+        new JSONObject(expected8),
+        NestedJsonProperty.class);
+    assertEquals(njp, parsed8);
 
     JSONObject jsonObject = mObjectMapper.convertValue(njp, JSONObject.class);
-    assertEquals(expected, jsonObject.toString());
+
+    assertTrue(expected7.equals(jsonObject.toString()) || expected8.equals(jsonObject.toString()));
   }
 
   @Test
