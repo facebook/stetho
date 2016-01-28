@@ -32,6 +32,8 @@ import com.facebook.stetho.json.ObjectMapper;
 import com.facebook.stetho.json.annotation.JsonProperty;
 import org.json.JSONObject;
 
+import javax.annotation.Nullable;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -79,7 +81,7 @@ public class DOM implements ChromeDevtoolsDomain {
       @Override
       public Node call() {
         Object element = mDocument.getRootElement();
-        return createNodeForElement(element, mDocument.getDocumentView());
+        return createNodeForElement(element, mDocument.getDocumentView(), null);
       }
     });
 
@@ -253,7 +255,14 @@ public class DOM implements ChromeDevtoolsDomain {
     }
   }
 
-  private Node createNodeForElement(Object element, DocumentView view) {
+  private Node createNodeForElement(
+      Object element,
+      DocumentView view,
+      @Nullable Accumulator<Object> processedElements) {
+    if (processedElements != null) {
+      processedElements.store(element);
+    }
+
     NodeDescriptor descriptor = mDocument.getNodeDescriptor(element);
 
     Node node = new DOM.Node();
@@ -277,7 +286,7 @@ public class DOM implements ChromeDevtoolsDomain {
 
     for (int i = 0, N = elementInfo.children.size(); i < N; ++i) {
       final Object childElement = elementInfo.children.get(i);
-      Node childNode = createNodeForElement(childElement, view);
+      Node childNode = createNodeForElement(childElement, view, processedElements);
       childrenNodes.add(childNode);
     }
 
@@ -374,9 +383,8 @@ public class DOM implements ChromeDevtoolsDomain {
 
       insertedEvent.parentNodeId = parentNodeId;
       insertedEvent.previousNodeId = previousNodeId;
-      insertedEvent.node = createNodeForElement(element, view);
+      insertedEvent.node = createNodeForElement(element, view, insertedElements);
 
-      insertedElements.store(element);
       mPeerManager.sendNotificationToPeers("DOM.childNodeInserted", insertedEvent);
 
       releaseChildNodeInsertedEvent(insertedEvent);
