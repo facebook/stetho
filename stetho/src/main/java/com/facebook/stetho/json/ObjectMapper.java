@@ -10,6 +10,7 @@
 package com.facebook.stetho.json;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -19,7 +20,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.facebook.stetho.common.ExceptionUtil;
 import com.facebook.stetho.json.annotation.JsonProperty;
@@ -42,6 +45,9 @@ import org.json.JSONObject;
  * results of reflection this class is sufficient for stethos needs.
  */
 public class ObjectMapper {
+
+  @GuardedBy("mJsonValueMethodCache")
+  private final Map<Class<?>, Method> mJsonValueMethodCache = new IdentityHashMap<>();
 
   /**
    * Support mapping between arbitrary classes and {@link JSONObject}.
@@ -305,7 +311,19 @@ public class ObjectMapper {
    * @return the first method annotated with {@link JsonValue} or null if one does not exist.
    */
   @Nullable
-  private static Method getJsonValueMethod(Class<?> clazz) {
+  private Method getJsonValueMethod(Class<?> clazz) {
+    synchronized (mJsonValueMethodCache) {
+      Method method = mJsonValueMethodCache.get(clazz);
+      if (method == null && !mJsonValueMethodCache.containsKey(clazz)) {
+        method = getJsonValueMethodImpl(clazz);
+        mJsonValueMethodCache.put(clazz, method);
+      }
+      return method;
+    }
+  }
+
+  @Nullable
+  private static Method getJsonValueMethodImpl(Class<?> clazz) {
     Method[] methods = clazz.getMethods();
     for(int i = 0; i < methods.length; ++i) {
       Annotation jsonValue = methods[i].getAnnotation(JsonValue.class);
