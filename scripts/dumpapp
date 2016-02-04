@@ -58,6 +58,7 @@ def read_frames(sock):
     if code == b'1':
       if n > 0:
         sys.stdout.buffer.write(read_input(sock, n, 'stdout blob'))
+        sys.stdout.buffer.flush()
     elif code == b'2':
       if n > 0:
         sys.stderr.buffer.write(read_input(sock, n, 'stderr blob'))
@@ -75,12 +76,6 @@ def read_frames(sock):
       if raise_on_eof:
         raise IOError('Unexpected header: %s' % code)
       break
-
-def read_input(sock, n, tag):
-  data = sock.recv(n)
-  if not data or len(data) != n:
-    raise IOError('Unexpected end of stream while reading %s.' % tag)
-  return data
 
 if __name__ == '__main__':
   main()
