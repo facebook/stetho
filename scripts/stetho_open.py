@@ -35,6 +35,17 @@ def stetho_open(device=None, process=None):
 
   return adb.sock
 
+def read_input(sock, n, tag):  
+  data = b'';
+  while len(data) < n:
+    incoming_data = sock.recv(n - len(data))
+    if len(incoming_data) == 0:
+      break
+    data += incoming_data
+  if len(data) != n:
+    raise IOError('Unexpected end of stream while reading %s.' % tag)
+  return data
+  
 def _find_only_stetho_socket(device):
   adb = _connect_to_device(device)
   try:
@@ -107,23 +118,16 @@ class AdbSmartSocketClient(object):
   def select_service(self, service):
     message = '%04x%s' % (len(service), service)
     self.sock.send(message.encode('ascii'))
-    status = self._read_exactly(4)
+    status = read_input(self.sock, 4, "status")
     if status == b'OKAY':
       # All good...
       pass
     elif status == b'FAIL':
-      reason_len = int(self._read_exactly(4), 16)
-      reason = self._read_exactly(reason_len).decode('ascii')
+      reason_len = int(read_input(self.sock, 4, "fail reason"), 16)
+      reason = read_input(self.sock, reason_len, "fail reason lean").decode('ascii')
       raise SelectServiceError(reason)
     else:
       raise Exception('Unrecognized status=%s' % (status))
-
-  def _read_exactly(self, num_bytes):
-    buf = b''
-    while len(buf) < num_bytes:
-      new_buf = self.sock.recv(num_bytes)
-      buf += new_buf
-    return buf
 
 class SelectServiceError(Exception):
   def __init__(self, reason):
