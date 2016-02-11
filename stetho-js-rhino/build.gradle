@@ -16,6 +16,13 @@ android {
         // Rhino has references to awt and swing
         disable 'InvalidPackage'
     }
+
+    dexOptions {
+        // This library is huge and causes Travis issues due to
+        // https://github.com/facebook/stetho/issues/354
+        javaMaxHeapSize "512M"
+        threadCount 2
+    }
 }
 
 dependencies {
