@@ -20,8 +20,8 @@ android {
     dexOptions {
         // This library is huge and causes Travis issues due to
         // https://github.com/facebook/stetho/issues/354
-        javaMaxHeapSize "512M"
-        threadCount 2
+        javaMaxHeapSize "256M"
+        threadCount 1
     }
 }
 
