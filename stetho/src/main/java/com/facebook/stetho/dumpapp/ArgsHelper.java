@@ -9,7 +9,9 @@
 
 package com.facebook.stetho.dumpapp;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 public class ArgsHelper {
   public static String nextOptionalArg(Iterator<String> argsIter, String defaultValue) {
@@ -22,5 +24,13 @@ public class ArgsHelper {
       throw new DumpUsageException(errorIfMissing);
     }
     return argsIter.next();
+  }
+
+  public static String[] drainToArray(Iterator<String> argsIter) {
+    List<String> args = new ArrayList<>();
+    while (argsIter.hasNext()) {
+      args.add(argsIter.next());
+    }
+    return args.toArray(new String[args.size()]);
   }
 }
