@@ -1,6 +1,17 @@
 Change Log
 ==========
 
+## Version 1.3.1
+
+_2016-02-25_
+
+ * **Major performance improvements in Elements tab**
+   Several performance, correctness, and stability improvements related to
+   how Stetho performs tree diffing.
+
+ * Fix #349: Fix dumpapp scripts under various edge cases.
+ * Fix #357: Remove static fields from exported view "styles".
+
 ## Version 1.3.0
 
 _2016-01-20_
