@@ -58,11 +58,25 @@ public class SqliteDatabaseDriver extends Database.DatabaseDriver {
   /**
    * @param context the context
    * @param databaseFilesProvider a database file name provider
+   * @deprecated use the other {@linkplain SqliteDatabaseDriver#SqliteDatabaseDriver(Context,
+   * DatabaseFilesProvider, DatabaseConnectionProvider) constructor} and pass in the {@linkplain
+   * DefaultDatabaseConnectionProvider default provider} .
    */
+  @Deprecated
   public SqliteDatabaseDriver(Context context, DatabaseFilesProvider databaseFilesProvider) {
+    this(context, databaseFilesProvider, new DefaultDatabaseConnectionProvider(context));
+  }
+
+  /**
+   * @param context the context
+   * @param databaseFilesProvider a database file name provider
+   * @param databaseConnectionProvider a database connection provider
+   */
+  public SqliteDatabaseDriver(Context context, DatabaseFilesProvider databaseFilesProvider,
+                              DatabaseConnectionProvider databaseConnectionProvider) {
     super(context);
     mDatabaseFilesProvider = databaseFilesProvider;
-    mDatabaseConnectionProvider = new DefaultDatabaseConnectionProvider(context);
+    mDatabaseConnectionProvider = databaseConnectionProvider;
   }
 
   @Override
