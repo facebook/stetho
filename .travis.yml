@@ -13,4 +13,6 @@ branches:
   except:
     - gh-pages
 
-sudo: false
+# Disable Travis container-based infrastructure to correct
+# resource consumption in gradle presumably due to dexing.
+sudo: true
