@@ -201,12 +201,22 @@ public class SqliteDatabaseDriver extends Database.DatabaseDriver {
 
   private SQLiteDatabase openDatabase(String databaseName) throws SQLiteException {
     Util.throwIfNull(databaseName);
-    File databaseFile = mContext.getDatabasePath(databaseName);
+    File databaseFile = findDatabaseFile(databaseName);
 
     // Execpted to throw if it cannot open the file (for example, if it doesn't exist).
     return SQLiteDatabase.openDatabase(databaseFile.getAbsolutePath(),
         null /* cursorFactory */,
         SQLiteDatabase.OPEN_READWRITE);
+  }
+
+  private File findDatabaseFile(String databaseName) {
+    for (File providedDatabaseFile : mDatabaseFilesProvider.getDatabaseFiles()) {
+      if (providedDatabaseFile.getName().equals(databaseName)) {
+        return providedDatabaseFile;
+      }
+    }
+
+    return mContext.getDatabasePath(databaseName);
   }
 
 }
