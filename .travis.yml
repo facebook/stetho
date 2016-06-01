@@ -2,7 +2,8 @@ language: android
 
 android:
   components:
-    - build-tools-23.0.1
+    - tools
+    - build-tools-23.0.3
     - android-23
     - platform-tools
     - extra-android-support
@@ -12,4 +13,6 @@ branches:
   except:
     - gh-pages
 
-sudo: false
+# Disable Travis container-based infrastructure to correct
+# resource consumption in gradle presumably due to dexing.
+sudo: true
