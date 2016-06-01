@@ -12,6 +12,7 @@ package com.facebook.stetho;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
 import com.facebook.stetho.common.LogUtil;
 import com.facebook.stetho.common.Util;
@@ -25,7 +26,9 @@ import com.facebook.stetho.dumpapp.plugins.HprofDumperPlugin;
 import com.facebook.stetho.dumpapp.plugins.SharedPreferencesDumperPlugin;
 import com.facebook.stetho.inspector.DevtoolsSocketHandler;
 import com.facebook.stetho.inspector.console.RuntimeReplFactory;
+import com.facebook.stetho.inspector.database.DatabaseConnectionProvider;
 import com.facebook.stetho.inspector.database.DatabaseFilesProvider;
+import com.facebook.stetho.inspector.database.DefaultDatabaseConnectionProvider;
 import com.facebook.stetho.inspector.database.DefaultDatabaseFilesProvider;
 import com.facebook.stetho.inspector.database.SqliteDatabaseDriver;
 import com.facebook.stetho.inspector.elements.Document;
@@ -236,6 +239,7 @@ public class Stetho {
     @Nullable private DocumentProviderFactory mDocumentProvider;
     @Nullable private RuntimeReplFactory mRuntimeRepl;
     @Nullable private DatabaseFilesProvider mDatabaseFilesProvider;
+    @Nullable private DatabaseConnectionProvider mDatabaseConnectionProvider;
     @Nullable private List<Database.DatabaseDriver> mDatabaseDrivers;
 
     public DefaultInspectorModulesBuilder(Context context) {
@@ -272,6 +276,16 @@ public class Stetho {
      */
     public DefaultInspectorModulesBuilder databaseFiles(DatabaseFilesProvider provider) {
       mDatabaseFilesProvider = provider;
+      return this;
+    }
+
+    /**
+     * Customize the database connection that Stetho will use in the UI. Android's
+     * {@link SQLiteDatabase#openDatabase(String, SQLiteDatabase.CursorFactory, int)} method will
+     * be used by default.
+     */
+    public DefaultInspectorModulesBuilder databaseConnections(DatabaseConnectionProvider provider) {
+      mDatabaseConnectionProvider = provider;
       return this;
     }
 
@@ -343,14 +357,28 @@ public class Stetho {
       provideIfDesired(new Worker());
       if (Build.VERSION.SDK_INT >= DatabaseConstants.MIN_API_LEVEL) {
         Database database = new Database();
-        database.add(new SqliteDatabaseDriver(mContext,
-            mDatabaseFilesProvider != null ?
-                mDatabaseFilesProvider :
-                new DefaultDatabaseFilesProvider(mContext)));
+        boolean hasSqliteDatabaseDriver = false;
         if (mDatabaseDrivers != null) {
           for (Database.DatabaseDriver databaseDriver : mDatabaseDrivers) {
             database.add(databaseDriver);
+            if (databaseDriver instanceof SqliteDatabaseDriver) {
+              hasSqliteDatabaseDriver = true;
+            }
           }
+        }
+        if (!hasSqliteDatabaseDriver) {
+          // Add the SqliteDatabaseDriver by default for convenience.  If this isn't desired,
+          // the caller must install a dummy version of the driver (with an empty files provider).
+          // Not ideal, but given the current API and the need for backwards compatability we
+          // don't have much of a choice here...
+          database.add(
+              new SqliteDatabaseDriver(mContext,
+                  mDatabaseFilesProvider != null ?
+                      mDatabaseFilesProvider :
+                      new DefaultDatabaseFilesProvider(mContext),
+                  mDatabaseConnectionProvider != null ?
+                      mDatabaseConnectionProvider :
+                      new DefaultDatabaseConnectionProvider()));
         }
         provideIfDesired(database);
       }
