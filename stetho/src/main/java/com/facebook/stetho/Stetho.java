@@ -239,7 +239,6 @@ public class Stetho {
     @Nullable private DocumentProviderFactory mDocumentProvider;
     @Nullable private RuntimeReplFactory mRuntimeRepl;
     @Nullable private DatabaseFilesProvider mDatabaseFilesProvider;
-    @Nullable private DatabaseConnectionProvider mDatabaseConnectionProvider;
     @Nullable private List<Database.DatabaseDriver> mDatabaseDrivers;
 
     public DefaultInspectorModulesBuilder(Context context) {
@@ -273,19 +272,22 @@ public class Stetho {
     /**
      * Customize the location of database files that Stetho will propogate in the UI.  Android's
      * {@link Context#getDatabasePath} method will be used by default if not overridden here.
+     *
+     * <p>This method is deprecated and instead it is recommended that you explicitly
+     * configure the {@link SqliteDatabaseDriver} as with:</p>
+     * <pre>
+     *   provideDatabaseDriver(
+     *     new SqliteDatabaseDriver(
+     *       context,
+     *       new MyDatabaseFilesProvider(...),
+     *       new DefaultDatabaseConnectionProvider(...)))
+     * </pre>
+     *
+     * @deprecated See example alternative above.
      */
+    @Deprecated
     public DefaultInspectorModulesBuilder databaseFiles(DatabaseFilesProvider provider) {
       mDatabaseFilesProvider = provider;
-      return this;
-    }
-
-    /**
-     * Customize the database connection that Stetho will use in the UI. Android's
-     * {@link SQLiteDatabase#openDatabase(String, SQLiteDatabase.CursorFactory, int)} method will
-     * be used by default.
-     */
-    public DefaultInspectorModulesBuilder databaseConnections(DatabaseConnectionProvider provider) {
-      mDatabaseConnectionProvider = provider;
       return this;
     }
 
@@ -376,9 +378,7 @@ public class Stetho {
                   mDatabaseFilesProvider != null ?
                       mDatabaseFilesProvider :
                       new DefaultDatabaseFilesProvider(mContext),
-                  mDatabaseConnectionProvider != null ?
-                      mDatabaseConnectionProvider :
-                      new DefaultDatabaseConnectionProvider()));
+                  new DefaultDatabaseConnectionProvider()));
         }
         provideIfDesired(database);
       }
