@@ -9,8 +9,6 @@
 
 package com.facebook.stetho.inspector.protocol.module;
 
-import com.facebook.stetho.inspector.database.DatabaseFilesProvider;
-
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,14 +16,15 @@ import java.util.Collections;
 import java.util.List;
 
 import android.annotation.TargetApi;
-import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
 import android.os.Build;
+import android.util.SparseArray;
 
 import com.facebook.stetho.common.Util;
 import com.facebook.stetho.inspector.helper.ChromePeerManager;
-import com.facebook.stetho.inspector.helper.PeerRegistrationListener;
+import com.facebook.stetho.inspector.helper.ObjectIdMapper;
+import com.facebook.stetho.inspector.helper.PeersRegisteredListener;
 import com.facebook.stetho.inspector.jsonrpc.JsonRpcException;
 import com.facebook.stetho.inspector.jsonrpc.JsonRpcPeer;
 import com.facebook.stetho.inspector.jsonrpc.JsonRpcResult;
@@ -37,9 +36,8 @@ import com.facebook.stetho.json.annotation.JsonProperty;
 
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import javax.annotation.concurrent.GuardedBy;
+import javax.annotation.concurrent.ThreadSafe;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class Database implements ChromeDevtoolsDomain {
@@ -64,7 +62,7 @@ public class Database implements ChromeDevtoolsDomain {
    */
   private static final String UNKNOWN_BLOB_LABEL = "{blob}";
 
-  private List<DatabaseDriver> mDatabaseDrivers;
+  private List<DatabaseDriver2> mDatabaseDrivers;
   private final ChromePeerManager mChromePeerManager;
   private final DatabasePeerRegistrationListener mPeerListener;
   private final ObjectMapper mObjectMapper;
@@ -80,7 +78,7 @@ public class Database implements ChromeDevtoolsDomain {
     mObjectMapper = new ObjectMapper();
   }
 
-  public void add(DatabaseDriver databaseDriver) {
+  public void add(DatabaseDriver2 databaseDriver) {
     mDatabaseDrivers.add(databaseDriver);
   }
 
@@ -101,11 +99,12 @@ public class Database implements ChromeDevtoolsDomain {
         GetDatabaseTableNamesRequest.class);
 
     String databaseId = request.databaseId;
-    DatabaseDriver databaseDriver = getDatabasePeer(databaseId);
+    DatabaseDescriptorHolder holder =
+        mPeerListener.getDatabaseDescriptorHolder(databaseId);
 
     try {
       GetDatabaseTableNamesResponse response = new GetDatabaseTableNamesResponse();
-      response.tableNames = databaseDriver.getTableNames(request.databaseId);
+      response.tableNames = holder.driver.getTableNames(holder.descriptor);
       return response;
     } catch (SQLiteException e) {
       throw new JsonRpcException(
@@ -121,13 +120,13 @@ public class Database implements ChromeDevtoolsDomain {
     ExecuteSQLRequest request = mObjectMapper.convertValue(params,
         ExecuteSQLRequest.class);
 
-    String databaseId = request.databaseId;
-    String query = request.query;
-
-    DatabaseDriver databaseDriver = getDatabasePeer(databaseId);
+    DatabaseDescriptorHolder holder =
+        mPeerListener.getDatabaseDescriptorHolder(request.databaseId);
 
     try {
-      return databaseDriver.executeSQL(request.databaseId, request.query,
+      return holder.driver.executeSQL(
+          holder.descriptor,
+          request.query,
           new DatabaseDriver.ExecuteResultHandler<ExecuteSQLResponse>() {
         @Override
         public ExecuteSQLResponse handleRawQuery() throws SQLiteException {
@@ -171,15 +170,6 @@ public class Database implements ChromeDevtoolsDomain {
       response.sqlError = error;
       return response;
     }
-  }
-
-  private DatabaseDriver getDatabasePeer(String databaseId) {
-    for (DatabaseDriver databaseDriver : mDatabaseDrivers) {
-      List<String> databaseNames = databaseDriver.getDatabaseNames();
-      if (databaseNames != null && databaseNames.contains(databaseId))
-          return databaseDriver;
-      }
-    return null;
   }
 
   /**
@@ -247,25 +237,75 @@ public class Database implements ChromeDevtoolsDomain {
     return true;
   }
 
-  private static class DatabasePeerRegistrationListener implements PeerRegistrationListener {
-    private final List<DatabaseDriver> mDatabaseDrivers;
+  @ThreadSafe
+  private static class DatabasePeerRegistrationListener extends PeersRegisteredListener {
+    private final List<DatabaseDriver2> mDatabaseDrivers;
 
-    private DatabasePeerRegistrationListener(List<DatabaseDriver> databaseDrivers) {
+    @GuardedBy("this")
+    private final SparseArray<DatabaseDescriptorHolder> mDatabaseHolders = new SparseArray<>();
+
+    @GuardedBy("this")
+    private final ObjectIdMapper mDatabaseIdMapper = new ObjectIdMapper();
+
+    private DatabasePeerRegistrationListener(List<DatabaseDriver2> databaseDrivers) {
       mDatabaseDrivers = databaseDrivers;
     }
 
+    public DatabaseDescriptorHolder getDatabaseDescriptorHolder(String databaseId) {
+      return mDatabaseHolders.get(Integer.parseInt(databaseId));
+    }
+
     @Override
-    public void onPeerRegistered(JsonRpcPeer peer) {
-      for (DatabaseDriver databaseDriver : mDatabaseDrivers) {
-        databaseDriver.onRegistered(peer);
+    protected synchronized void onFirstPeerRegistered() {
+      for (DatabaseDriver2<?> driver : mDatabaseDrivers) {
+        for (DatabaseDescriptor desc : driver.getDatabaseNames()) {
+          Integer databaseId = mDatabaseIdMapper.getIdForObject(desc);
+          if (databaseId == null) {
+            databaseId = mDatabaseIdMapper.putObject(desc);
+            mDatabaseHolders.put(
+                databaseId,
+                new DatabaseDescriptorHolder(driver, desc));
+          }
+        }
       }
     }
 
     @Override
-    public void onPeerUnregistered(JsonRpcPeer peer) {
-      for (DatabaseDriver databaseDriver : mDatabaseDrivers) {
-        databaseDriver.onUnregistered(peer);
+    protected synchronized void onLastPeerUnregistered() {
+      mDatabaseIdMapper.clear();
+      mDatabaseHolders.clear();
+    }
+
+    @Override
+    protected synchronized void onPeerAdded(JsonRpcPeer peer) {
+      for (int i = 0, N = mDatabaseHolders.size(); i < N; i++) {
+        int id = mDatabaseHolders.keyAt(i);
+        DatabaseDescriptorHolder holder = mDatabaseHolders.valueAt(i);
+
+        Database.DatabaseObject databaseParams = new Database.DatabaseObject();
+        databaseParams.id = String.valueOf(id);
+        databaseParams.name = holder.descriptor.name();
+        databaseParams.domain = holder.driver.getContext().getPackageName();
+        databaseParams.version = "N/A";
+        Database.AddDatabaseEvent eventParams = new Database.AddDatabaseEvent();
+        eventParams.database = databaseParams;
+        peer.invokeMethod("Database.addDatabase", eventParams, null /* callback */);
       }
+    }
+
+    @Override
+    protected synchronized void onPeerRemoved(JsonRpcPeer peer) {
+      // Nothing to do on each peer removal...
+    }
+  }
+
+  private static class DatabaseDescriptorHolder {
+    public final DatabaseDriver2 driver;
+    public final DatabaseDescriptor descriptor;
+
+    public DatabaseDescriptorHolder(DatabaseDriver2 driver, DatabaseDescriptor descriptor) {
+      this.driver = driver;
+      this.descriptor = descriptor;
     }
   }
 
@@ -325,46 +365,4 @@ public class Database implements ChromeDevtoolsDomain {
     public int code;
   }
 
-  public static abstract class DatabaseDriver {
-
-    protected Context mContext;
-
-    public DatabaseDriver(Context context) {
-      mContext = context;
-    }
-
-    private final void onRegistered(JsonRpcPeer peer) {
-      List<String> databaseNames = getDatabaseNames();
-      for (String database : databaseNames) {
-        Database.DatabaseObject databaseParams = new Database.DatabaseObject();
-        databaseParams.id = database;
-        databaseParams.name = database;
-        databaseParams.domain = mContext.getPackageName();
-        databaseParams.version = "N/A";
-        Database.AddDatabaseEvent eventParams = new Database.AddDatabaseEvent();
-        eventParams.database = databaseParams;
-        peer.invokeMethod("Database.addDatabase", eventParams, null /* callback */);
-      }
-    }
-
-    private final void onUnregistered(JsonRpcPeer peer) {
-    }
-
-    public abstract List<String> getDatabaseNames();
-
-    public abstract List<String> getTableNames(String databaseId);
-
-    public abstract ExecuteSQLResponse executeSQL(String databaseName, String query, ExecuteResultHandler<ExecuteSQLResponse> handler)
-        throws SQLiteException;
-
-    public interface ExecuteResultHandler<T> {
-      T handleRawQuery() throws SQLiteException;
-
-      T handleSelect(Cursor result) throws SQLiteException;
-
-      T handleInsert(long insertedId) throws SQLiteException;
-
-      T handleUpdateDelete(int count) throws SQLiteException;
-    }
-  }
 }
