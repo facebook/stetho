@@ -38,6 +38,7 @@ public class SqliteDatabaseDriver extends Database.DatabaseDriver {
   };
 
   private final DatabaseFilesProvider mDatabaseFilesProvider;
+  private final DatabaseConnectionProvider mDatabaseConnectionProvider;
   private List<String> mDatabases;
 
   /**
@@ -45,22 +46,28 @@ public class SqliteDatabaseDriver extends Database.DatabaseDriver {
    * from {@link Context#databaseList()}.
    *
    * @param context the context
-   * @deprecated use the other {@linkplain SqliteDatabaseDriver#SqliteDatabaseDriver(Context,
-   * DatabaseFilesProvider) constructor} and pass in the {@linkplain DefaultDatabaseFilesProvider
-   * default provider}.
+   * @deprecated use {@link SqliteDatabaseDriver#SqliteDatabaseDriver(Context, DatabaseFilesProvider, DatabaseConnectionProvider)}
    */
   @Deprecated
   public SqliteDatabaseDriver(Context context) {
-    this(context, new DefaultDatabaseFilesProvider(context));
+    this(
+        context,
+        new DefaultDatabaseFilesProvider(context),
+        new DefaultDatabaseConnectionProvider());
   }
 
   /**
    * @param context the context
    * @param databaseFilesProvider a database file name provider
+   * @param databaseConnectionProvider a database connection provider
    */
-  public SqliteDatabaseDriver(Context context, DatabaseFilesProvider databaseFilesProvider) {
+  public SqliteDatabaseDriver(
+      Context context,
+      DatabaseFilesProvider databaseFilesProvider,
+      DatabaseConnectionProvider databaseConnectionProvider) {
     super(context);
     mDatabaseFilesProvider = databaseFilesProvider;
+    mDatabaseConnectionProvider = databaseConnectionProvider;
   }
 
   @Override
@@ -201,22 +208,16 @@ public class SqliteDatabaseDriver extends Database.DatabaseDriver {
 
   private SQLiteDatabase openDatabase(String databaseName) throws SQLiteException {
     Util.throwIfNull(databaseName);
-    File databaseFile = findDatabaseFile(databaseName);
-
-    // Execpted to throw if it cannot open the file (for example, if it doesn't exist).
-    return SQLiteDatabase.openDatabase(databaseFile.getAbsolutePath(),
-        null /* cursorFactory */,
-        SQLiteDatabase.OPEN_READWRITE);
+    return mDatabaseConnectionProvider.openDatabase(findDatabaseFile(databaseName));
   }
 
   private File findDatabaseFile(String databaseName) {
-    for (File providedDatabaseFile : mDatabaseFilesProvider.getDatabaseFiles()) {
-      if (providedDatabaseFile.getName().equals(databaseName)) {
-        return providedDatabaseFile;
-      }
-    }
+     for (File providedDatabaseFile : mDatabaseFilesProvider.getDatabaseFiles()) {
+       if (providedDatabaseFile.getName().equals(databaseName)) {
+         return providedDatabaseFile;
+       }
+     }
 
-    return mContext.getDatabasePath(databaseName);
-  }
-
+     return mContext.getDatabasePath(databaseName);
+   }
 }

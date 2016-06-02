@@ -16,10 +16,9 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Provides the results of {@link Context#databaseList()}.
+ * Provides the results of {@link Context#databaseList()} for {@link SqliteDatabaseDriver}.
  */
 public final class DefaultDatabaseFilesProvider implements DatabaseFilesProvider {
-
   private final Context mContext;
 
   public DefaultDatabaseFilesProvider(Context context) {

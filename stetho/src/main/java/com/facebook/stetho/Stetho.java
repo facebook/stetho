@@ -12,6 +12,7 @@ package com.facebook.stetho;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
 import com.facebook.stetho.common.LogUtil;
 import com.facebook.stetho.common.Util;
@@ -25,7 +26,9 @@ import com.facebook.stetho.dumpapp.plugins.HprofDumperPlugin;
 import com.facebook.stetho.dumpapp.plugins.SharedPreferencesDumperPlugin;
 import com.facebook.stetho.inspector.DevtoolsSocketHandler;
 import com.facebook.stetho.inspector.console.RuntimeReplFactory;
+import com.facebook.stetho.inspector.database.DatabaseConnectionProvider;
 import com.facebook.stetho.inspector.database.DatabaseFilesProvider;
+import com.facebook.stetho.inspector.database.DefaultDatabaseConnectionProvider;
 import com.facebook.stetho.inspector.database.DefaultDatabaseFilesProvider;
 import com.facebook.stetho.inspector.database.SqliteDatabaseDriver;
 import com.facebook.stetho.inspector.elements.Document;
@@ -269,7 +272,20 @@ public class Stetho {
     /**
      * Customize the location of database files that Stetho will propogate in the UI.  Android's
      * {@link Context#getDatabasePath} method will be used by default if not overridden here.
+     *
+     * <p>This method is deprecated and instead it is recommended that you explicitly
+     * configure the {@link SqliteDatabaseDriver} as with:</p>
+     * <pre>
+     *   provideDatabaseDriver(
+     *     new SqliteDatabaseDriver(
+     *       context,
+     *       new MyDatabaseFilesProvider(...),
+     *       new DefaultDatabaseConnectionProvider(...)))
+     * </pre>
+     *
+     * @deprecated See example alternative above.
      */
+    @Deprecated
     public DefaultInspectorModulesBuilder databaseFiles(DatabaseFilesProvider provider) {
       mDatabaseFilesProvider = provider;
       return this;
@@ -343,14 +359,26 @@ public class Stetho {
       provideIfDesired(new Worker());
       if (Build.VERSION.SDK_INT >= DatabaseConstants.MIN_API_LEVEL) {
         Database database = new Database();
-        database.add(new SqliteDatabaseDriver(mContext,
-            mDatabaseFilesProvider != null ?
-                mDatabaseFilesProvider :
-                new DefaultDatabaseFilesProvider(mContext)));
+        boolean hasSqliteDatabaseDriver = false;
         if (mDatabaseDrivers != null) {
           for (Database.DatabaseDriver databaseDriver : mDatabaseDrivers) {
             database.add(databaseDriver);
+            if (databaseDriver instanceof SqliteDatabaseDriver) {
+              hasSqliteDatabaseDriver = true;
+            }
           }
+        }
+        if (!hasSqliteDatabaseDriver) {
+          // Add the SqliteDatabaseDriver by default for convenience.  If this isn't desired,
+          // the caller must install a dummy version of the driver (with an empty files provider).
+          // Not ideal, but given the current API and the need for backwards compatability we
+          // don't have much of a choice here...
+          database.add(
+              new SqliteDatabaseDriver(mContext,
+                  mDatabaseFilesProvider != null ?
+                      mDatabaseFilesProvider :
+                      new DefaultDatabaseFilesProvider(mContext),
+                  new DefaultDatabaseConnectionProvider()));
         }
         provideIfDesired(database);
       }
