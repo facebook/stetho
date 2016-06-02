@@ -7,9 +7,13 @@
   ~ of patent rights can be found in the PATENTS file in the same directory.
   -->
 
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.facebook.stetho.timber">
+<manifest
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.facebook.stetho.timber">
 
-    <application />
+    //fixes Timber Library min sdk issue
+    <uses-sdk tools:overrideLibrary="timber.log"/>
+
+    <application/>
 
 </manifest>

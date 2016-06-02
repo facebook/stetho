@@ -14,7 +14,7 @@ android {
 
 dependencies {
     compile project(':stetho')
-    compile 'com.jakewharton.timber:timber:3.0.1'
+    compile 'com.jakewharton.timber:timber:4.1.2'
 }
 
 apply from: rootProject.file('release.gradle')
