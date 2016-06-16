@@ -243,24 +243,6 @@ final class ViewDescriptor extends AbstractChainedDescriptor<View> implements Hi
     }
   }
 
-  private static boolean isDefaultValue(
-      Float value) {
-    return value == 0.0f;
-  }
-
-  private static boolean isDefaultValue(
-      Integer value,
-      @Nullable ViewDebug.ExportedProperty annotation) {
-    // Mappable ints should always be shown, because enums don't necessarily have
-    // logical "default" values. Thus we mark all of them as not default, so that they
-    // show up in the inspector.
-    if (canFlagsBeMappedToString(annotation) || canIntBeMappedToString(annotation)) {
-      return false;
-    }
-
-    return value == 0;
-  }
-
   private String convertViewPropertyNameToCSSName(String getterName) {
     // Split string by uppercase characters. Thankfully since
     // this is the android source we don't have to worry about
@@ -297,7 +279,21 @@ final class ViewDescriptor extends AbstractChainedDescriptor<View> implements Hi
     } else if (value instanceof Integer) {
       getStyleFromInteger(name, (Integer) value, annotation, styles);
     } else if (value instanceof Float) {
-      getStyleFromFloat(name, (Float) value, annotation, styles);
+      styles.store(name, String.valueOf(value), ((Float) value) == 0.0f);
+    } else if (value instanceof Boolean) {
+      styles.store(name, String.valueOf(value), false);
+    } else if (value instanceof Short) {
+      styles.store(name, String.valueOf(value), ((Short) value) == 0);
+    } else if (value instanceof Long) {
+      styles.store(name, String.valueOf(value), ((Long) value) == 0);
+    } else if (value instanceof Double) {
+      styles.store(name, String.valueOf(value), ((Double) value) == 0.0d);
+    } else if (value instanceof Byte) {
+      styles.store(name, String.valueOf(value), ((Byte) value) == 0);
+    } else if (value instanceof Character) {
+      styles.store(name, String.valueOf(value), ((Character) value) == Character.MIN_VALUE);
+    } else if (value instanceof CharSequence) {
+      styles.store(name, String.valueOf(value), ((CharSequence) value).length() == 0);
     } else {
       getStylesFromObject(element, name, value, annotation, styles);
     }
@@ -335,16 +331,17 @@ final class ViewDescriptor extends AbstractChainedDescriptor<View> implements Hi
           intValueStr + " (" + mapFlagsToStringUsingAnnotation(value, annotation) + ")",
           false);
     } else {
-      styles.store(name, intValueStr, isDefaultValue(value, annotation));
+      Boolean defaultValue = true;
+      // Mappable ints should always be shown, because enums don't necessarily have
+      // logical "default" values. Thus we mark all of them as not default, so that they
+      // show up in the inspector.
+      if (value != 0 ||
+          canFlagsBeMappedToString(annotation) ||
+          canIntBeMappedToString(annotation)) {
+        defaultValue = false;
+      }
+      styles.store(name, intValueStr, defaultValue);
     }
-  }
-
-  private void getStyleFromFloat(
-      String name,
-      Float value,
-      @Nullable ViewDebug.ExportedProperty annotation,
-      StyleAccumulator styles) {
-    styles.store(name, String.valueOf(value), isDefaultValue(value));
   }
 
   private void getStylesFromObject(
