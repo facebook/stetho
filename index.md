@@ -111,10 +111,10 @@ Stetho.initialize(Stetho.newInitializerBuilder(context)
 See the stetho-sample project for more details. 
 
 ### Contributions
-Use [Github issues](https://github.com/facebook/stetho/issues) for requests. We actively welcome pull requests; learn how to [contribute](https://github.com/facebook/stetho/blob/master/CONTRIBUTING.md).
+Use [GitHub issues](https://github.com/facebook/stetho/issues) for requests. We actively welcome pull requests; learn how to [contribute](https://github.com/facebook/stetho/blob/master/CONTRIBUTING.md).
 
 ###Changelog
-Changes are tracked as [Github releases](https://github.com/facebook/stetho/releases).
+Changes are tracked as [GitHub releases](https://github.com/facebook/stetho/releases).
 
 ###License  
 
