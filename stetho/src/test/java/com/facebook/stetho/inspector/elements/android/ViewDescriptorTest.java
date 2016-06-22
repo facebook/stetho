@@ -20,7 +20,6 @@ import static org.mockito.Mockito.verify;
 @Config(emulateSdk = Build.VERSION_CODES.JELLY_BEAN)
 @RunWith(RobolectricTestRunner.class)
 public class ViewDescriptorTest {
-
   private final MethodInvoker mMethodInvoker = mock(MethodInvoker.class);
   private final ViewDescriptor mDescriptor = new ViewDescriptor(mMethodInvoker);
   private final Activity mActivity = Robolectric.setupActivity(Activity.class);
@@ -56,5 +55,17 @@ public class ViewDescriptorTest {
   public void testSetAttributeAsTextIgnoreInvalidFormat() {
     mDescriptor.setAttributesAsText(mTextView, "garbage");
     verify(mMethodInvoker, never()).invoke(anyObject(), anyString(), anyString());
+  }
+
+  @Test
+  public void testSetPropertyTextSimple() {
+    mDescriptor.setStyle(mTextView, "y: 46;");
+    verify(mMethodInvoker).invoke(mTextView, "setY", "46");
+  }
+
+  @Test
+  public void testSetPropertyTextDashes() {
+    mDescriptor.setStyle(mTextView, "scale-x: 2;");
+    verify(mMethodInvoker).invoke(mTextView, "setScaleX", "2");
   }
 }

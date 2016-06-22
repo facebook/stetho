@@ -23,6 +23,7 @@ import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsMethod;
 import com.facebook.stetho.json.ObjectMapper;
 import com.facebook.stetho.json.annotation.JsonProperty;
+
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -91,6 +92,58 @@ public class CSS implements ChromeDevtoolsDomain {
   }
 
   @ChromeDevtoolsMethod
+  public SetPropertyTextResult setPropertyText(JsonRpcPeer peer, JSONObject params) {
+    final SetPropertyTextRequest request =  mObjectMapper.convertValue(
+        params,
+        SetPropertyTextRequest.class);
+
+    final SetPropertyTextResult result = new SetPropertyTextResult();
+    result.style = new CSSStyle();
+    result.style.shorthandEntries = Collections.emptyList();
+    result.style.cssProperties = new ArrayList<>();
+    result.style.styleSheetId = request.styleSheetId;
+
+    mDocument.postAndWait(new Runnable() {
+      @Override
+      public void run() {
+        int nodeId;
+        try {
+          nodeId = Integer.valueOf(request.styleSheetId);
+        } catch (NumberFormatException e) {
+          LogUtil.w("Failed to set style of an element, cannot find element with nodeid=" +
+              request.styleSheetId);
+          return;
+        }
+        Object elementForNodeId = mDocument.getElementForNodeId(nodeId);
+
+        if (elementForNodeId == null) {
+          LogUtil.w("Failed to get style of an element that does not exist, nodeid=" +
+              request.styleSheetId);
+        }
+
+        mDocument.setElementStyle(elementForNodeId, request.text);
+
+        mDocument.getElementStyles(
+            elementForNodeId,
+            new StyleAccumulator() {
+              @Override
+              public void store(String name, String value, boolean isDefault) {
+                if (!isDefault) {
+                  CSSProperty property = new CSSProperty();
+                  property.name = name;
+                  property.value = value;
+
+                  result.style.cssProperties.add(property);
+                }
+              }
+            });
+      }
+    });
+
+    return result;
+  }
+
+  @ChromeDevtoolsMethod
   public JsonRpcResult getMatchedStylesForNode(JsonRpcPeer peer, JSONObject params) {
     final GetMatchedStylesForNodeRequest request = mObjectMapper.convertValue(
         params,
@@ -115,6 +168,7 @@ public class CSS implements ChromeDevtoolsDomain {
     rule.selectorList.selectors = ListUtil.newImmutableList(selector);
 
     rule.style = new CSSStyle();
+    rule.style.styleSheetId = String.valueOf(request.nodeId);
     rule.style.cssProperties = new ArrayList<>();
 
     match.rule = rule;
@@ -324,6 +378,12 @@ public class CSS implements ChromeDevtoolsDomain {
 
   private static class GetMatchedStylesForNodeResult implements JsonRpcResult {
     @JsonProperty
+    public CSSStyle inlineStyle;
+
+    @JsonProperty
+    public CSSStyle attributesStyle;
+
+    @JsonProperty
     public List<RuleMatch> matchedCSSRules;
 
     @JsonProperty
@@ -331,5 +391,18 @@ public class CSS implements ChromeDevtoolsDomain {
 
     @JsonProperty
     public List<InheritedStyleEntry> inherited;
+  }
+
+  private static class SetPropertyTextRequest implements JsonRpcResult {
+    @JsonProperty(required = true)
+    public String styleSheetId;
+
+    @JsonProperty(required = true)
+    public String text;
+  }
+
+  private static class SetPropertyTextResult implements JsonRpcResult {
+    @JsonProperty(required = true)
+    public CSSStyle style;
   }
 }

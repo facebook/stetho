@@ -9,6 +9,7 @@
 
 package com.facebook.stetho.inspector.elements.android;
 
+import android.util.Pair;
 import android.view.View;
 import android.view.ViewDebug;
 
@@ -144,6 +145,12 @@ final class ViewDescriptor extends AbstractChainedDescriptor<View> implements Hi
     }
   }
 
+  @Override
+  protected void onSetStyle(View element, String text) {
+    Pair<String, String> keyValuePair = parseSetPropertyTextArg(text);
+    mMethodInvoker.invoke(element, keyValuePair.first, keyValuePair.second);
+  }
+
   @Nullable
   private static String getIdAttribute(View element) {
     int id = element.getId();
@@ -160,7 +167,6 @@ final class ViewDescriptor extends AbstractChainedDescriptor<View> implements Hi
 
   @Override
   protected void onGetStyles(View element, StyleAccumulator styles) {
-
     List<ViewCSSProperty> properties = getViewProperties();
     for (int i = 0, size = properties.size(); i < size; i++) {
       ViewCSSProperty property = properties.get(i);
