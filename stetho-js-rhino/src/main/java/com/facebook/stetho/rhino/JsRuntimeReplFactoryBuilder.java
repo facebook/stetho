@@ -189,7 +189,7 @@ public class JsRuntimeReplFactoryBuilder {
     for (Class<?> aClass : mClasses) {
       String className = aClass.getName();
       try {
-        String expression = String.format("importClass(%s)", className);
+        String expression = String.format("importClass(Packages.%s)", className);
         jsContext.evaluateString(scope, expression, SOURCE_NAME, 1, null);
       } catch (Exception e) {
         throw new StethoJsException(e, "Failed to import class: %s", className);
@@ -201,7 +201,7 @@ public class JsRuntimeReplFactoryBuilder {
     // Import the packages that the caller requested
     for (String packageName : mPackages) {
       try {
-        String expression = String.format("importPackage(%s)", packageName);
+        String expression = String.format("importPackage(Packages.%s)", packageName);
         jsContext.evaluateString(scope, expression, SOURCE_NAME, 1, null);
       } catch (Exception e) {
         throw new StethoJsException(e, "Failed to import package: %s", packageName);
