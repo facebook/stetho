@@ -9,8 +9,10 @@
 
 package com.facebook.stetho.inspector.elements.android;
 
+import android.support.v4.view.ViewCompat;
 import android.view.View;
 import android.view.ViewDebug;
+import android.support.v4.view.accessibility.AccessibilityNodeInfoCompat;
 
 import com.facebook.stetho.common.ExceptionUtil;
 import com.facebook.stetho.common.LogUtil;
@@ -180,6 +182,21 @@ final class ViewDescriptor extends AbstractChainedDescriptor<View> implements Hi
         }
       }
     }
+  }
+
+  @Override
+  protected void onGetAccessibilityStyles(View element, StyleAccumulator styles) {
+    AccessibilityNodeInfoCompat nodeInfo = AccessibilityNodeInfoCompat.obtain();
+    ViewCompat.onInitializeAccessibilityNodeInfo(element, nodeInfo);
+
+    getStyleFromValue(
+        element,
+        "ignored",
+        AccessibilityNodeInfoWrapper.getIgnored(element, nodeInfo),
+        null,
+        styles);
+
+    nodeInfo.recycle();
   }
 
   private static boolean canIntBeMappedToString(@Nullable ViewDebug.ExportedProperty annotation) {

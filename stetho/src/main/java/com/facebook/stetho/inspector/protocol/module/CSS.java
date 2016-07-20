@@ -99,8 +99,8 @@ public class CSS implements ChromeDevtoolsDomain {
     final GetMatchedStylesForNodeResult result = new GetMatchedStylesForNodeResult();
 
     final RuleMatch match = new RuleMatch();
-
-    result.matchedCSSRules = ListUtil.newImmutableList(match);
+    final RuleMatch accessibilityMatch = getAccessibilityRuleMatch();
+    result.matchedCSSRules = ListUtil.newImmutableList(match, accessibilityMatch);
 
     match.matchingSelectors = ListUtil.newImmutableList(0);
 
@@ -146,6 +146,21 @@ public class CSS implements ChromeDevtoolsDomain {
                 }
               }
             });
+
+        mDocument.getElementAccessibilityStyles(
+            elementForNodeId,
+            new StyleAccumulator() {
+              @Override
+              public void store(String name, String value, boolean isDefault) {
+                if (!isDefault) {
+                  CSSProperty property = new CSSProperty();
+                  property.name = name;
+                  property.value = value;
+
+                  accessibilityMatch.rule.style.cssProperties.add(property);
+                }
+              }
+            });
       }
     });
 
@@ -153,6 +168,25 @@ public class CSS implements ChromeDevtoolsDomain {
     result.pseudoElements = Collections.emptyList();
 
     return result;
+  }
+
+  private RuleMatch getAccessibilityRuleMatch() {
+    Selector selector = new Selector();
+    selector.value = "Accessibility Properties";
+
+    CSSRule rule = new CSSRule();
+    rule.origin = Origin.REGULAR;
+    rule.selectorList = new SelectorList();
+    rule.selectorList.selectors = ListUtil.newImmutableList(selector);
+    rule.style = new CSSStyle();
+    rule.style.cssProperties = new ArrayList<>();
+    rule.style.shorthandEntries = Collections.emptyList();
+
+    final RuleMatch match = new RuleMatch();
+    match.matchingSelectors = ListUtil.newImmutableList(0);
+    match.rule = rule;
+
+    return match;
   }
 
   private final class PeerManagerListener extends PeersRegisteredListener {

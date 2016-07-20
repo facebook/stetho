@@ -155,4 +155,14 @@ public abstract class AbstractChainedDescriptor<E> extends Descriptor implements
 
   protected void onGetStyles(E element, StyleAccumulator accumulator) {
   }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public final void getAccessibilityStyles(Object element, StyleAccumulator accumulator) {
+    mSuper.getAccessibilityStyles(element, accumulator);
+    onGetAccessibilityStyles((E) element, accumulator);
+  }
+
+  protected void onGetAccessibilityStyles(E element, StyleAccumulator accumulator) {
+  }
 }
