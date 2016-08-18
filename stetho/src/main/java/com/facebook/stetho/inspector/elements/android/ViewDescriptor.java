@@ -206,6 +206,43 @@ final class ViewDescriptor extends AbstractChainedDescriptor<View> implements Hi
           styles);
     }
 
+    getStyleFromValue(
+        element,
+        "focusable",
+        !ignored,
+        null,
+        styles);
+
+    if (!ignored) {
+      getStyleFromValue(
+          element,
+          "focusable-reasons",
+          AccessibilityNodeInfoWrapper.getFocusableReasons(nodeInfo, element),
+          null,
+          styles);
+
+      getStyleFromValue(
+          element,
+          "focused",
+          nodeInfo.isAccessibilityFocused(),
+          null,
+          styles);
+
+      getStyleFromValue(
+          element,
+          "description",
+          AccessibilityNodeInfoWrapper.getDescription(nodeInfo, element),
+          null,
+          styles);
+
+      getStyleFromValue(
+          element,
+          "actions",
+          AccessibilityNodeInfoWrapper.getActions(nodeInfo),
+          null,
+          styles);
+    }
+
     nodeInfo.recycle();
   }
 
