@@ -99,7 +99,6 @@ afterEvaluate { project ->
     artifacts {
         archives androidJavadocJar
         archives androidSourcesJar
-        archives jarRelease
     }
 
     version = VERSION_NAME
