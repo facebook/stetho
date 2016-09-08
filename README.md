@@ -76,6 +76,8 @@ new OkHttpClient.Builder()
 
 Note that okhttp 2.x will work as well, but with slightly different syntax and you must use the `stetho-okhttp` artifact (not `stetho-okhttp3`).
 
+As interceptors can modify the request and response, add the Stetho interceptor after all others to get an accurate view of the network traffic.
+
 If you are using `HttpURLConnection`, you can use `StethoURLConnectionManager`
 to assist with integration though you should be aware that there are some
 caveats with this approach.  In particular, you must explicitly add
