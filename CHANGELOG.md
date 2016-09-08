@@ -2,7 +2,7 @@ Change Log
 ==========
 
 ## Version 1.4.0
-_2016_09_07
+_2016_09_07_
 
  * **Add UI Accessibility Properties to Styles tab**
    Added support for accessibility inspection, which allows users to select
