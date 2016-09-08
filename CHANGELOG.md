@@ -1,6 +1,19 @@
 Change Log
 ==========
 
+## Version 1.4.0
+_2016_09_07
+
+ * **Add UI Accessibility Properties to Styles tab**
+   Added support for accessibility inspection, which allows users to select
+   a View and see whether or not it will be focusable by an Accessibility
+   Service, why it will or won't be focusable, the text description sent to
+   Accessibility Services, and any AccessibilityActions that are currently
+   available on the View.
+
+ * Fix #367: Fixed SqliteDatabaseDriver with custom DatabaseFilesProvider
+ * Fix #424: Make aar be the default packaging in maven
+
 ## Version 1.3.1
 
 _2016-02-25_
