@@ -28,8 +28,8 @@ public final class DefaultDatabaseFilesProvider implements DatabaseFilesProvider
   @Override
   public List<File> getDatabaseFiles() {
     List<File> databaseFiles = new ArrayList<File>();
-    for (String filename : mContext.databaseList()) {
-      databaseFiles.add(new File(filename));
+    for (String databaseName : mContext.databaseList()) {
+      databaseFiles.add(mContext.getDatabasePath(databaseName));
     }
     return databaseFiles;
   }
