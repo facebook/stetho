@@ -1,6 +1,14 @@
 Change Log
 ==========
 
+## Version 1.4.1
+_2016_09_13_
+
+  * Fix #432 Have DefaultDatabaseProvider return filename
+
+    v1.4.0 exposed a long standing bug relating to loading databases.
+
+
 ## Version 1.4.0
 _2016_09_07_
 
