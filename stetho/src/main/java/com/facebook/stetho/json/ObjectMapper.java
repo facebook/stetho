@@ -111,7 +111,9 @@ public class ObjectMapper {
       } catch (IllegalArgumentException e) {
         throw new IllegalArgumentException(
             "Class: " + type.getSimpleName() + " " +
-            "Field: " + field.getName() + " type " + setValue.getClass().getName(),
+            "Field: " + field.getName() + " type " + (setValue != null ?
+                setValue.getClass().getName()
+                : "null"),
             e);
       }
     }
