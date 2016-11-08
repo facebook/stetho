@@ -23,7 +23,7 @@ android {
 dependencies {
     compile project(':stetho')
     compile 'com.google.code.findbugs:jsr305:2.0.1'
-    compile 'com.squareup.okhttp3:okhttp:3.0.1'
+    compile 'com.squareup.okhttp3:okhttp:3.4.2'
 
     testCompile 'junit:junit:4.12'
     testCompile('org.robolectric:robolectric:2.4') {
@@ -37,7 +37,7 @@ dependencies {
     testCompile 'org.powermock:powermock-module-junit4-rule:1.6.1'
     testCompile 'org.powermock:powermock-classloading-xstream:1.6.1'
 
-    testCompile 'com.squareup.okhttp3:mockwebserver:3.0.1'
+    testCompile 'com.squareup.okhttp3:mockwebserver:3.4.2'
 }
 
 apply from: rootProject.file('release.gradle')
