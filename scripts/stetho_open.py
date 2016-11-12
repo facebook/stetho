@@ -13,6 +13,7 @@
 ##
 ###############################################################################
 
+import os
 import socket
 import struct
 import re
@@ -35,7 +36,7 @@ def stetho_open(device=None, process=None):
 
   return adb.sock
 
-def read_input(sock, n, tag):  
+def read_input(sock, n, tag):
   data = b'';
   while len(data) < n:
     incoming_data = sock.recv(n - len(data))
@@ -45,7 +46,7 @@ def read_input(sock, n, tag):
   if len(data) != n:
     raise IOError('Unexpected end of stream while reading %s.' % tag)
   return data
-  
+
 def _find_only_stetho_socket(device):
   adb = _connect_to_device(device)
   try:
@@ -80,7 +81,11 @@ def _find_only_stetho_socket(device):
 
 def _connect_to_device(device=None):
   adb = AdbSmartSocketClient()
-  adb.connect()
+  portStr = os.environ.get('ANDROID_ADB_SERVER_PORT', '')
+  if portStr.isdigit():
+      adb.connect(int(portStr))
+  else:
+      adb.connect()
 
   try:
     if device is None:
