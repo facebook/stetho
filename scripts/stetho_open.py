@@ -13,11 +13,27 @@
 ##
 ###############################################################################
 
+import os
 import socket
 import struct
 import re
 
-def stetho_open(device=None, process=None, port=5037):
+def get_adb_server_port():
+  defaultPort = 5037
+  portStr = os.environ.get('ANDROID_ADB_SERVER_PORT')
+  if portStr is None:
+    return defaultPort
+  elif portStr.isdigit():
+    return int(portStr)
+  else:
+    raise HumanReadableError(
+      'Invalid integer \'%s\' specified in ANDROID_ADB_SERVER_PORT.' % (
+        portStr))
+
+def stetho_open(device=None, process=None, port=None):
+  if port is None:
+    port = get_adb_server_port()
+
   adb = _connect_to_device(device, port)
 
   socket_name = None
@@ -78,7 +94,7 @@ def _find_only_stetho_socket(device, port):
   finally:
     adb.sock.close()
 
-def _connect_to_device(device=None, port=5037):
+def _connect_to_device(device=None, port=None):
   adb = AdbSmartSocketClient()
   adb.connect(port)
 

@@ -26,11 +26,8 @@ def main():
   # transport.
   device = os.environ.get('ANDROID_SERIAL')
 
-  # Connect on the overridden port
-  portStr = os.environ.get('ANDROID_ADB_SERVER_PORT', '')
-  port = 5037
-  if portStr.isdigit():
-      port = int(portStr)
+  # Connect on the overridden port if specified
+  port = get_adb_server_port()
 
   try:
     sock = stetho_open(device, process, port)
