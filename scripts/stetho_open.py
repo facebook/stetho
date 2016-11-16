@@ -80,12 +80,7 @@ def _find_only_stetho_socket(device, port):
 
 def _connect_to_device(device=None, port=5037):
   adb = AdbSmartSocketClient()
-  if port != None:
-      adb.connect(port)
-  elif portStr.isdigit():
-      adb.connect(int(portStr))
-  else:
-      adb.connect()
+  adb.connect(port)
 
   try:
     if device is None:
