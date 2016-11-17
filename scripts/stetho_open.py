@@ -95,6 +95,9 @@ def _find_only_stetho_socket(device, port):
     adb.sock.close()
 
 def _connect_to_device(device=None, port=None):
+  if port is None:
+    raise HumanReadableError('Must specify a port when calling _connect_to_device')
+
   adb = AdbSmartSocketClient()
   adb.connect(port)
 
