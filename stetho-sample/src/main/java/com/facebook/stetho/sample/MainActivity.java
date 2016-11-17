@@ -33,6 +33,7 @@ public class MainActivity extends Activity {
 
     findViewById(R.id.settings_btn).setOnClickListener(mMainButtonClicked);
     findViewById(R.id.apod_btn).setOnClickListener(mMainButtonClicked);
+    findViewById(R.id.npe_button).setOnClickListener(mMainButtonClicked);
   }
 
   private static boolean isStethoPresent() {
@@ -68,6 +69,8 @@ public class MainActivity extends Activity {
         SettingsActivity.show(MainActivity.this);
       } else if (id == R.id.apod_btn) {
         APODActivity.show(MainActivity.this);
+      } else if (id == R.id.npe_button) {
+        NpeActivity.show(MainActivity.this);
       }
     }
   };

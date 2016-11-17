@@ -15,4 +15,5 @@
   <string name="pref_change_message">%1$s is now \'%2$s\'</string>
   <string name="apod_title">APOD Listing</string>
   <string name="stetho_missing">Stetho missing in %s build!</string>
+  <string name="npe_example">NPE Example</string>
 </resources>
