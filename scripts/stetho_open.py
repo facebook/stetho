@@ -13,16 +13,32 @@
 ##
 ###############################################################################
 
+import os
 import socket
 import struct
 import re
 
-def stetho_open(device=None, process=None):
-  adb = _connect_to_device(device)
+def get_adb_server_port():
+  defaultPort = 5037
+  portStr = os.environ.get('ANDROID_ADB_SERVER_PORT')
+  if portStr is None:
+    return defaultPort
+  elif portStr.isdigit():
+    return int(portStr)
+  else:
+    raise HumanReadableError(
+      'Invalid integer \'%s\' specified in ANDROID_ADB_SERVER_PORT.' % (
+        portStr))
+
+def stetho_open(device=None, process=None, port=None):
+  if port is None:
+    port = get_adb_server_port()
+
+  adb = _connect_to_device(device, port)
 
   socket_name = None
   if process is None:
-    socket_name = _find_only_stetho_socket(device)
+    socket_name = _find_only_stetho_socket(device, port)
   else:
     socket_name = _format_process_as_stetho_socket(process)
 
@@ -35,7 +51,7 @@ def stetho_open(device=None, process=None):
 
   return adb.sock
 
-def read_input(sock, n, tag):  
+def read_input(sock, n, tag):
   data = b'';
   while len(data) < n:
     incoming_data = sock.recv(n - len(data))
@@ -45,9 +61,9 @@ def read_input(sock, n, tag):
   if len(data) != n:
     raise IOError('Unexpected end of stream while reading %s.' % tag)
   return data
-  
-def _find_only_stetho_socket(device):
-  adb = _connect_to_device(device)
+
+def _find_only_stetho_socket(device, port):
+  adb = _connect_to_device(device, port)
   try:
     adb.select_service('shell:cat /proc/net/unix')
     last_stetho_socket_name = None
@@ -78,9 +94,12 @@ def _find_only_stetho_socket(device):
   finally:
     adb.sock.close()
 
-def _connect_to_device(device=None):
+def _connect_to_device(device=None, port=None):
+  if port is None:
+    raise HumanReadableError('Must specify a port when calling _connect_to_device')
+
   adb = AdbSmartSocketClient()
-  adb.connect()
+  adb.connect(port)
 
   try:
     if device is None:

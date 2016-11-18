@@ -26,8 +26,11 @@ def main():
   # transport.
   device = os.environ.get('ANDROID_SERIAL')
 
+  # Connect on the overridden port if specified
+  port = get_adb_server_port()
+
   try:
-    sock = stetho_open(device, process)
+    sock = stetho_open(device, process, port)
 
     # Send dumpapp hello (DUMP + version=1)
     sock.send(b'DUMP' + struct.pack('!L', 1))
