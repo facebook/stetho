@@ -17,6 +17,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -104,6 +105,9 @@ public class ObjectMapper {
     Field[] fields = type.getFields();
     for (int i = 0; i < fields.length; ++i) {
       Field field = fields[i];
+      if (Modifier.isStatic(field.getModifiers())) {
+        continue;
+      }
       Object value = jsonObject.opt(field.getName());
       Object setValue = getValueForField(field, value);
       try {
@@ -240,21 +244,25 @@ public class ObjectMapper {
     JSONObject jsonObject = new JSONObject();
     Field[] fields = fromValue.getClass().getFields();
     for (int i = 0; i < fields.length; ++i) {
-      JsonProperty property = fields[i].getAnnotation(JsonProperty.class);
+      Field field = fields[i];
+      if (Modifier.isStatic(field.getModifiers())) {
+        continue;
+      }
+      JsonProperty property = field.getAnnotation(JsonProperty.class);
       if (property != null) {
         // AutoBox here ...
-        Object value = fields[i].get(fromValue);
-        Class clazz = fields[i].getType();
+        Object value = field.get(fromValue);
+        Class clazz = field.getType();
         if (value != null) {
           clazz = value.getClass();
         }
-        String name = fields[i].getName();
+        String name = field.getName();
         if (property.required() && value == null) {
           value = JSONObject.NULL;
         } else if (value == JSONObject.NULL) {
           // Leave it as null in this case.
         } else {
-          value = getJsonValue(value, clazz, fields[i]);
+          value = getJsonValue(value, clazz, field);
         }
         jsonObject.put(name, value);
       }
