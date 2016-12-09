@@ -10,14 +10,12 @@
 package com.facebook.stetho.inspector.elements;
 
 import android.os.SystemClock;
+
 import com.facebook.stetho.common.Accumulator;
 import com.facebook.stetho.common.ArrayListAccumulator;
 import com.facebook.stetho.common.LogUtil;
 import com.facebook.stetho.inspector.helper.ObjectIdMapper;
 import com.facebook.stetho.inspector.helper.ThreadBoundProxy;
-
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.GuardedBy;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -26,6 +24,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
 import java.util.regex.Pattern;
+
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy;
 
 public final class Document extends ThreadBoundProxy {
   private final DocumentProviderFactory mFactory;
@@ -361,9 +362,11 @@ public final class Document extends ThreadBoundProxy {
         // sub-tree is included automatically, so we don't need to send events for those.
         if (newElementInfo.parentElement == null) {
           ElementInfo oldElementInfo = mShadowDocument.getElementInfo(element);
-          int parentNodeId = mObjectIdMapper.getIdForObject(oldElementInfo.parentElement);
-          int nodeId = mObjectIdMapper.getIdForObject(element);
-          mUpdateListeners.onChildNodeRemoved(parentNodeId, nodeId);
+          Integer parentNodeId = mObjectIdMapper.getIdForObject(oldElementInfo.parentElement);
+          Integer nodeId = mObjectIdMapper.getIdForObject(element);
+          if (parentNodeId != null && nodeId != null) {
+            mUpdateListeners.onChildNodeRemoved(parentNodeId, nodeId);
+          }
         }
 
         // All garbage elements should be unhooked.
@@ -391,9 +394,11 @@ public final class Document extends ThreadBoundProxy {
         final ElementInfo newElementInfo = docUpdate.getElementInfo(element);
 
         if (newElementInfo.parentElement != oldElementInfo.parentElement) {
-          int parentNodeId = mObjectIdMapper.getIdForObject(oldElementInfo.parentElement);
-          int nodeId = mObjectIdMapper.getIdForObject(element);
-          mUpdateListeners.onChildNodeRemoved(parentNodeId, nodeId);
+          Integer parentNodeId = mObjectIdMapper.getIdForObject(oldElementInfo.parentElement);
+          Integer nodeId = mObjectIdMapper.getIdForObject(element);
+          if (parentNodeId != null && nodeId != null) {
+            mUpdateListeners.onChildNodeRemoved(parentNodeId, nodeId);
+          }
         }
       }
     });
@@ -561,8 +566,10 @@ public final class Document extends ThreadBoundProxy {
 
     public void removeWithEvent(int index) {
       Object element = remove(index);
-      int nodeId = mObjectIdMapper.getIdForObject(element);
-      mUpdateListeners.onChildNodeRemoved(mParentNodeId, nodeId);
+      Integer nodeId = mObjectIdMapper.getIdForObject(element);
+      if (nodeId != null) {
+        mUpdateListeners.onChildNodeRemoved(mParentNodeId, nodeId);
+      }
     }
   }
 
