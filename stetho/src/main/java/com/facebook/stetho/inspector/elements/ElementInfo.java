@@ -12,6 +12,7 @@ package com.facebook.stetho.inspector.elements;
 import com.facebook.stetho.common.ListUtil;
 import com.facebook.stetho.common.Util;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
 import java.util.List;
@@ -19,12 +20,12 @@ import java.util.List;
 @Immutable
 public final class ElementInfo {
   public final Object element;
-  public final Object parentElement;
+  public @Nullable final Object parentElement;
   public final List<Object> children;
 
-  public ElementInfo(
+  ElementInfo(
       Object element,
-      Object parentElement,
+      @Nullable Object parentElement,
       List<Object> children) {
     this.element = Util.throwIfNull(element);
     this.parentElement = parentElement;

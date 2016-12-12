@@ -344,17 +344,32 @@ public final class Document extends ThreadBoundProxy {
     // TODO: it'd be nice if we could delegate our calls into mPeerManager.sendNotificationToPeers()
     //       to a background thread so as to offload the UI from JSON serialization stuff
 
-    // First, any elements that have been disconnected from the tree, and any elements in those
-    // sub-trees which have not been reconnected to the tree, should be garbage collected.
-    // We do this first so that we can tag nodes as garbage by removing them from mObjectIdMapper
-    // (which also unhooks them). We rely on this marking later.
+    // Applying the ShadowDocument.Update is done in five stages. You may notice that the code is
+    // calling mObjectIdMapper.getIdForObject(), which returns Integer and whose return is annotated
+    // with @Nullable, and storing it in an int without doing a null check. This is intentional: if
+    // the element being requested is not in mObjectIdMapper, then that indicates a pretty serious
+    // bug in the implementation of this algorithm. It's a cheap runtime assert, in other words.
+
+    // Stage 1: any elements that have been disconnected from the tree, and any elements in those
+    // sub-trees which have not been reconnected to the tree, should be garbage collected. For now
+    // we gather a list of garbage element IDs which we use in stages 2 to test a changed element
+    // to see if it's also garbage. Then during stage 3 we use this list to unhook all of the
+    // garbage elements.
+
+    // This is used to collect the garbage element IDs in stage 1. It is sorted before stage 2 so
+    // that it can use a binary search as a quick "contains()" method.
+    // Note that this could be accomplished in a simpler way by employing a HashSet<Object> and
+    // storing the element Objects. However, HashSet wraps HashMap and we would have a lot more
+    // allocations (Map.Entry, iterator during stage 3) and thus GC pressure.
+    // Using SparseArray wouldn't be good because it ensures sorted ordering as you go, but we don't
+    // need that during stage 1. Using ArrayList with int boxing is fine because the Integers are
+    // already boxed inside of mObjectIdMapper and we make sure to reuse that allocation.
+    final ArrayList<Integer> garbageElementIds = new ArrayList<>();
+
     docUpdate.getGarbageElements(new Accumulator<Object>() {
       @Override
       public void store(Object element) {
-        if (!mObjectIdMapper.containsObject(element)) {
-          throw new IllegalStateException();
-        }
-
+        int nodeId = mObjectIdMapper.getIdForObject(element);
         ElementInfo newElementInfo = docUpdate.getElementInfo(element);
 
         // Only raise onChildNodeRemoved for the root of a disconnected tree. The remainder of the
@@ -362,43 +377,49 @@ public final class Document extends ThreadBoundProxy {
         if (newElementInfo.parentElement == null) {
           ElementInfo oldElementInfo = mShadowDocument.getElementInfo(element);
           int parentNodeId = mObjectIdMapper.getIdForObject(oldElementInfo.parentElement);
-          int nodeId = mObjectIdMapper.getIdForObject(element);
           mUpdateListeners.onChildNodeRemoved(parentNodeId, nodeId);
         }
 
-        // All garbage elements should be unhooked.
-        mObjectIdMapper.removeObject(element);
+        garbageElementIds.add(nodeId);
       }
     });
 
-    // Second, remove all elements that have been reparented. Otherwise we get into trouble if we
+    Collections.sort(garbageElementIds);
+
+    // Stage 2: remove all elements that have been reparented. Otherwise we get into trouble if we
     // transmit an event to insert under the new parent before we've transmitted an event to remove
     // it from the old parent. The removal event is ignored because the parent doesn't match the
     // listener's expectations, so we get ghost elements that are stuck and can't be exorcised.
     docUpdate.getChangedElements(new Accumulator<Object>() {
       @Override
       public void store(Object element) {
-        // If this returns false then it means the element was garbage and has already been removed
-        if (!mObjectIdMapper.containsObject(element)) {
+        int nodeId = mObjectIdMapper.getIdForObject(element);
+
+        // Skip garbage elements
+        if (Collections.binarySearch(garbageElementIds, nodeId) > 0) {
           return;
         }
 
+        // Skip new elements
         final ElementInfo oldElementInfo = mShadowDocument.getElementInfo(element);
         if (oldElementInfo == null) {
           return;
         }
 
         final ElementInfo newElementInfo = docUpdate.getElementInfo(element);
-
         if (newElementInfo.parentElement != oldElementInfo.parentElement) {
           int parentNodeId = mObjectIdMapper.getIdForObject(oldElementInfo.parentElement);
-          int nodeId = mObjectIdMapper.getIdForObject(element);
           mUpdateListeners.onChildNodeRemoved(parentNodeId, nodeId);
         }
       }
     });
 
-    // Third, transmit all other changes to our listener. This includes inserting reparented
+    // Stage 3: unhook garbage elements
+    for (int i = 0, N = garbageElementIds.size(); i < N; ++i) {
+      mObjectIdMapper.removeObjectById(garbageElementIds.get(i));
+    }
+
+    // Stage 4: transmit all other changes to our listener. This includes inserting reparented
     // elements that we removed in the 2nd stage.
     docUpdate.getChangedElements(new Accumulator<Object>() {
       private final HashSet<Object> listenerInsertedElements = new HashSet<>();
@@ -417,8 +438,9 @@ public final class Document extends ThreadBoundProxy {
 
       @Override
       public void store(Object element) {
-        // If this returns false then it means the element was garbage and has already been removed
         if (!mObjectIdMapper.containsObject(element)) {
+          // The element was garbage and has already been removed. At this stage that's okay and we
+          // just skip it and continue forward with the algorithm.
           return;
         }
 
@@ -459,6 +481,7 @@ public final class Document extends ThreadBoundProxy {
       }
     });
 
+    // Stage 5: Finally, commit the update to the ShadowDocument.
     docUpdate.commit();
   }
 
