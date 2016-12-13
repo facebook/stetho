@@ -13,6 +13,7 @@ import android.os.SystemClock;
 import com.facebook.stetho.common.Accumulator;
 import com.facebook.stetho.common.ArrayListAccumulator;
 import com.facebook.stetho.common.LogUtil;
+import com.facebook.stetho.common.Util;
 import com.facebook.stetho.inspector.helper.ObjectIdMapper;
 import com.facebook.stetho.inspector.helper.ThreadBoundProxy;
 
@@ -344,11 +345,7 @@ public final class Document extends ThreadBoundProxy {
     // TODO: it'd be nice if we could delegate our calls into mPeerManager.sendNotificationToPeers()
     //       to a background thread so as to offload the UI from JSON serialization stuff
 
-    // Applying the ShadowDocument.Update is done in five stages. You may notice that the code is
-    // calling mObjectIdMapper.getIdForObject(), which returns Integer and whose return is annotated
-    // with @Nullable, and storing it in an int without doing a null check. This is intentional: if
-    // the element being requested is not in mObjectIdMapper, then that indicates a pretty serious
-    // bug in the implementation of this algorithm. It's a cheap runtime assert, in other words.
+    // Applying the ShadowDocument.Update is done in five stages:
 
     // Stage 1: any elements that have been disconnected from the tree, and any elements in those
     // sub-trees which have not been reconnected to the tree, should be garbage collected. For now
@@ -369,7 +366,7 @@ public final class Document extends ThreadBoundProxy {
     docUpdate.getGarbageElements(new Accumulator<Object>() {
       @Override
       public void store(Object element) {
-        int nodeId = mObjectIdMapper.getIdForObject(element);
+        Integer nodeId = Util.throwIfNull(mObjectIdMapper.getIdForObject(element));
         ElementInfo newElementInfo = docUpdate.getElementInfo(element);
 
         // Only raise onChildNodeRemoved for the root of a disconnected tree. The remainder of the
@@ -393,10 +390,10 @@ public final class Document extends ThreadBoundProxy {
     docUpdate.getChangedElements(new Accumulator<Object>() {
       @Override
       public void store(Object element) {
-        int nodeId = mObjectIdMapper.getIdForObject(element);
+        Integer nodeId = Util.throwIfNull(mObjectIdMapper.getIdForObject(element));
 
         // Skip garbage elements
-        if (Collections.binarySearch(garbageElementIds, nodeId) > 0) {
+        if (Collections.binarySearch(garbageElementIds, nodeId) >= 0) {
           return;
         }
 
