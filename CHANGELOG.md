@@ -1,6 +1,20 @@
 Change Log
 ==========
 
+## Version 1.4.2
+_2016_12_14_
+
+ * **Bug fixes**
+  Fixes a few bugs in the Elements tab.
+
+ * Fix #381: Fixes NPE while rotating the device with retained fragments.
+ * Fix #447: Support Instant Run in android studio, by fixing ObjectMapper
+ * Fix #456: Support ANDROID_ADB_SERVER_PORT
+ * Fix #454: Upgrade to OkHttp 3.4.2
+ * Fix #449: Make sure only unfocusable children's descriptions are being
+   co-opted by parents
+
+
 ## Version 1.4.1
 _2016_09_13_
 
