@@ -31,18 +31,16 @@ class StethoURLConnectionManagerImpl {
   private static final AtomicInteger sSequenceNumberGenerator = new AtomicInteger(0);
 
   private final NetworkEventReporter mStethoHook = NetworkEventReporterImpl.get();
-  private final int mRequestId;
+  private final String mRequestId;
   @Nullable
   private final String mFriendlyName;
-
-  @Nullable private String mRequestIdString;
 
   private HttpURLConnection mConnection;
   @Nullable private URLConnectionInspectorRequest mInspectorRequest;
   @Nullable private RequestBodyHelper mRequestBodyHelper;
 
   public StethoURLConnectionManagerImpl(@Nullable String friendlyName) {
-    mRequestId = sSequenceNumberGenerator.getAndIncrement();
+    mRequestId = "urlconnection-" + sSequenceNumberGenerator.getAndIncrement();
     mFriendlyName = friendlyName;
   }
 
@@ -141,9 +139,6 @@ class StethoURLConnectionManagerImpl {
    */
   @Nonnull
   public String getStethoRequestId() {
-    if (mRequestIdString == null) {
-      mRequestIdString = String.valueOf(mRequestId);
-    }
-    return mRequestIdString;
+    return mRequestId;
   }
 }
