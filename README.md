@@ -15,31 +15,31 @@ begin.
 ### Download
 Download [the latest JARs](https://github.com/facebook/stetho/releases/latest) or grab via Gradle:
 ```groovy
-compile 'com.facebook.stetho:stetho:1.4.3'
+compile 'com.facebook.stetho_for_mmdb:stetho:1.4.3'
 ```
 or Maven:
 ```xml
 <dependency>
-  <groupId>com.facebook.stetho</groupId>
+  <groupId>com.facebook.stetho_for_mmdb</groupId>
   <artifactId>stetho</artifactId>
-  <version>1.4.2</version>
+  <version>1.4.3</version>
 </dependency>
 ```
 
 Only the main `stetho` dependency is strictly required; however, you may also wish to use one of the network helpers:
 
 ```groovy
-compile 'com.facebook.stetho:stetho-okhttp3:1.4.3'
+compile 'com.facebook.stetho_for_mmdb:stetho-okhttp3:1.4.3'
 ```
 or:
 ```groovy
-compile 'com.facebook.stetho:stetho-urlconnection:1.4.3'
+compile 'com.facebook.stetho_for_mmdb:stetho-urlconnection:1.4.3'
 ```
 
 You can also enable a JavaScript console with:
 
 ```groovy
-compile 'com.facebook.stetho:stetho-js-rhino:1.4.3'
+compile 'com.facebook.stetho_for_mmdb:stetho-js-rhino:1.4.3'
 ```
 For more details on how to customize the JavaScript runtime see [stetho-js-rhino](stetho-js-rhino/).
 
