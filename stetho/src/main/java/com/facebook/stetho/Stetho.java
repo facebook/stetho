@@ -12,7 +12,7 @@ package com.facebook.stetho;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.database.sqlite.SQLiteDatabase;
+import com.tencent.mmdb.database.SQLiteDatabase;
 import android.os.Build;
 import com.facebook.stetho.common.LogUtil;
 import com.facebook.stetho.common.Util;

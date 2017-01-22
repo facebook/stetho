@@ -9,8 +9,8 @@
 
 package com.facebook.stetho.inspector.database;
 
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
+import com.tencent.mmdb.database.SQLiteDatabase;
+import com.tencent.mmdb.database.SQLiteException;
 
 import com.facebook.stetho.inspector.database.SQLiteDatabaseCompat.SQLiteOpenOptions;
 
@@ -32,6 +32,11 @@ public class DefaultDatabaseConnectionProvider implements DatabaseConnectionProv
     return performOpen(
         databaseFile,
         determineOpenOptions(databaseFile));
+  }
+
+  @Override
+  public boolean shouldClosedDatabase(){
+    return true;
   }
 
   /**

@@ -20,7 +20,7 @@ import java.util.List;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteException;
+import com.tencent.mmdb.database.SQLiteException;
 import android.os.Build;
 
 import com.facebook.stetho.common.Util;

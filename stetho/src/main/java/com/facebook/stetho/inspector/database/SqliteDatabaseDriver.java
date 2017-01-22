@@ -12,9 +12,9 @@ package com.facebook.stetho.inspector.database;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
-import android.database.sqlite.SQLiteStatement;
+import com.tencent.mmdb.database.SQLiteDatabase;
+import com.tencent.mmdb.database.SQLiteException;
+import com.tencent.mmdb.database.SQLiteStatement;
 import com.facebook.stetho.common.Util;
 import com.facebook.stetho.inspector.protocol.module.Database;
 import com.facebook.stetho.inspector.protocol.module.DatabaseConstants;
@@ -132,7 +132,9 @@ public class SqliteDatabaseDriver extends Database.DatabaseDriver {
         cursor.close();
       }
     } finally {
-      database.close();
+      if (shouldClosedDatabase()){
+          database.close();
+      }
     }
   }
 
@@ -157,7 +159,9 @@ public class SqliteDatabaseDriver extends Database.DatabaseDriver {
           return executeRawQuery(database, query, handler);
       }
     } finally {
-      database.close();
+        if (shouldClosedDatabase()){
+            database.close();
+        }
     }
   }
 
@@ -209,6 +213,10 @@ public class SqliteDatabaseDriver extends Database.DatabaseDriver {
   private SQLiteDatabase openDatabase(String databaseName) throws SQLiteException {
     Util.throwIfNull(databaseName);
     return mDatabaseConnectionProvider.openDatabase(findDatabaseFile(databaseName));
+  }
+
+  private boolean shouldClosedDatabase() {
+    return mDatabaseConnectionProvider.shouldClosedDatabase();
   }
 
   private File findDatabaseFile(String databaseName) {
