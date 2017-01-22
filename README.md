@@ -15,7 +15,7 @@ begin.
 ### Download
 Download [the latest JARs](https://github.com/facebook/stetho/releases/latest) or grab via Gradle:
 ```groovy
-compile 'com.facebook.stetho:stetho:1.4.2'
+compile 'com.facebook.stetho:stetho:1.4.3'
 ```
 or Maven:
 ```xml
@@ -29,17 +29,17 @@ or Maven:
 Only the main `stetho` dependency is strictly required; however, you may also wish to use one of the network helpers:
 
 ```groovy
-compile 'com.facebook.stetho:stetho-okhttp3:1.4.2'
+compile 'com.facebook.stetho:stetho-okhttp3:1.4.3'
 ```
 or:
 ```groovy
-compile 'com.facebook.stetho:stetho-urlconnection:1.4.2'
+compile 'com.facebook.stetho:stetho-urlconnection:1.4.3'
 ```
 
 You can also enable a JavaScript console with:
 
 ```groovy
-compile 'com.facebook.stetho:stetho-js-rhino:1.4.2'
+compile 'com.facebook.stetho:stetho-js-rhino:1.4.3'
 ```
 For more details on how to customize the JavaScript runtime see [stetho-js-rhino](stetho-js-rhino/).
 
