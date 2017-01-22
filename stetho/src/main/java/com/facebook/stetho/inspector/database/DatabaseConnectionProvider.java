@@ -29,5 +29,5 @@ public interface DatabaseConnectionProvider {
    * @param databaseFile Full path to the database file.
    * @return a boolean to determine if the database need to close after execute.
    */
-  boolean shouldClosedDatabase(File databaseFile);
+  boolean shouldCloseDatabase(File databaseFile);
 }

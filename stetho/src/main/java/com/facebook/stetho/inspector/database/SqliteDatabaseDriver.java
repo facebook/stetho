@@ -216,7 +216,7 @@ public class SqliteDatabaseDriver extends Database.DatabaseDriver {
   }
 
   private boolean shouldClosedDatabase(String databaseName) {
-    return mDatabaseConnectionProvider.shouldClosedDatabase(findDatabaseFile(databaseName));
+    return mDatabaseConnectionProvider.shouldCloseDatabase(findDatabaseFile(databaseName));
   }
 
   private File findDatabaseFile(String databaseName) {
