@@ -35,7 +35,7 @@ public class DefaultDatabaseConnectionProvider implements DatabaseConnectionProv
   }
 
   @Override
-  public boolean shouldClosedDatabase(){
+  public boolean shouldClosedDatabase(File databaseFile){
     return true;
   }
 

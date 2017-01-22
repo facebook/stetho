@@ -132,7 +132,7 @@ public class SqliteDatabaseDriver extends Database.DatabaseDriver {
         cursor.close();
       }
     } finally {
-      if (shouldClosedDatabase()){
+      if (shouldClosedDatabase(databaseName)){
           database.close();
       }
     }
@@ -159,7 +159,7 @@ public class SqliteDatabaseDriver extends Database.DatabaseDriver {
           return executeRawQuery(database, query, handler);
       }
     } finally {
-        if (shouldClosedDatabase()){
+        if (shouldClosedDatabase(databaseName)){
             database.close();
         }
     }
@@ -215,8 +215,8 @@ public class SqliteDatabaseDriver extends Database.DatabaseDriver {
     return mDatabaseConnectionProvider.openDatabase(findDatabaseFile(databaseName));
   }
 
-  private boolean shouldClosedDatabase() {
-    return mDatabaseConnectionProvider.shouldClosedDatabase();
+  private boolean shouldClosedDatabase(String databaseName) {
+    return mDatabaseConnectionProvider.shouldClosedDatabase(findDatabaseFile(databaseName));
   }
 
   private File findDatabaseFile(String databaseName) {

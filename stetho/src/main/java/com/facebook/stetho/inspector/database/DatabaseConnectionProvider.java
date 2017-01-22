@@ -26,7 +26,8 @@ public interface DatabaseConnectionProvider {
    */
   SQLiteDatabase openDatabase(File databaseFile) throws SQLiteException;
   /**
+   * @param databaseFile Full path to the database file.
    * @return a boolean to determine if the database need to close after execute.
    */
-  boolean shouldClosedDatabase();
+  boolean shouldClosedDatabase(File databaseFile);
 }
