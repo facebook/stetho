@@ -11,7 +11,7 @@ package com.facebook.stetho.inspector.elements;
 
 import com.facebook.stetho.common.Accumulator;
 
-public final class ObjectDescriptor extends Descriptor {
+public final class ObjectDescriptor extends Descriptor<Object> {
   @Override
   public void hook(Object element) {
   }

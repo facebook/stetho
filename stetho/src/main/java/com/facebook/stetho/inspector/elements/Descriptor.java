@@ -17,7 +17,7 @@ import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class Descriptor implements NodeDescriptor {
+public abstract class Descriptor<E> implements NodeDescriptor<E> {
   private Host mHost;
 
   protected Descriptor() {
@@ -104,7 +104,7 @@ public abstract class Descriptor implements NodeDescriptor {
 
   public interface Host extends ThreadBound {
     @Nullable
-    public Descriptor getDescriptor(@Nullable Object element);
+    public Descriptor<?> getDescriptor(@Nullable Object element);
 
     public void onAttributeModified(
         Object element,

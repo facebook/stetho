@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 final class ActivityDescriptor
-    extends AbstractChainedDescriptor<Activity> implements HighlightableDescriptor {
+    extends AbstractChainedDescriptor<Activity> implements HighlightableDescriptor<Activity> {
   @Override
   protected String onGetNodeName(Activity element) {
     String className = element.getClass().getName();
@@ -45,11 +45,11 @@ final class ActivityDescriptor
   }
 
   @Override
-  public View getViewForHighlighting(Object element) {
+  @Nullable
+  public View getViewForHighlighting(Activity element) {
     final Descriptor.Host host = getHost();
     if (host instanceof AndroidDescriptorHost) {
-      Activity activity = (Activity)element;
-      Window window = activity.getWindow();
+      Window window = element.getWindow();
       return ((AndroidDescriptorHost) host).getHighlightingView(window);
     }
 

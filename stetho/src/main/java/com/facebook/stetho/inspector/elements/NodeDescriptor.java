@@ -14,27 +14,27 @@ import com.facebook.stetho.common.ThreadBound;
 
 import javax.annotation.Nullable;
 
-public interface NodeDescriptor extends ThreadBound {
-  void hook(Object element);
+public interface NodeDescriptor<E> extends ThreadBound {
+  void hook(E element);
 
-  void unhook(Object element);
+  void unhook(E element);
 
-  NodeType getNodeType(Object element);
+  NodeType getNodeType(E element);
 
-  String getNodeName(Object element);
+  String getNodeName(E element);
 
-  String getLocalName(Object element);
+  String getLocalName(E element);
 
   @Nullable
-  String getNodeValue(Object element);
+  String getNodeValue(E element);
 
-  void getChildren(Object element, Accumulator<Object> children);
+  void getChildren(E element, Accumulator<Object> children);
 
-  void getAttributes(Object element, AttributeAccumulator attributes);
+  void getAttributes(E element, AttributeAccumulator attributes);
 
-  void setAttributesAsText(Object element, String text);
+  void setAttributesAsText(E element, String text);
 
-  void getStyles(Object element, StyleAccumulator accumulator);
+  void getStyles(E element, StyleAccumulator accumulator);
 
-  void getAccessibilityStyles(Object element, StyleAccumulator accumulator);
+  void getAccessibilityStyles(E element, StyleAccumulator accumulator);
 }

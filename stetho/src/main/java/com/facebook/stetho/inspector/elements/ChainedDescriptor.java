@@ -52,6 +52,6 @@ import com.facebook.stetho.common.Accumulator;
  * The third option is to implement {@link ChainedDescriptor} (e.g. by deriving from
  * {@link AbstractChainedDescriptor}) which solves all of these issues for you.<p/>
  */
-public interface ChainedDescriptor {
-  void setSuper(Descriptor superDescriptor);
+public interface ChainedDescriptor<E> {
+  void setSuper(Descriptor<? super E> superDescriptor);
 }
