@@ -43,7 +43,7 @@ final class DialogFragmentDescriptor
     if (compat != null) {
       Class<?> dialogFragmentClass = compat.getDialogFragmentClass();
       LogUtil.d("Adding support for %s", dialogFragmentClass);
-      map.register(dialogFragmentClass, new DialogFragmentDescriptor(compat));
+      map.registerDescriptor(dialogFragmentClass, new DialogFragmentDescriptor(compat));
     }
   }
 
