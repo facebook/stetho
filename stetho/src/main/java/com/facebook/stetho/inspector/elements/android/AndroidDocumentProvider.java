@@ -14,6 +14,7 @@ import android.app.Application;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Rect;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,6 +44,8 @@ final class AndroidDocumentProvider extends ThreadBoundProxy
     implements DocumentProvider, AndroidDescriptorHost {
   private static final int INSPECT_OVERLAY_COLOR = 0x40FFFFFF;
   private static final int INSPECT_HOVER_COLOR = 0x404040ff;
+
+  private final Rect mHighlightingBoundsRect = new Rect();
 
   private final Application mApplication;
   private final DescriptorMap mDescriptorMap;
@@ -138,11 +141,15 @@ final class AndroidDocumentProvider extends ThreadBoundProxy
   public void highlightElement(Object element, int color) {
     verifyThreadAccess();
 
-    View highlightingView = getHighlightingView(element);
+    mHighlightingBoundsRect.setEmpty();
+    final View highlightingView = getHighlightingView(element, mHighlightingBoundsRect);
     if (highlightingView == null) {
       mHighlighter.clearHighlight();
     } else {
-      mHighlighter.setHighlightedView(highlightingView, color);
+      mHighlighter.setHighlightedView(
+          highlightingView,
+          mHighlightingBoundsRect,
+          color);
     }
   }
 
@@ -196,7 +203,8 @@ final class AndroidDocumentProvider extends ThreadBoundProxy
 
   // AndroidDescriptorHost implementation
   @Override
-  public View getHighlightingView(Object element) {
+  @Nullable
+  public View getHighlightingView(@Nullable Object element, Rect bounds) {
     if (element == null) {
       return null;
     }
@@ -211,7 +219,8 @@ final class AndroidDocumentProvider extends ThreadBoundProxy
       }
 
       if (descriptor != lastDescriptor && descriptor instanceof HighlightableDescriptor) {
-        highlightingView = ((HighlightableDescriptor) descriptor).getViewForHighlighting(element);
+        highlightingView =
+            ((HighlightableDescriptor) descriptor).getViewAndBoundsForHighlighting(element, bounds);
       }
 
       lastDescriptor = descriptor;
@@ -319,7 +328,7 @@ final class AndroidDocumentProvider extends ThreadBoundProxy
 
           if (event.getAction() != MotionEvent.ACTION_CANCEL) {
             if (view != null) {
-              mHighlighter.setHighlightedView(view, INSPECT_HOVER_COLOR);
+              mHighlighter.setHighlightedView(view, null, INSPECT_HOVER_COLOR);
 
               if (event.getAction() == MotionEvent.ACTION_UP) {
                 if (mListener != null) {

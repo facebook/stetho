@@ -9,6 +9,7 @@
 
 package com.facebook.stetho.inspector.elements.android;
 
+import android.graphics.Rect;
 import android.view.View;
 
 import com.facebook.stetho.common.Accumulator;
@@ -73,7 +74,8 @@ final class FragmentDescriptor
   }
 
   @Override
-  public View getViewForHighlighting(Object element) {
+  @Nullable
+  public View getViewAndBoundsForHighlighting(Object element, Rect bounds) {
     return mAccessor.getView(element);
   }
 }
