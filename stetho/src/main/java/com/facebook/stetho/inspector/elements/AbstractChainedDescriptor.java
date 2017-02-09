@@ -34,11 +34,13 @@ import javax.annotation.Nullable;
  * @param <E> the class that this descriptor will be describing for {@link DocumentProvider},
  * {@link Document}, and ultimately {@link DOM}.
  */
-public abstract class AbstractChainedDescriptor<E> extends Descriptor implements ChainedDescriptor {
+public abstract class AbstractChainedDescriptor<E>
+    extends Descriptor<E> implements ChainedDescriptor<E> {
 
-  private Descriptor mSuper;
+  private Descriptor<? super E> mSuper;
 
-  public void setSuper(Descriptor superDescriptor) {
+  @Override
+  public void setSuper(Descriptor<? super E> superDescriptor) {
     Util.throwIfNull(superDescriptor);
 
     if (superDescriptor != mSuper) {
@@ -49,26 +51,24 @@ public abstract class AbstractChainedDescriptor<E> extends Descriptor implements
     }
   }
 
-  final Descriptor getSuper() {
+  final Descriptor<? super E> getSuper() {
     return mSuper;
   }
 
   @Override
-  @SuppressWarnings("unchecked")
-  public final void hook(Object element) {
+  public final void hook(E element) {
     verifyThreadAccess();
     mSuper.hook(element);
-    onHook((E) element);
+    onHook(element);
   }
 
   protected void onHook(E element) {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
-  public final void unhook(Object element) {
+  public final void unhook(E element) {
     verifyThreadAccess();
-    onUnhook((E) element);
+    onUnhook(element);
     mSuper.unhook(element);
   }
 
@@ -76,9 +76,8 @@ public abstract class AbstractChainedDescriptor<E> extends Descriptor implements
   }
 
   @Override
-  @SuppressWarnings("unchecked")
-  public final NodeType getNodeType(Object element) {
-    return onGetNodeType((E) element);
+  public final NodeType getNodeType(E element) {
+    return onGetNodeType(element);
   }
 
   protected NodeType onGetNodeType(E element) {
@@ -86,9 +85,8 @@ public abstract class AbstractChainedDescriptor<E> extends Descriptor implements
   }
 
   @Override
-  @SuppressWarnings("unchecked")
-  public final String getNodeName(Object element) {
-    return onGetNodeName((E) element);
+  public final String getNodeName(E element) {
+    return onGetNodeName(element);
   }
 
   protected String onGetNodeName(E element) {
@@ -96,9 +94,8 @@ public abstract class AbstractChainedDescriptor<E> extends Descriptor implements
   }
 
   @Override
-  @SuppressWarnings("unchecked")
-  public final String getLocalName(Object element) {
-    return onGetLocalName((E) element);
+  public final String getLocalName(E element) {
+    return onGetLocalName(element);
   }
 
   protected String onGetLocalName(E element) {
@@ -106,9 +103,8 @@ public abstract class AbstractChainedDescriptor<E> extends Descriptor implements
   }
 
   @Override
-  @SuppressWarnings("unchecked")
-  public final String getNodeValue(Object element) {
-    return onGetNodeValue((E) element);
+  public final String getNodeValue(E element) {
+    return onGetNodeValue(element);
   }
 
   @Nullable
@@ -117,29 +113,26 @@ public abstract class AbstractChainedDescriptor<E> extends Descriptor implements
   }
 
   @Override
-  @SuppressWarnings("unchecked")
-  public final void getChildren(Object element, Accumulator<Object> children) {
+  public final void getChildren(E element, Accumulator<Object> children) {
     mSuper.getChildren(element, children);
-    onGetChildren((E) element, children);
+    onGetChildren(element, children);
   }
 
   protected void onGetChildren(E element, Accumulator<Object> children) {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
-  public final void getAttributes(Object element, AttributeAccumulator attributes) {
+  public final void getAttributes(E element, AttributeAccumulator attributes) {
     mSuper.getAttributes(element, attributes);
-    onGetAttributes((E) element, attributes);
+    onGetAttributes(element, attributes);
   }
 
   protected void onGetAttributes(E element, AttributeAccumulator attributes) {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
-  public final void setAttributesAsText(Object element, String text) {
-    onSetAttributesAsText((E) element, text);
+  public final void setAttributesAsText(E element, String text) {
+    onSetAttributesAsText(element, text);
   }
 
   protected void onSetAttributesAsText(E element, String text) {
@@ -147,20 +140,18 @@ public abstract class AbstractChainedDescriptor<E> extends Descriptor implements
   }
 
   @Override
-  @SuppressWarnings("unchecked")
-  public final void getStyles(Object element, StyleAccumulator accumulator) {
+  public final void getStyles(E element, StyleAccumulator accumulator) {
     mSuper.getStyles(element, accumulator);
-    onGetStyles((E) element, accumulator);
+    onGetStyles(element, accumulator);
   }
 
   protected void onGetStyles(E element, StyleAccumulator accumulator) {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
-  public final void getAccessibilityStyles(Object element, StyleAccumulator accumulator) {
+  public final void getAccessibilityStyles(E element, StyleAccumulator accumulator) {
     mSuper.getAccessibilityStyles(element, accumulator);
-    onGetAccessibilityStyles((E) element, accumulator);
+    onGetAccessibilityStyles(element, accumulator);
   }
 
   protected void onGetAccessibilityStyles(E element, StyleAccumulator accumulator) {

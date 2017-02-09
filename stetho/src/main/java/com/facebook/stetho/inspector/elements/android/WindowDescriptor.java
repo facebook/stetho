@@ -18,7 +18,7 @@ import com.facebook.stetho.inspector.elements.AbstractChainedDescriptor;
 import javax.annotation.Nullable;
 
 final class WindowDescriptor extends AbstractChainedDescriptor<Window>
-    implements HighlightableDescriptor {
+    implements HighlightableDescriptor<Window> {
   @Override
   protected void onGetChildren(Window element, Accumulator<Object> children) {
     View decorView = element.peekDecorView();
@@ -29,8 +29,7 @@ final class WindowDescriptor extends AbstractChainedDescriptor<Window>
 
   @Override
   @Nullable
-  public View getViewForHighlighting(Object element) {
-    Window window = (Window) element;
-    return window.peekDecorView();
+  public View getViewForHighlighting(Window element) {
+    return element.peekDecorView();
   }
 }

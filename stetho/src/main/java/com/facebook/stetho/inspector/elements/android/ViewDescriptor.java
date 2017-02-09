@@ -37,7 +37,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-final class ViewDescriptor extends AbstractChainedDescriptor<View> implements HighlightableDescriptor {
+final class ViewDescriptor extends AbstractChainedDescriptor<View>
+    implements HighlightableDescriptor<View> {
   private static final String ID_NAME = "id";
   private static final String NONE_VALUE = "(none)";
   private static final String NONE_MAPPING = "<no mapping>";
@@ -156,8 +157,8 @@ final class ViewDescriptor extends AbstractChainedDescriptor<View> implements Hi
   }
 
   @Override
-  public View getViewForHighlighting(Object element) {
-    return (View) element;
+  public View getViewForHighlighting(View element) {
+    return element;
   }
 
   @Override
