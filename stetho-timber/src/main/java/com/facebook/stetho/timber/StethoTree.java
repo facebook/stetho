@@ -17,16 +17,37 @@ import timber.log.Timber;
 
 /**
  * Timber tree implementation which forwards logs to the Chrome Dev console.
+ * This uses a {@link Timber.DebugTree} to automatically infer the tag from the calling class.
  * Plant it using {@link Timber#plant(Timber.Tree)}
  * <pre>
  *   {@code
  *   Timber.plant(new StethoTree())
+ *   //or
+ *   Timber.plant(new StethoTree(
+ *       new StethoTree.Configuration.Builder()
+ *           .showTags(true)
+ *           .minimumPriority(Log.WARN)
+ *           .build()));
  *   }
  * </pre>
  */
-public class StethoTree extends Timber.Tree {
+public class StethoTree extends Timber.DebugTree {
+  private final Configuration mConfiguration;
+
+  public StethoTree() {
+    this.mConfiguration = new Configuration.Builder().build();
+  }
+
+  public StethoTree(Configuration configuration) {
+    this.mConfiguration = configuration;
+  }
+
   @Override
   protected void log(int priority, String tag, String message, Throwable t) {
+
+    if(priority < mConfiguration.mMinimumPriority) {
+      return;
+    }
 
     ConsolePeerManager peerManager = ConsolePeerManager.getInstanceOrNull();
     if (peerManager == null) {
@@ -54,10 +75,63 @@ public class StethoTree extends Timber.Tree {
         logLevel = Console.MessageLevel.LOG;
     }
 
+    StringBuilder messageBuilder = new StringBuilder();
+
+    if(mConfiguration.mShowTags && tag != null) {
+      messageBuilder
+          .append("[")
+          .append(tag)
+          .append("] ");
+    }
+
+    messageBuilder.append(message);
+
     CLog.writeToConsole(
         logLevel,
         Console.MessageSource.OTHER,
-        message
+        messageBuilder.toString()
     );
+  }
+
+  public static class Configuration {
+
+    private final boolean mShowTags;
+    private final int mMinimumPriority;
+
+    private Configuration(boolean showTags, int minimumPriority) {
+      this.mShowTags = showTags;
+      this.mMinimumPriority = minimumPriority;
+    }
+
+    public static class Builder {
+
+      private boolean mShowTags = false;
+      private int mMinimumPriority = Log.VERBOSE;
+
+      /**
+       * @param showTags Logs the tag of the calling class when true.
+       *                 Default is false.
+       * @return This {@link Configuration.Builder} instance.
+       */
+      public Builder showTags(boolean showTags) {
+        this.mShowTags = showTags;
+        return this;
+      }
+
+      /**
+       * @param priority Minimum log priority to send log.
+       *                 Expects one of constants defined in {@link android.util.Log}.
+       *                 Default is {@link Log#VERBOSE}.
+       * @return This {@link Configuration.Builder} instance.
+       */
+      public Builder minimumPriority(int priority) {
+        this.mMinimumPriority = priority;
+        return this;
+      }
+
+      public Configuration build() {
+        return new Configuration(mShowTags, mMinimumPriority);
+      }
+    }
   }
 }
