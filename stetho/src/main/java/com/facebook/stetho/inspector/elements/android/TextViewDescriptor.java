@@ -42,7 +42,7 @@ final class TextViewDescriptor extends AbstractChainedDescriptor<TextView> {
   @Override
   protected void onGetAttributes(TextView element, AttributeAccumulator attributes) {
     CharSequence text = element.getText();
-    if (text.length() != 0) {
+    if (text != null && text.length() != 0) {
       attributes.store(TEXT_ATTRIBUTE_NAME, text.toString());
     }
   }
