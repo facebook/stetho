@@ -567,7 +567,7 @@ public class Runtime implements ChromeDevtoolsDomain {
   public static enum ObjectSubType {
     ARRAY("array"),
     NULL("null"),
-    NODE("node"),
+    NODE("nodeID"),
     REGEXP("regexp"),
     DATE("date"),
     MAP("map"),

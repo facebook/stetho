@@ -17,8 +17,9 @@ import com.facebook.stetho.common.UncheckedCallable;
 import com.facebook.stetho.common.Util;
 import com.facebook.stetho.inspector.elements.DocumentView;
 import com.facebook.stetho.inspector.elements.Document;
-import com.facebook.stetho.inspector.elements.ElementInfo;
+import com.facebook.stetho.inspector.elements.NodeInfo;
 import com.facebook.stetho.inspector.elements.NodeDescriptor;
+import com.facebook.stetho.inspector.elements.NodeID;
 import com.facebook.stetho.inspector.elements.NodeType;
 import com.facebook.stetho.inspector.helper.ChromePeerManager;
 import com.facebook.stetho.inspector.helper.PeersRegisteredListener;
@@ -201,7 +202,12 @@ public class DOM implements ChromeDevtoolsDomain {
     mDocument.postAndWait(new Runnable() {
       @Override
       public void run() {
-        mDocument.findMatchingElements(request.query, resultNodeIds);
+        mDocument.findMatchingElements(request.query, new Accumulator<NodeID>() {
+          @Override
+          public void store(NodeID nodeID) {
+            resultNodeIds.store(nodeID.value);
+          }
+        });
       }
     });
 
@@ -266,7 +272,8 @@ public class DOM implements ChromeDevtoolsDomain {
     NodeDescriptor descriptor = mDocument.getNodeDescriptor(element);
 
     Node node = new DOM.Node();
-    node.nodeId = mDocument.getNodeIdForElement(element);
+    final NodeID nodeID = mDocument.getNodeIdForElement(element);
+    node.nodeId = nodeID.value;
     node.nodeType = descriptor.getNodeType(element);
     node.nodeName = descriptor.getNodeName(element);
     node.localName = descriptor.getLocalName(element);
@@ -279,13 +286,14 @@ public class DOM implements ChromeDevtoolsDomain {
     node.attributes = accumulator;
 
     // Children
-    ElementInfo elementInfo = view.getElementInfo(element);
-    List<Node> childrenNodes = (elementInfo.children.size() == 0)
+    NodeInfo nodeInfo = view.getNodeInfo(nodeID);
+    List<Node> childrenNodes = (nodeInfo.childrenIDs.size() == 0)
         ? Collections.<Node>emptyList()
-        : new ArrayList<Node>(elementInfo.children.size());
+        : new ArrayList<Node>(nodeInfo.childrenIDs.size());
 
-    for (int i = 0, N = elementInfo.children.size(); i < N; ++i) {
-      final Object childElement = elementInfo.children.get(i);
+    for (int i = 0, N = nodeInfo.childrenIDs.size(); i < N; ++i) {
+      final NodeID childID = nodeInfo.childrenIDs.get(i);
+      final Object childElement = mDocument.getElementForNodeId(childID);
       Node childNode = createNodeForElement(childElement, view, processedElements);
       childrenNodes.add(childNode);
     }
@@ -334,7 +342,7 @@ public class DOM implements ChromeDevtoolsDomain {
   private final class DocumentUpdateListener implements Document.UpdateListener {
     public void onAttributeModified(Object element, String name, String value) {
       AttributeModifiedEvent message = new AttributeModifiedEvent();
-      message.nodeId = mDocument.getNodeIdForElement(element);
+      message.nodeId = mDocument.getNodeIdForElement(element).value;
       message.name = name;
       message.value = value;
       mPeerManager.sendNotificationToPeers("DOM.onAttributeModified", message);
@@ -342,32 +350,32 @@ public class DOM implements ChromeDevtoolsDomain {
 
     public void onAttributeRemoved(Object element, String name) {
       AttributeRemovedEvent message = new AttributeRemovedEvent();
-      message.nodeId = mDocument.getNodeIdForElement(element);
+      message.nodeId = mDocument.getNodeIdForElement(element).value;
       message.name = name;
       mPeerManager.sendNotificationToPeers("DOM.attributeRemoved", message);
     }
 
     public void onInspectRequested(Object element) {
-      Integer nodeId = mDocument.getNodeIdForElement(element);
-      if (nodeId == null) {
+      NodeID nodeID = mDocument.getNodeIdForElement(element);
+      if (nodeID == null) {
         LogUtil.d(
             "DocumentProvider.Listener.onInspectRequested() " +
-                "called for a non-mapped node: element=%s",
+                "called for a non-mapped nodeID: nodeID=%s",
             element);
       } else {
         InspectNodeRequestedEvent message = new InspectNodeRequestedEvent();
-        message.nodeId = nodeId;
+        message.nodeId = nodeID.value;
         mPeerManager.sendNotificationToPeers("DOM.inspectNodeRequested", message);
       }
     }
 
     public void onChildNodeRemoved(
-        int parentNodeId,
-        int nodeId) {
+        NodeID parentNodeId,
+        NodeID nodeId) {
       ChildNodeRemovedEvent removedEvent = acquireChildNodeRemovedEvent();
 
-      removedEvent.parentNodeId = parentNodeId;
-      removedEvent.nodeId = nodeId;
+      removedEvent.parentNodeId = parentNodeId.value;
+      removedEvent.nodeId = nodeId.value;
       mPeerManager.sendNotificationToPeers("DOM.childNodeRemoved", removedEvent);
 
       releaseChildNodeRemovedEvent(removedEvent);
@@ -376,13 +384,13 @@ public class DOM implements ChromeDevtoolsDomain {
     public void onChildNodeInserted(
         DocumentView view,
         Object element,
-        int parentNodeId,
-        int previousNodeId,
+        NodeID parentNodeId,
+        NodeID previousNodeId,
         Accumulator<Object> insertedElements) {
       ChildNodeInsertedEvent insertedEvent = acquireChildNodeInsertedEvent();
 
-      insertedEvent.parentNodeId = parentNodeId;
-      insertedEvent.previousNodeId = previousNodeId;
+      insertedEvent.parentNodeId = parentNodeId.value;
+      insertedEvent.previousNodeId = previousNodeId.value;
       insertedEvent.node = createNodeForElement(element, view, insertedElements);
 
       mPeerManager.sendNotificationToPeers("DOM.childNodeInserted", insertedEvent);

@@ -228,10 +228,10 @@ final class AndroidDocumentProvider extends ThreadBoundProxy
         @Override
         public void store(Object element) {
           if (element instanceof Window) {
-            // Store the Window and do not recurse into its children.
+            // Store the Window and do not recurse into its childrenIDs.
             accumulator.store((Window) element);
           } else {
-            // Recursively scan this element's children in search of more Windows.
+            // Recursively scan this nodeID's childrenIDs in search of more Windows.
             Descriptor elementDescriptor = getDescriptor(element);
             if (elementDescriptor != null) {
               elementDescriptor.getChildren(element, this);

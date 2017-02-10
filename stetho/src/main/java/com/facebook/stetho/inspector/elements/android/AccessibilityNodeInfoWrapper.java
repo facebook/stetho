@@ -64,7 +64,7 @@ public final class AccessibilityNodeInfoWrapper {
       return true;
     }
 
-    // If this node has no focusable ancestors, but it still has text,
+    // If this nodeID has no focusable ancestors, but it still has text,
     // then it should receive focus from navigation and be read aloud.
     if (!AccessibilityUtil.hasFocusableAncestor(node, view) && AccessibilityUtil.hasText(node)) {
       return false;
@@ -117,7 +117,7 @@ public final class AccessibilityNodeInfoWrapper {
 
     if (AccessibilityUtil.isActionableForAccessibility(node)) {
       if (node.getChildCount() <= 0) {
-        return "View is actionable and has no children.";
+        return "View is actionable and has no childrenIDs.";
       } else if (hasText) {
         return "View is actionable and has a description.";
       } else if (isCheckable) {
@@ -187,10 +187,10 @@ public final class AccessibilityNodeInfoWrapper {
           actionLabels.append("previous-at-movement-granularity");
           break;
         case AccessibilityNodeInfoCompat.ACTION_NEXT_HTML_ELEMENT:
-          actionLabels.append("next-html-element");
+          actionLabels.append("next-html-nodeID");
           break;
         case AccessibilityNodeInfoCompat.ACTION_PREVIOUS_HTML_ELEMENT:
-          actionLabels.append("previous-html-element");
+          actionLabels.append("previous-html-nodeID");
           break;
         case AccessibilityNodeInfoCompat.ACTION_SCROLL_FORWARD:
           actionLabels.append("scroll-forward");
@@ -241,7 +241,7 @@ public final class AccessibilityNodeInfoWrapper {
       return nodeText;
     }
 
-    // If there are child views and no contentDescription the text of all non-focusable children,
+    // If there are child views and no contentDescription the text of all non-focusable childrenIDs,
     // comma separated, becomes the description.
     if (view instanceof ViewGroup) {
       final StringBuilder concatChildDescription = new StringBuilder();
