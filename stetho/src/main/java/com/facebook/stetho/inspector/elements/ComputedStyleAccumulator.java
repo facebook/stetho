@@ -9,6 +9,6 @@
 
 package com.facebook.stetho.inspector.elements;
 
-public interface StyleAccumulator {
-  void store(String selector, String name, String value, boolean isDefault);
+public interface ComputedStyleAccumulator {
+  void store(String name, String value);
 }

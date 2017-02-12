@@ -149,11 +149,11 @@ public abstract class AbstractChainedDescriptor<E>
   }
 
   @Override
-  public final void getAccessibilityStyles(E element, StyleAccumulator accumulator) {
-    mSuper.getAccessibilityStyles(element, accumulator);
-    onGetAccessibilityStyles(element, accumulator);
+  public void getComputedStyles(E element, ComputedStyleAccumulator accumulator) {
+    mSuper.getComputedStyles(element, accumulator);
+    onGetComputedStyles(element, accumulator);
   }
 
-  protected void onGetAccessibilityStyles(E element, StyleAccumulator accumulator) {
+  protected void onGetComputedStyles(E element, ComputedStyleAccumulator accumulator) {
   }
 }

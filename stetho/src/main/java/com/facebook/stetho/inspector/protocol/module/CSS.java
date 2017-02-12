@@ -12,6 +12,7 @@ package com.facebook.stetho.inspector.protocol.module;
 import com.facebook.stetho.common.ListUtil;
 import com.facebook.stetho.common.LogUtil;
 import com.facebook.stetho.common.Util;
+import com.facebook.stetho.inspector.elements.ComputedStyleAccumulator;
 import com.facebook.stetho.inspector.elements.Document;
 import com.facebook.stetho.inspector.elements.Origin;
 import com.facebook.stetho.inspector.elements.StyleAccumulator;
@@ -27,12 +28,22 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CSS implements ChromeDevtoolsDomain {
   private final ChromePeerManager mPeerManager;
   private final Document mDocument;
   private final ObjectMapper mObjectMapper;
+
+  /**
+   * This should not be used outside of getMatchedStylesForNode to collect styles mapped to a
+   * selector name. The reason it is a member is to avoid allocations on every call to that method.
+   * The correct usage of this field is it clear the mapped array lists ensuring they are empty
+   * after usage. Do not attempt to use this from any other method or especially thread.
+   */
+  private final Map<String, ArrayList<CSSProperty>> mSelectorCollector = new HashMap<>();
 
   public CSS(Document document) {
     mDocument = Util.throwIfNull(document);
@@ -70,18 +81,15 @@ public class CSS implements ChromeDevtoolsDomain {
           return;
         }
 
-        mDocument.getElementStyles(
+        mDocument.getElementComputedStyles(
             element,
-            new StyleAccumulator() {
+            new ComputedStyleAccumulator() {
               @Override
-              public void store(String name, String value, boolean isDefault) {
-                if (!isDefault) {
-                  CSSComputedStyleProperty property = new CSSComputedStyleProperty();
-                  property.name = name;
-                  property.value = value;
-
-                  result.computedStyle.add(property);
-                }
+              public void store(String name, String value) {
+                final CSSComputedStyleProperty property = new CSSComputedStyleProperty();
+                property.name = name;
+                property.value = value;
+                result.computedStyle.add(property);
               }
             });
       }
@@ -95,31 +103,6 @@ public class CSS implements ChromeDevtoolsDomain {
     final GetMatchedStylesForNodeRequest request = mObjectMapper.convertValue(
         params,
         GetMatchedStylesForNodeRequest.class);
-
-    final GetMatchedStylesForNodeResult result = new GetMatchedStylesForNodeResult();
-
-    final RuleMatch match = new RuleMatch();
-    final RuleMatch accessibilityMatch = getAccessibilityRuleMatch();
-    result.matchedCSSRules = ListUtil.newImmutableList(match, accessibilityMatch);
-
-    match.matchingSelectors = ListUtil.newImmutableList(0);
-
-    Selector selector = new Selector();
-    selector.value = "<this_element>";
-
-    CSSRule rule = new CSSRule();
-
-    rule.origin = Origin.REGULAR;
-    rule.selectorList = new SelectorList();
-
-    rule.selectorList.selectors = ListUtil.newImmutableList(selector);
-
-    rule.style = new CSSStyle();
-    rule.style.cssProperties = new ArrayList<>();
-
-    match.rule = rule;
-
-    rule.style.shorthandEntries = Collections.emptyList();
 
     mDocument.postAndWait(new Runnable() {
       @Override
@@ -136,57 +119,56 @@ public class CSS implements ChromeDevtoolsDomain {
             elementForNodeId,
             new StyleAccumulator() {
               @Override
-              public void store(String name, String value, boolean isDefault) {
+              public void store(String selector, String name, String value, boolean isDefault) {
                 if (!isDefault) {
-                  CSSProperty property = new CSSProperty();
+                  ArrayList<CSSProperty> properties = mSelectorCollector.get(selector);
+                  if (properties == null) {
+                    properties = new ArrayList<>();
+                    mSelectorCollector.put(selector, properties);
+                  }
+
+                  final CSSProperty property = new CSSProperty();
                   property.name = name;
                   property.value = value;
-
-                  match.rule.style.cssProperties.add(property);
-                }
-              }
-            });
-
-        mDocument.getElementAccessibilityStyles(
-            elementForNodeId,
-            new StyleAccumulator() {
-              @Override
-              public void store(String name, String value, boolean isDefault) {
-                if (!isDefault) {
-                  CSSProperty property = new CSSProperty();
-                  property.name = name;
-                  property.value = value;
-
-                  accessibilityMatch.rule.style.cssProperties.add(property);
+                  properties.add(property);
                 }
               }
             });
       }
     });
 
+    final GetMatchedStylesForNodeResult result = new GetMatchedStylesForNodeResult();
+    result.matchedCSSRules = new ArrayList<>();
     result.inherited = Collections.emptyList();
     result.pseudoElements = Collections.emptyList();
 
+    for (Map.Entry<String, ArrayList<CSSProperty>> entry : mSelectorCollector.entrySet()) {
+      final ArrayList<CSSProperty> properties = entry.getValue();
+      if (properties.isEmpty()) {
+        continue;
+      }
+
+      final RuleMatch match = new RuleMatch();
+      match.matchingSelectors = ListUtil.newImmutableList(0);
+
+      final Selector selector = new Selector();
+      selector.value = entry.getKey();
+
+      final CSSRule rule = new CSSRule();
+      rule.origin = Origin.REGULAR;
+      rule.selectorList = new SelectorList();
+      rule.selectorList.selectors = ListUtil.newImmutableList(selector);
+      rule.style = new CSSStyle();
+      rule.style.cssProperties = ListUtil.copyToImmutableList(properties);
+      rule.style.shorthandEntries = Collections.emptyList();
+
+      match.rule = rule;
+      result.matchedCSSRules.add(match);
+
+      properties.clear();
+    }
+
     return result;
-  }
-
-  private RuleMatch getAccessibilityRuleMatch() {
-    Selector selector = new Selector();
-    selector.value = "Accessibility Properties";
-
-    CSSRule rule = new CSSRule();
-    rule.origin = Origin.REGULAR;
-    rule.selectorList = new SelectorList();
-    rule.selectorList.selectors = ListUtil.newImmutableList(selector);
-    rule.style = new CSSStyle();
-    rule.style.cssProperties = new ArrayList<>();
-    rule.style.shorthandEntries = Collections.emptyList();
-
-    final RuleMatch match = new RuleMatch();
-    match.matchingSelectors = ListUtil.newImmutableList(0);
-    match.rule = rule;
-
-    return match;
   }
 
   private final class PeerManagerListener extends PeersRegisteredListener {

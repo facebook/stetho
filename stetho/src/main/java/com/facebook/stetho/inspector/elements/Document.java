@@ -147,10 +147,10 @@ public final class Document extends ThreadBoundProxy {
     nodeDescriptor.getStyles(element, styleAccumulator);
   }
 
-  public void getElementAccessibilityStyles(Object element, StyleAccumulator styleAccumulator) {
+  public void getElementComputedStyles(Object element, ComputedStyleAccumulator styleAccumulator) {
     NodeDescriptor nodeDescriptor = getNodeDescriptor(element);
 
-    nodeDescriptor.getAccessibilityStyles(element, styleAccumulator);
+    nodeDescriptor.getComputedStyles(element, styleAccumulator);
   }
 
   public DocumentView getDocumentView() {
@@ -340,7 +340,7 @@ public final class Document extends ThreadBoundProxy {
         Long.toString(deltaMs),
         isEmpty ? " (no changes)" : "");
   }
-  
+
   private void applyDocumentUpdate(final ShadowDocument.Update docUpdate) {
     // TODO: it'd be nice if we could delegate our calls into mPeerManager.sendNotificationToPeers()
     //       to a background thread so as to offload the UI from JSON serialization stuff

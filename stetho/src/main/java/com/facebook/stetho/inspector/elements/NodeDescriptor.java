@@ -36,5 +36,5 @@ public interface NodeDescriptor<E> extends ThreadBound {
 
   void getStyles(E element, StyleAccumulator accumulator);
 
-  void getAccessibilityStyles(E element, StyleAccumulator accumulator);
+  void getComputedStyles(E element, ComputedStyleAccumulator accumulator);
 }
