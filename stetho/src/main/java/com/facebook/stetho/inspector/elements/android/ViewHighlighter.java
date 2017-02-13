@@ -10,6 +10,7 @@
 package com.facebook.stetho.inspector.elements.android;
 
 import android.annotation.TargetApi;
+import android.graphics.Rect;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -38,7 +39,7 @@ abstract class ViewHighlighter {
 
   public abstract void clearHighlight();
 
-  public abstract void setHighlightedView(View view, int color);
+  public abstract void setHighlightedView(View view, @Nullable Rect bounds, int color);
 
   private static final class NoopHighlighter extends ViewHighlighter {
     @Override
@@ -46,7 +47,7 @@ abstract class ViewHighlighter {
     }
 
     @Override
-    public void setHighlightedView(View view, int color) {
+    public void setHighlightedView(View view, @Nullable Rect bounds, int color) {
     }
   }
 
@@ -60,8 +61,10 @@ abstract class ViewHighlighter {
 
     // Only assigned on the UI thread
     private View mHighlightedView;
+    private final Rect mHighlightedBounds = new Rect();
 
     private AtomicReference<View> mViewToHighlight = new AtomicReference<View>();
+    private AtomicReference<Rect> mBoundsToHighlight = new AtomicReference<Rect>();
     private AtomicInteger mContentColor = new AtomicInteger();
 
     private final Runnable mHighlightViewOnUiThreadRunnable = new Runnable() {
@@ -77,24 +80,27 @@ abstract class ViewHighlighter {
 
     @Override
     public void clearHighlight() {
-      setHighlightedViewImpl(null, 0);
+      setHighlightedViewImpl(null, null, 0);
     }
 
     @Override
-    public void setHighlightedView(View view, int color) {
-      setHighlightedViewImpl(Util.throwIfNull(view), color);
+    public void setHighlightedView(View view, @Nullable Rect bounds, int color) {
+      setHighlightedViewImpl(Util.throwIfNull(view), bounds, color);
     }
 
-    private void setHighlightedViewImpl(@Nullable View view, int color) {
+    private void setHighlightedViewImpl(@Nullable View view, @Nullable Rect bounds, int color) {
       mHandler.removeCallbacks(mHighlightViewOnUiThreadRunnable);
       mViewToHighlight.set(view);
+      mBoundsToHighlight.set(bounds);
       mContentColor.set(color);
       mHandler.postDelayed(mHighlightViewOnUiThreadRunnable, 100);
     }
 
     private void highlightViewOnUiThread() {
       final View viewToHighlight = mViewToHighlight.getAndSet(null);
-      if (viewToHighlight == mHighlightedView) {
+      final Rect boundsToHighlight = mBoundsToHighlight.getAndSet(null);
+
+      if (viewToHighlight == mHighlightedView && mHighlightedBounds.equals(boundsToHighlight)) {
         return;
       }
 
@@ -103,10 +109,19 @@ abstract class ViewHighlighter {
       }
 
       if (viewToHighlight != null) {
-        mHighlightOverlays.highlightView(viewToHighlight, mContentColor.get());
+        mHighlightOverlays.highlightView(
+            viewToHighlight,
+            boundsToHighlight,
+            mContentColor.get());
       }
 
       mHighlightedView = viewToHighlight;
+
+      if (boundsToHighlight == null) {
+        mHighlightedBounds.setEmpty();
+      } else {
+        mHighlightedBounds.set(boundsToHighlight);
+      }
     }
   }
 }
