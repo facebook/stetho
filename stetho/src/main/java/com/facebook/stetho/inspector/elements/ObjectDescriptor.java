@@ -57,6 +57,6 @@ public final class ObjectDescriptor extends Descriptor<Object> {
   }
 
   @Override
-  public void getAccessibilityStyles(Object element, StyleAccumulator accumulator) {
+  public void getComputedStyles(Object element, ComputedStyleAccumulator accumulator) {
   }
 }
