@@ -14,7 +14,7 @@ import android.view.View;
 
 import javax.annotation.Nullable;
 
-interface HighlightableDescriptor<E> {
+public interface HighlightableDescriptor<E> {
 
   /**
    * Return the {@link View} to highlight or null if this element cannot be highlighted.
