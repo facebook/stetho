@@ -16,7 +16,7 @@ import com.facebook.stetho.common.Util;
 import com.facebook.stetho.inspector.elements.AbstractChainedDescriptor;
 import com.facebook.stetho.inspector.elements.NodeType;
 
-// For the root, we use 1 object for both element and descriptor.
+// For the root, we use 1 object for both nodeID and descriptor.
 
 final class AndroidDocumentRoot extends AbstractChainedDescriptor<AndroidDocumentRoot> {
   private final Application mApplication;

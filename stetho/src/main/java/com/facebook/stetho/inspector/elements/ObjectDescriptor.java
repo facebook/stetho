@@ -11,13 +11,19 @@ package com.facebook.stetho.inspector.elements;
 
 import com.facebook.stetho.common.Accumulator;
 
+import java.util.Map;
+import java.util.HashMap;
+
 public final class ObjectDescriptor extends Descriptor<Object> {
+  private static Map<Integer, NodeID> sElementToIdMap = new HashMap<>();
+
   @Override
   public void hook(Object element) {
   }
 
   @Override
   public void unhook(Object element) {
+    sElementToIdMap.remove(System.identityHashCode(element));
   }
 
   @Override
@@ -58,5 +64,16 @@ public final class ObjectDescriptor extends Descriptor<Object> {
 
   @Override
   public void getAccessibilityStyles(Object element, StyleAccumulator accumulator) {
+  }
+
+  @Override
+  public NodeID getNodeID(Object element) {
+    final int key = System.identityHashCode(element);
+    NodeID nodeID = sElementToIdMap.get(key);
+    if (nodeID == null) {
+      nodeID = new NodeID();
+      sElementToIdMap.put(key, nodeID);
+    }
+    return nodeID;
   }
 }

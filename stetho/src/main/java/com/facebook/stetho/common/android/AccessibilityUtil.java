@@ -34,10 +34,10 @@ public final class AccessibilityUtil {
   }
 
   /**
-   * Returns whether the specified node has text or a content description.
+   * Returns whether the specified nodeID has text or a content description.
    *
-   * @param node The node to check.
-   * @return {@code true} if the node has text.
+   * @param node The nodeID to check.
+   * @return {@code true} if the nodeID has text.
    */
   public static boolean hasText(@Nullable AccessibilityNodeInfoCompat node) {
     if (node == null) {
@@ -79,10 +79,10 @@ public final class AccessibilityUtil {
 
   /**
    * Determines if the supplied {@link View} and {@link AccessibilityNodeInfoCompat} has any
-   * children which are not independently accessibility focusable and also have a spoken
+   * childrenIDs which are not independently accessibility focusable and also have a spoken
    * description.
    * <p>
-   * NOTE: Accessibility services will include these children's descriptions in the closest
+   * NOTE: Accessibility services will include these childrenIDs's descriptions in the closest
    * focusable ancestor.
    *
    * @param view The {@link View} to evaluate
@@ -149,7 +149,7 @@ public final class AccessibilityUtil {
       return true;
     }
 
-    // only focus top-level list items with non-actionable speaking children.
+    // only focus top-level list items with non-actionable speaking childrenIDs.
     return isTopLevelScrollItem(node, view) && isSpeakingNode(node, view);
   }
 
@@ -196,13 +196,13 @@ public final class AccessibilityUtil {
   }
 
   /**
-   * Returns whether a node is actionable. That is, the node supports one of
+   * Returns whether a nodeID is actionable. That is, the nodeID supports one of
    * {@link AccessibilityNodeInfoCompat#isClickable()},
    * {@link AccessibilityNodeInfoCompat#isFocusable()}, or
    * {@link AccessibilityNodeInfoCompat#isLongClickable()}.
    *
    * @param node The {@link AccessibilityNodeInfoCompat} to evaluate
-   * @return {@code true} if node is actionable.
+   * @return {@code true} if nodeID is actionable.
    */
   public static boolean isActionableForAccessibility(@Nullable AccessibilityNodeInfoCompat node) {
     if (node == null) {

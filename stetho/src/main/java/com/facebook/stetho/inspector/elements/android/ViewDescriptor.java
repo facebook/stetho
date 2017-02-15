@@ -179,7 +179,7 @@ final class ViewDescriptor extends AbstractChainedDescriptor<View>
       } catch (Exception e) {
         if (e instanceof IllegalAccessException || e instanceof InvocationTargetException) {
           LogUtil.e(e, "failed to get style property " + property.getCSSName() +
-                  " of element= " + element.toString());
+                  " of nodeID= " + element.toString());
         } else {
           throw ExceptionUtil.propagate(e);
         }

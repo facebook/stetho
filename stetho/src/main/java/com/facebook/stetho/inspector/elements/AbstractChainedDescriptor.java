@@ -156,4 +156,13 @@ public abstract class AbstractChainedDescriptor<E>
 
   protected void onGetAccessibilityStyles(E element, StyleAccumulator accumulator) {
   }
+
+  @Override
+  public final NodeID getNodeID(E element) {
+    return onGetNodeID(element);
+  }
+
+  protected NodeID onGetNodeID(E element) {
+    return mSuper.getNodeID(element);
+  }
 }

@@ -64,7 +64,7 @@ public class CSS implements ChromeDevtoolsDomain {
         Object element = mDocument.getElementForNodeId(request.nodeId);
 
         if (element == null) {
-          LogUtil.e("Tried to get the style of an element that does not exist, using nodeid=" +
+          LogUtil.e("Tried to get the style of an nodeID that does not exist, using nodeid=" +
               request.nodeId);
 
           return;
@@ -127,7 +127,7 @@ public class CSS implements ChromeDevtoolsDomain {
         Object elementForNodeId = mDocument.getElementForNodeId(request.nodeId);
 
         if (elementForNodeId == null) {
-          LogUtil.w("Failed to get style of an element that does not exist, nodeid=" +
+          LogUtil.w("Failed to get style of an nodeID that does not exist, nodeid=" +
               request.nodeId);
           return;
         }

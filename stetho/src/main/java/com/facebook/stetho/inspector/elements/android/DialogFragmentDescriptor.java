@@ -23,6 +23,7 @@ import com.facebook.stetho.inspector.elements.AttributeAccumulator;
 import com.facebook.stetho.inspector.elements.ChainedDescriptor;
 import com.facebook.stetho.inspector.elements.Descriptor;
 import com.facebook.stetho.inspector.elements.DescriptorMap;
+import com.facebook.stetho.inspector.elements.NodeID;
 import com.facebook.stetho.inspector.elements.NodeType;
 import com.facebook.stetho.inspector.elements.StyleAccumulator;
 
@@ -98,7 +99,7 @@ final class DialogFragmentDescriptor
   @Override
   public void getChildren(Object element, Accumulator<Object> children) {
     /**
-     * We do NOT want the children from our super-{@link Descriptor}, which is probably
+     * We do NOT want the childrenIDs from our super-{@link Descriptor}, which is probably
      * {@link FragmentDescriptor}. We only want to emit the {@link Dialog}, not the {@link View}.
      * Therefore, we don't call mSuper.getChildren(), and this is the reason why we don't derive
      * from {@link AbstractChainedDescriptor} (it doesn't allow a non-chained implementation of
@@ -135,5 +136,10 @@ final class DialogFragmentDescriptor
 
   @Override
   public void getAccessibilityStyles(Object element, StyleAccumulator accumulator) {
+  }
+
+  @Override
+  public NodeID getNodeID(Object element) {
+    return mSuper.getNodeID(element);
   }
 }

@@ -18,18 +18,18 @@ import javax.annotation.concurrent.Immutable;
 import java.util.List;
 
 @Immutable
-public final class ElementInfo {
-  public final Object element;
-  public @Nullable final Object parentElement;
-  public final List<Object> children;
+public final class NodeInfo {
+  public final NodeID nodeID;
+  public @Nullable final NodeID parentID;
+  public final List<NodeID> childrenIDs;
 
-  ElementInfo(
-      Object element,
-      @Nullable Object parentElement,
-      List<Object> children) {
-    this.element = Util.throwIfNull(element);
-    this.parentElement = parentElement;
-    this.children = ListUtil.copyToImmutableList(children);
+  NodeInfo(
+      NodeID nodeID,
+      @Nullable NodeID parentID,
+      List<NodeID> childrenIDs) {
+    this.nodeID = Util.throwIfNull(nodeID);
+    this.parentID = parentID;
+    this.childrenIDs = ListUtil.copyToImmutableList(childrenIDs);
   }
 
   @Override
@@ -38,11 +38,11 @@ public final class ElementInfo {
       return true;
     }
 
-    if (o instanceof ElementInfo) {
-      ElementInfo other = (ElementInfo) o;
-      return this.element == other.element
-          && this.parentElement == other.parentElement
-          && ListUtil.identityEquals(this.children, other.children);
+    if (o instanceof NodeInfo) {
+      NodeInfo other = (NodeInfo) o;
+      return this.nodeID.value == other.nodeID.value
+          && this.parentID.value == other.parentID.value
+          && this.childrenIDs.equals(other.childrenIDs);
     }
 
     return false;
