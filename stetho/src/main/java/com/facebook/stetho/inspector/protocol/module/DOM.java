@@ -337,7 +337,7 @@ public class DOM implements ChromeDevtoolsDomain {
       message.nodeId = mDocument.getNodeIdForElement(element);
       message.name = name;
       message.value = value;
-      mPeerManager.sendNotificationToPeers("DOM.onAttributeModified", message);
+      mPeerManager.sendNotificationToPeers("DOM.attributeModified", message);
     }
 
     public void onAttributeRemoved(Object element, String name) {
