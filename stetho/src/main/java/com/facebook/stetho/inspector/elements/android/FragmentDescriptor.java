@@ -40,7 +40,7 @@ final class FragmentDescriptor
     if (compat != null) {
       Class<?> fragmentClass = compat.getFragmentClass();
       LogUtil.d("Adding support for %s", fragmentClass.getName());
-      map.register(fragmentClass, new FragmentDescriptor(compat));
+      map.registerDescriptor(fragmentClass, new FragmentDescriptor(compat));
     }
   }
 

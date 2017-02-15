@@ -29,6 +29,7 @@ import com.facebook.stetho.common.Util;
 import com.facebook.stetho.common.android.ViewUtil;
 import com.facebook.stetho.inspector.elements.DocumentProvider;
 import com.facebook.stetho.inspector.elements.Descriptor;
+import com.facebook.stetho.inspector.elements.DescriptorProvider;
 import com.facebook.stetho.inspector.elements.DescriptorMap;
 import com.facebook.stetho.inspector.elements.DocumentProviderListener;
 import com.facebook.stetho.inspector.elements.NodeDescriptor;
@@ -74,7 +75,10 @@ final class AndroidDocumentProvider extends ThreadBoundProxy
     }
   };
 
-  public AndroidDocumentProvider(Application application, ThreadBound enforcer) {
+  public AndroidDocumentProvider(
+      Application application,
+      List<DescriptorProvider> descriptorProviders,
+      ThreadBound enforcer) {
     super(enforcer);
 
     mApplication = Util.throwIfNull(application);
@@ -82,19 +86,25 @@ final class AndroidDocumentProvider extends ThreadBoundProxy
 
     mDescriptorMap = new DescriptorMap()
         .beginInit()
-        .register(Activity.class, new ActivityDescriptor())
-        .register(AndroidDocumentRoot.class, mDocumentRoot)
-        .register(Application.class, new ApplicationDescriptor())
-        .register(Dialog.class, new DialogDescriptor());
+        .registerDescriptor(Activity.class, new ActivityDescriptor())
+        .registerDescriptor(AndroidDocumentRoot.class, mDocumentRoot)
+        .registerDescriptor(Application.class, new ApplicationDescriptor())
+        .registerDescriptor(Dialog.class, new DialogDescriptor())
+        .registerDescriptor(Object.class, new ObjectDescriptor())
+        .registerDescriptor(TextView.class, new TextViewDescriptor())
+        .registerDescriptor(View.class, new ViewDescriptor())
+        .registerDescriptor(ViewGroup.class, new ViewGroupDescriptor())
+        .registerDescriptor(Window.class, new WindowDescriptor());
+
     DialogFragmentDescriptor.register(mDescriptorMap);
-    FragmentDescriptor.register(mDescriptorMap)
-        .register(Object.class, new ObjectDescriptor())
-        .register(TextView.class, new TextViewDescriptor())
-        .register(View.class, new ViewDescriptor())
-        .register(ViewGroup.class, new ViewGroupDescriptor())
-        .register(Window.class, new WindowDescriptor())
-        .setHost(this)
-        .endInit();
+    FragmentDescriptor.register(mDescriptorMap);
+
+    for (int i = 0, size = descriptorProviders.size(); i < size; ++i) {
+      final DescriptorProvider descriptorProvider = descriptorProviders.get(i);
+      descriptorProvider.registerDescriptor(mDescriptorMap);
+    }
+
+    mDescriptorMap.setHost(this).endInit();
 
     mHighlighter = ViewHighlighter.newInstance();
     mInspectModeHandler = new InspectModeHandler();

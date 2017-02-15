@@ -17,22 +17,29 @@ import com.facebook.stetho.common.ThreadBound;
 import com.facebook.stetho.common.UncheckedCallable;
 import com.facebook.stetho.common.Util;
 import com.facebook.stetho.common.android.HandlerUtil;
+import com.facebook.stetho.inspector.elements.DescriptorProvider;
 import com.facebook.stetho.inspector.elements.DocumentProvider;
 import com.facebook.stetho.inspector.elements.DocumentProviderFactory;
+
+import java.util.List;
 
 public final class AndroidDocumentProviderFactory
     implements DocumentProviderFactory, ThreadBound {
   private final Application mApplication;
+  private final List<DescriptorProvider> mDescriptorProviders;
   private final Handler mHandler;
 
-  public AndroidDocumentProviderFactory(Application application) {
+  public AndroidDocumentProviderFactory(
+      Application application,
+      List<DescriptorProvider> descriptorProviders) {
     mApplication = Util.throwIfNull(application);
+    mDescriptorProviders = Util.throwIfNull(descriptorProviders);
     mHandler = new Handler(Looper.getMainLooper());
   }
 
   @Override
   public DocumentProvider create() {
-    return new AndroidDocumentProvider(mApplication, this);
+    return new AndroidDocumentProvider(mApplication, mDescriptorProviders, this);
   }
 
   // ThreadBound implementation

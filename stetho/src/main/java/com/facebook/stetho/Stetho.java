@@ -31,6 +31,7 @@ import com.facebook.stetho.inspector.database.DatabaseFilesProvider;
 import com.facebook.stetho.inspector.database.DefaultDatabaseConnectionProvider;
 import com.facebook.stetho.inspector.database.DefaultDatabaseFilesProvider;
 import com.facebook.stetho.inspector.database.SqliteDatabaseDriver;
+import com.facebook.stetho.inspector.elements.DescriptorProvider;
 import com.facebook.stetho.inspector.elements.Document;
 import com.facebook.stetho.inspector.elements.DocumentProviderFactory;
 import com.facebook.stetho.inspector.elements.android.ActivityTracker;
@@ -63,6 +64,7 @@ import com.facebook.stetho.server.SocketHandlerFactory;
 import javax.annotation.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -391,7 +393,7 @@ public class Stetho {
         return mDocumentProvider;
       }
       if (Build.VERSION.SDK_INT >= AndroidDocumentConstants.MIN_API_LEVEL) {
-        return new AndroidDocumentProviderFactory(mContext);
+        return new AndroidDocumentProviderFactory(mContext, Collections.<DescriptorProvider>emptyList());
       }
       return null;
     }
