@@ -5,15 +5,15 @@ def isReleaseBuild() {
     return VERSION_NAME.contains("SNAPSHOT") == false
 }
 
-def getRepositoryUrl() {
+def getMavenRepositoryUrl() {
     return hasProperty('repositoryUrl') ? property('repositoryUrl') : "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
 }
 
-def getRepositoryUsername() {
+def getMavenRepositoryUsername() {
     return hasProperty('repositoryUsername') ? property('repositoryUsername') : ""
 }
 
-def getRepositoryPassword() {
+def getMavenRepositoryPassword() {
     return hasProperty('repositoryPassword') ? property('repositoryPassword') : ""
 }
 
@@ -116,10 +116,10 @@ afterEvaluate { project ->
                 MavenDeployment deployment -> signing.signPom(deployment)
             }
 
-            repository(url: getRepositoryUrl()) {
+            repository(url: getMavenRepositoryUrl()) {
                 authentication(
-                        userName: getRepositoryUsername(),
-                        password: getRepositoryPassword())
+                        userName: getMavenRepositoryUsername(),
+                        password: getMavenRepositoryPassword())
 
             }
 
