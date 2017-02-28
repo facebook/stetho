@@ -26,6 +26,7 @@ import com.facebook.stetho.inspector.elements.Descriptor;
 import com.facebook.stetho.inspector.elements.DescriptorMap;
 import com.facebook.stetho.inspector.elements.NodeType;
 import com.facebook.stetho.inspector.elements.StyleAccumulator;
+import com.facebook.stetho.inspector.elements.StyleRuleNameAccumulator;
 
 import javax.annotation.Nullable;
 
@@ -131,7 +132,15 @@ final class DialogFragmentDescriptor
   }
 
   @Override
-  public void getStyles(Object element, StyleAccumulator styles) {
+  public void getStyleRuleNames(Object element, StyleRuleNameAccumulator accumulator) {
+  }
+
+  @Override
+  public void getStyles(Object element, String ruleName, StyleAccumulator accumulator) {
+  }
+
+  @Override
+  public void setStyle(Object element, String ruleName, String name, String value) {
   }
 
   @Override
