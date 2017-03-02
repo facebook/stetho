@@ -140,12 +140,30 @@ public abstract class AbstractChainedDescriptor<E>
   }
 
   @Override
-  public final void getStyles(E element, StyleAccumulator accumulator) {
-    mSuper.getStyles(element, accumulator);
-    onGetStyles(element, accumulator);
+  public final void getStyleRuleNames(E element, StyleRuleNameAccumulator accumulator) {
+    mSuper.getStyleRuleNames(element, accumulator);
+    onGetStyleRuleNames(element, accumulator);
   }
 
-  protected void onGetStyles(E element, StyleAccumulator accumulator) {
+  protected void onGetStyleRuleNames(E element, StyleRuleNameAccumulator accumulator) {
+  }
+
+  @Override
+  public final void getStyles(E element, String ruleName, StyleAccumulator accumulator) {
+    mSuper.getStyles(element, ruleName, accumulator);
+    onGetStyles(element, ruleName, accumulator);
+  }
+
+  protected void onGetStyles(E element, String ruleName, StyleAccumulator accumulator) {
+  }
+
+  @Override
+  public final void setStyle(E element, String ruleName, String name, String value) {
+    mSuper.setStyle(element, ruleName, name, value);
+    onSetStyle(element, ruleName, name, value);
+  }
+
+  protected void onSetStyle(E element, String ruleName, String name, String value) {
   }
 
   @Override

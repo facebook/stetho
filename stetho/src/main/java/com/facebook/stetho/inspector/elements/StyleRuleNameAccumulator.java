@@ -9,6 +9,6 @@
 
 package com.facebook.stetho.inspector.elements;
 
-public interface StyleAccumulator {
-  void store(String name, String value, boolean isDefault);
+public interface StyleRuleNameAccumulator {
+  void store(String ruleName, boolean editable);
 }

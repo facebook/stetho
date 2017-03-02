@@ -9,13 +9,17 @@
 
 package com.facebook.stetho.inspector.protocol.module;
 
+import android.annotation.SuppressLint;
+
 import com.facebook.stetho.common.ListUtil;
 import com.facebook.stetho.common.LogUtil;
+import com.facebook.stetho.common.StringUtil;
 import com.facebook.stetho.common.Util;
 import com.facebook.stetho.inspector.elements.ComputedStyleAccumulator;
 import com.facebook.stetho.inspector.elements.Document;
 import com.facebook.stetho.inspector.elements.Origin;
 import com.facebook.stetho.inspector.elements.StyleAccumulator;
+import com.facebook.stetho.inspector.elements.StyleRuleNameAccumulator;
 import com.facebook.stetho.inspector.helper.ChromePeerManager;
 import com.facebook.stetho.inspector.helper.PeersRegisteredListener;
 import com.facebook.stetho.inspector.jsonrpc.JsonRpcPeer;
@@ -28,22 +32,12 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class CSS implements ChromeDevtoolsDomain {
   private final ChromePeerManager mPeerManager;
   private final Document mDocument;
   private final ObjectMapper mObjectMapper;
-
-  /**
-   * This should not be used outside of getMatchedStylesForNode to collect styles mapped to a
-   * selector name. The reason it is a member is to avoid allocations on every call to that method.
-   * The correct usage of this field is it clear the mapped array lists ensuring they are empty
-   * after usage. Do not attempt to use this from any other method or especially thread.
-   */
-  private final Map<String, ArrayList<CSSProperty>> mSelectorCollector = new HashMap<>();
 
   public CSS(Document document) {
     mDocument = Util.throwIfNull(document);
@@ -98,16 +92,22 @@ public class CSS implements ChromeDevtoolsDomain {
     return result;
   }
 
+  @SuppressLint("DefaultLocale")
   @ChromeDevtoolsMethod
   public JsonRpcResult getMatchedStylesForNode(JsonRpcPeer peer, JSONObject params) {
     final GetMatchedStylesForNodeRequest request = mObjectMapper.convertValue(
         params,
         GetMatchedStylesForNodeRequest.class);
 
+    final GetMatchedStylesForNodeResult result = new GetMatchedStylesForNodeResult();
+    result.matchedCSSRules = new ArrayList<>();
+    result.inherited = Collections.emptyList();
+    result.pseudoElements = Collections.emptyList();
+
     mDocument.postAndWait(new Runnable() {
       @Override
       public void run() {
-        Object elementForNodeId = mDocument.getElementForNodeId(request.nodeId);
+        final Object elementForNodeId = mDocument.getElementForNodeId(request.nodeId);
 
         if (elementForNodeId == null) {
           LogUtil.w("Failed to get style of an element that does not exist, nodeid=" +
@@ -115,58 +115,107 @@ public class CSS implements ChromeDevtoolsDomain {
           return;
         }
 
-        mDocument.getElementStyles(
-            elementForNodeId,
-            new StyleAccumulator() {
-              @Override
-              public void store(String selector, String name, String value, boolean isDefault) {
-                if (!isDefault) {
-                  ArrayList<CSSProperty> properties = mSelectorCollector.get(selector);
-                  if (properties == null) {
-                    properties = new ArrayList<>();
-                    mSelectorCollector.put(selector, properties);
-                  }
+        mDocument.getElementStyleRuleNames(elementForNodeId, new StyleRuleNameAccumulator() {
+          @Override
+          public void store(String ruleName, boolean editable) {
+            final ArrayList<CSSProperty> properties = new ArrayList<>();
 
-                  final CSSProperty property = new CSSProperty();
-                  property.name = name;
-                  property.value = value;
-                  properties.add(property);
-                }
+            final RuleMatch match = new RuleMatch();
+            match.matchingSelectors = ListUtil.newImmutableList(0);
+
+            final Selector selector = new Selector();
+            selector.value = ruleName;
+
+            final CSSRule rule = new CSSRule();
+            rule.origin = Origin.REGULAR;
+            rule.selectorList = new SelectorList();
+            rule.selectorList.selectors = ListUtil.newImmutableList(selector);
+            rule.style = new CSSStyle();
+            rule.style.cssProperties = properties;
+            rule.style.shorthandEntries = Collections.emptyList();
+
+            if (editable) {
+              rule.style.styleSheetId = String.format(
+                  "%s.%s",
+                  Integer.toString(request.nodeId),
+                  selector.value);
+            }
+
+            mDocument.getElementStyles(elementForNodeId, ruleName, new StyleAccumulator() {
+              @Override
+              public void store(String name, String value, boolean isDefault) {
+                final CSSProperty property = new CSSProperty();
+                property.name = name;
+                property.value = value;
+                properties.add(property);
               }
             });
+
+            match.rule = rule;
+            result.matchedCSSRules.add(match);
+          }
+        });
       }
     });
 
-    final GetMatchedStylesForNodeResult result = new GetMatchedStylesForNodeResult();
-    result.matchedCSSRules = new ArrayList<>();
-    result.inherited = Collections.emptyList();
-    result.pseudoElements = Collections.emptyList();
+    return result;
+  }
 
-    for (Map.Entry<String, ArrayList<CSSProperty>> entry : mSelectorCollector.entrySet()) {
-      final ArrayList<CSSProperty> properties = entry.getValue();
-      if (properties.isEmpty()) {
-        continue;
-      }
+  @ChromeDevtoolsMethod
+  public SetPropertyTextResult setPropertyText(JsonRpcPeer peer, JSONObject params) {
+    final SetPropertyTextRequest request =  mObjectMapper.convertValue(
+        params,
+        SetPropertyTextRequest.class);
 
-      final RuleMatch match = new RuleMatch();
-      match.matchingSelectors = ListUtil.newImmutableList(0);
+    final String[] parts = request.styleSheetId.split("\\.", 2);
+    final int nodeId = Integer.parseInt(parts[0]);
+    final String ruleName = parts[1];
 
-      final Selector selector = new Selector();
-      selector.value = entry.getKey();
-
-      final CSSRule rule = new CSSRule();
-      rule.origin = Origin.REGULAR;
-      rule.selectorList = new SelectorList();
-      rule.selectorList.selectors = ListUtil.newImmutableList(selector);
-      rule.style = new CSSStyle();
-      rule.style.cssProperties = ListUtil.copyToImmutableList(properties);
-      rule.style.shorthandEntries = Collections.emptyList();
-
-      match.rule = rule;
-      result.matchedCSSRules.add(match);
-
-      properties.clear();
+    final String value;
+    final String key;
+    if ("/* undefined */".equals(request.text)) {
+      // This gets sent when a key is disabled. Chrome does not send the key which was disabled
+      // though so not much we can do here.
+      key = null;
+      value = null;
+    } else {
+      final String[] keyValue = request.text.split(":", 2);
+      key = keyValue[0].trim();
+      value = StringUtil.removeAll(keyValue[1], ';').trim();
     }
+
+
+    final SetPropertyTextResult result = new SetPropertyTextResult();
+    result.style = new CSSStyle();
+    result.style.styleSheetId = request.styleSheetId;
+    result.style.cssProperties = new ArrayList<>();
+    result.style.shorthandEntries = Collections.emptyList();
+
+    mDocument.postAndWait(new Runnable() {
+      @Override
+      public void run() {
+        final Object elementForNodeId = mDocument.getElementForNodeId(nodeId);
+
+        if (elementForNodeId == null) {
+          LogUtil.w("Failed to get style of an element that does not exist, nodeid=" + nodeId);
+          return;
+        }
+
+        if (key == null) {
+          mDocument.setElementStyle(elementForNodeId, ruleName, key, value);
+        }
+
+        mDocument.getElementStyles(elementForNodeId, ruleName, new StyleAccumulator() {
+          @Override
+          public void store(String name, String value, boolean isDefault) {
+            final CSSProperty property = new CSSProperty();
+            property.name = name;
+            property.value = value;
+            result.style.cssProperties.add(property);
+          }
+        });
+      }
+    });
 
     return result;
   }
@@ -347,5 +396,18 @@ public class CSS implements ChromeDevtoolsDomain {
 
     @JsonProperty
     public List<InheritedStyleEntry> inherited;
+  }
+
+  private static class SetPropertyTextRequest implements JsonRpcResult {
+    @JsonProperty(required = true)
+    public String styleSheetId;
+
+    @JsonProperty(required = true)
+    public String text;
+  }
+
+  private static class SetPropertyTextResult implements JsonRpcResult {
+    @JsonProperty(required = true)
+    public CSSStyle style;
   }
 }

@@ -29,4 +29,16 @@ public final class StringUtil {
       return string;
     }
   }
+
+  public static String removeAll(String string, char target) {
+    final int length = string.length();
+    final StringBuilder builder = new StringBuilder(length);
+    for (int i = 0; i < length; ++i) {
+      char c = string.charAt(i);
+      if (c != target) {
+        builder.append(c);
+      }
+    }
+    return builder.toString();
+  }
 }
