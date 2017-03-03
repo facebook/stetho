@@ -201,7 +201,7 @@ public class CSS implements ChromeDevtoolsDomain {
           return;
         }
 
-        if (key == null) {
+        if (key != null) {
           mDocument.setElementStyle(elementForNodeId, ruleName, key, value);
         }
 
