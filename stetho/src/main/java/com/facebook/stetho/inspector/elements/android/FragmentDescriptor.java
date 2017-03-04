@@ -19,6 +19,7 @@ import com.facebook.stetho.common.android.FragmentCompat;
 import com.facebook.stetho.common.android.ResourcesUtil;
 import com.facebook.stetho.inspector.elements.AttributeAccumulator;
 import com.facebook.stetho.inspector.elements.AbstractChainedDescriptor;
+import com.facebook.stetho.inspector.elements.Descriptor;
 import com.facebook.stetho.inspector.elements.DescriptorMap;
 
 import javax.annotation.Nullable;
@@ -77,5 +78,22 @@ final class FragmentDescriptor
   @Nullable
   public View getViewAndBoundsForHighlighting(Object element, Rect bounds) {
     return mAccessor.getView(element);
+  }
+
+  @Nullable
+  @Override
+  public Object getElementToHighlightAtPosition(Object element, int x, int y, Rect bounds) {
+    final Descriptor.Host host = getHost();
+    View view = null;
+    HighlightableDescriptor descriptor = null;
+
+    if (host instanceof AndroidDescriptorHost) {
+      view = mAccessor.getView(element);
+      descriptor = ((AndroidDescriptorHost) host).getHighlightableDescriptor(view);
+    }
+
+    return descriptor == null
+        ? null
+        : descriptor.getElementToHighlightAtPosition(view, x, y, bounds);
   }
 }
