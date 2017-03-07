@@ -167,6 +167,13 @@ final class ViewDescriptor extends AbstractChainedDescriptor<View>
     return element;
   }
 
+  @Nullable
+  @Override
+  public Object getElementToHighlightAtPosition(View element, int x, int y, Rect bounds) {
+    bounds.set(0, 0, element.getWidth(), element.getHeight());
+    return element;
+  }
+
   @Override
   protected void onGetStyleRuleNames(View element, StyleRuleNameAccumulator accumulator) {
     accumulator.store(VIEW_STYLE_RULE_NAME, false);

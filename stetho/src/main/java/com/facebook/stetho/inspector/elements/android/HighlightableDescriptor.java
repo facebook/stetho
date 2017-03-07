@@ -24,4 +24,16 @@ public interface HighlightableDescriptor<E> {
    */
   @Nullable
   View getViewAndBoundsForHighlighting(E element, Rect bounds);
+
+  /**
+   * Used when activating find by touch feature to figure out which element to focus / highlight.
+   *
+   * @param element the element
+   * @param y coordinate in local coordinate space
+   * @param y coordinate in local coordinate space
+   * @param bounds The bounds of the returned element. Used to offset the coordinates for next call.
+   * @return A child element or self if this coordinate falls within self and not a child.
+   */
+  @Nullable
+  Object getElementToHighlightAtPosition(E element, int x, int y, Rect bounds);
 }
