@@ -383,7 +383,7 @@ final class AndroidDocumentProvider extends ThreadBoundProxy
 
                 if (event.getAction() == MotionEvent.ACTION_UP) {
                   if (mListener != null) {
-                    mListener.onInspectRequested(viewToHighlight);
+                    mListener.onInspectRequested(elementToHighlight);
                   }
                 }
               }

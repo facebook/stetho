@@ -105,12 +105,18 @@ final class ViewGroupDescriptor extends AbstractChainedDescriptor<ViewGroup>
   @Override
   public Object getElementToHighlightAtPosition(ViewGroup element, int x, int y, Rect bounds) {
     View hitChild = null;
-    for (int i = 0, count = element.getChildCount(); i < count; ++i) {
-      final View child = element.getChildAt(i);
-      child.getHitRect(bounds);
-      if (bounds.contains(x, y)) {
-        hitChild = child;
-        break;
+    for (int i = element.getChildCount() - 1; i >= 0; --i) {
+      final View childView = element.getChildAt(i);
+      final boolean hasChildren = childView instanceof ViewGroup &&
+          ((ViewGroup) childView).getChildCount() > 0;
+      if (isChildVisible(childView) &&
+          childView.getVisibility() == View.VISIBLE &&
+          (hasChildren || childView.isFocusable())) {
+        childView.getHitRect(bounds);
+        if (bounds.contains(x, y)) {
+          hitChild = childView;
+          break;
+        }
       }
     }
 
