@@ -9,14 +9,13 @@
 
 package com.facebook.stetho.inspector.elements.android;
 
-import android.support.v4.view.ViewCompat;
 import android.graphics.Rect;
 import android.view.View;
 import android.view.ViewDebug;
-import android.support.v4.view.accessibility.AccessibilityNodeInfoCompat;
 
 import com.facebook.stetho.common.ExceptionUtil;
 import com.facebook.stetho.common.LogUtil;
+import com.facebook.stetho.common.ReflectionUtil;
 import com.facebook.stetho.common.StringUtil;
 import com.facebook.stetho.common.android.ResourcesUtil;
 import com.facebook.stetho.inspector.elements.AbstractChainedDescriptor;
@@ -49,6 +48,13 @@ final class ViewDescriptor extends AbstractChainedDescriptor<View>
   private static final String ACCESSIBILITY_STYLE_RULE_NAME = "Accessibility Properties";
 
   private final MethodInvoker mMethodInvoker;
+
+  private static final boolean sHasSupportNodeInfo;
+
+  static {
+    sHasSupportNodeInfo = ReflectionUtil.tryGetClassForName(
+        "android.support.v4.view.accessibility.AccessibilityNodeInfoCompat") != null;
+  }
 
   /**
    * NOTE: Only access this via {@link #getWordBoundaryPattern}.
@@ -177,7 +183,9 @@ final class ViewDescriptor extends AbstractChainedDescriptor<View>
   @Override
   protected void onGetStyleRuleNames(View element, StyleRuleNameAccumulator accumulator) {
     accumulator.store(VIEW_STYLE_RULE_NAME, false);
-    accumulator.store(ACCESSIBILITY_STYLE_RULE_NAME, false);
+    if (sHasSupportNodeInfo) {
+      accumulator.store(ACCESSIBILITY_STYLE_RULE_NAME, false);
+    }
   }
 
   @Override
@@ -203,64 +211,61 @@ final class ViewDescriptor extends AbstractChainedDescriptor<View>
         }
       }
     } else if (ACCESSIBILITY_STYLE_RULE_NAME.equals(ruleName)) {
-      AccessibilityNodeInfoCompat nodeInfo = AccessibilityNodeInfoCompat.obtain();
-      ViewCompat.onInitializeAccessibilityNodeInfo(element, nodeInfo);
-
-      boolean ignored = AccessibilityNodeInfoWrapper.getIgnored(nodeInfo, element);
-      getStyleFromValue(
-          element,
-          "ignored",
-          ignored,
-          null,
-          accumulator);
-
-      if (ignored) {
+      if (sHasSupportNodeInfo) {
+        boolean ignored = AccessibilityNodeInfoWrapper.getIgnored(element);
         getStyleFromValue(
             element,
-            "ignored-reasons",
-            AccessibilityNodeInfoWrapper.getIgnoredReasons(nodeInfo, element),
+            "ignored",
+            ignored,
             null,
             accumulator);
+
+        if (ignored) {
+          getStyleFromValue(
+              element,
+              "ignored-reasons",
+              AccessibilityNodeInfoWrapper.getIgnoredReasons(element),
+              null,
+              accumulator);
+        }
+
+        getStyleFromValue(
+            element,
+            "focusable",
+            !ignored,
+            null,
+            accumulator);
+
+        if (!ignored) {
+          getStyleFromValue(
+              element,
+              "focusable-reasons",
+              AccessibilityNodeInfoWrapper.getFocusableReasons(element),
+              null,
+              accumulator);
+
+          getStyleFromValue(
+              element,
+              "focused",
+              AccessibilityNodeInfoWrapper.getIsAccessibilityFocused(element),
+              null,
+              accumulator);
+
+          getStyleFromValue(
+              element,
+              "description",
+              AccessibilityNodeInfoWrapper.getDescription(element),
+              null,
+              accumulator);
+
+          getStyleFromValue(
+              element,
+              "actions",
+              AccessibilityNodeInfoWrapper.getActions(element),
+              null,
+              accumulator);
+        }
       }
-
-      getStyleFromValue(
-          element,
-          "focusable",
-          !ignored,
-          null,
-          accumulator);
-
-      if (!ignored) {
-        getStyleFromValue(
-            element,
-            "focusable-reasons",
-            AccessibilityNodeInfoWrapper.getFocusableReasons(nodeInfo, element),
-            null,
-            accumulator);
-
-        getStyleFromValue(
-            element,
-            "focused",
-            nodeInfo.isAccessibilityFocused(),
-            null,
-            accumulator);
-
-        getStyleFromValue(
-            element,
-            "description",
-            AccessibilityNodeInfoWrapper.getDescription(nodeInfo, element),
-            null,
-            accumulator);
-
-        getStyleFromValue(
-            element,
-            "actions",
-            AccessibilityNodeInfoWrapper.getActions(nodeInfo),
-            null,
-            accumulator);
-      }
-
-      nodeInfo.recycle();
     }
   }
 
