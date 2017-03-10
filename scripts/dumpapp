@@ -33,9 +33,9 @@ def main():
     sock = stetho_open(device, process, port)
 
     # Send dumpapp hello (DUMP + version=1)
-    sock.send(b'DUMP' + struct.pack('!L', 1))
+    sock.send(b'DUMP' + struct.pack('!l', 1))
 
-    enter_frame = b'!' + struct.pack('!L', len(args))
+    enter_frame = b'!' + struct.pack('!l', len(args))
     for arg in args:
       argAsUTF8 = arg.encode('utf-8')
       enter_frame += struct.pack(
@@ -56,7 +56,7 @@ def read_frames(sock):
   while True:
     # All frames have a single character code followed by a big-endian int
     code = read_input(sock, 1, 'code')
-    n = struct.unpack('!L', read_input(sock, 4, 'int4'))[0]
+    n = struct.unpack('!l', read_input(sock, 4, 'int4'))[0]
 
     if code == b'1':
       if n > 0:
@@ -70,9 +70,9 @@ def read_frames(sock):
       if n > 0:
         data = sys.stdin.buffer.read(n)
         if len(data) == 0:
-          sock.send(b'-' + struct.pack('!L', -1))
+          sock.send(b'-' + struct.pack('!l', -1))
         else:
-          sock.send(b'-' + struct.pack('!L', len(data)) + data)
+          sock.send(b'-' + struct.pack('!l', len(data)) + data)
     elif code == b'x':
       sys.exit(n)
     else:
