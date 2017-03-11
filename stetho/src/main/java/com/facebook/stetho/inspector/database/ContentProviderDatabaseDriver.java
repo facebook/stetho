@@ -16,7 +16,6 @@ import android.database.sqlite.SQLiteException;
 
 import com.facebook.stetho.inspector.protocol.module.Database;
 import com.facebook.stetho.inspector.protocol.module.DatabaseDescriptor;
-import com.facebook.stetho.inspector.protocol.module.DatabaseDriver;
 import com.facebook.stetho.inspector.protocol.module.DatabaseDriver2;
 
 import java.util.ArrayList;

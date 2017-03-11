@@ -44,7 +44,6 @@ import com.facebook.stetho.inspector.protocol.module.DOM;
 import com.facebook.stetho.inspector.protocol.module.DOMStorage;
 import com.facebook.stetho.inspector.protocol.module.Database;
 import com.facebook.stetho.inspector.protocol.module.DatabaseConstants;
-import com.facebook.stetho.inspector.protocol.module.DatabaseDriver;
 import com.facebook.stetho.inspector.protocol.module.DatabaseDriver2;
 import com.facebook.stetho.inspector.protocol.module.Debugger;
 import com.facebook.stetho.inspector.protocol.module.HeapProfiler;
@@ -301,7 +300,7 @@ public class Stetho {
      * @deprecated Convert your custom database driver to {@link DatabaseDriver2}.
      */
     @Deprecated
-    public DefaultInspectorModulesBuilder provideDatabaseDriver(DatabaseDriver databaseDriver) {
+    public DefaultInspectorModulesBuilder provideDatabaseDriver(Database.DatabaseDriver databaseDriver) {
       provideDatabaseDriver(new DatabaseDriver2Adapter(databaseDriver));
       return this;
     }

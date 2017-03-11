@@ -16,15 +16,14 @@ import android.database.sqlite.SQLiteException;
 import java.util.List;
 
 /**
- * @deprecated Use {@link DatabaseDriver2} instead which enforces generics of
- * {@link DatabaseDescriptor}.
+ * Extend {@link DatabaseDriver2} directly.  This class is provided only as a common API compatible
+ * base layer for the legacy {@link Database.DatabaseDriver}.
  */
-@Deprecated
-public abstract class DatabaseDriver<DESC> {
+public abstract class BaseDatabaseDriver<DESC> {
 
   protected Context mContext;
 
-  public DatabaseDriver(Context context) {
+  public BaseDatabaseDriver(Context context) {
     mContext = context;
   }
 

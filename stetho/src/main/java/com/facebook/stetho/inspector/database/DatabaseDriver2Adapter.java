@@ -4,7 +4,6 @@ import android.database.sqlite.SQLiteException;
 
 import com.facebook.stetho.inspector.protocol.module.Database;
 import com.facebook.stetho.inspector.protocol.module.DatabaseDescriptor;
-import com.facebook.stetho.inspector.protocol.module.DatabaseDriver;
 import com.facebook.stetho.inspector.protocol.module.DatabaseDriver2;
 
 import java.util.ArrayList;
@@ -17,9 +16,9 @@ import java.util.List;
 @Deprecated
 public class DatabaseDriver2Adapter
     extends DatabaseDriver2<DatabaseDriver2Adapter.StringDatabaseDescriptor> {
-  private final DatabaseDriver mLegacy;
+  private final Database.DatabaseDriver mLegacy;
 
-  public DatabaseDriver2Adapter(DatabaseDriver legacy) {
+  public DatabaseDriver2Adapter(Database.DatabaseDriver legacy) {
     super(legacy.getContext());
     mLegacy = legacy;
   }

@@ -12,11 +12,11 @@ package com.facebook.stetho.inspector.protocol.module;
 import android.content.Context;
 
 /**
- * Replaces {@link DatabaseDriver} to enforce that the generic type must
+ * Replaces {@link Database.DatabaseDriver} to enforce that the generic type must
  * extend {@link DatabaseDescriptor}.
  */
 public abstract class DatabaseDriver2<DESC extends DatabaseDescriptor>
-    extends DatabaseDriver<DESC> {
+    extends BaseDatabaseDriver<DESC> {
   public DatabaseDriver2(Context context) {
     super(context);
   }

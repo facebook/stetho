@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.List;
 
 import android.annotation.TargetApi;
+import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
 import android.os.Build;
@@ -365,4 +366,15 @@ public class Database implements ChromeDevtoolsDomain {
     public int code;
   }
 
+  /**
+   * @deprecated Use {@link DatabaseDriver2} which allows for structured identifiers of database
+   *     objects (such as a file path instead of just a string name) which also serves as a
+   *     namespacing separation of multiple drivers.
+   */
+  @Deprecated
+  public static abstract class DatabaseDriver extends BaseDatabaseDriver<String> {
+    public DatabaseDriver(Context context) {
+      super(context);
+    }
+  }
 }
