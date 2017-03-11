@@ -46,11 +46,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class StethoInterceptor implements Interceptor {
   private final NetworkEventReporter mEventReporter = NetworkEventReporterImpl.get();
 
-  private final AtomicInteger mNextRequestId = new AtomicInteger(0);
+  private static final AtomicInteger sNextRequestId = new AtomicInteger(0);
 
   @Override
   public Response intercept(Chain chain) throws IOException {
-    String requestId = String.valueOf(mNextRequestId.getAndIncrement());
+    String requestId = "okhttp-" + sNextRequestId.getAndIncrement();
 
     Request request = chain.request();
 
