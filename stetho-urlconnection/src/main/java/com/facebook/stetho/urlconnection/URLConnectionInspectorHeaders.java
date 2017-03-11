@@ -40,7 +40,7 @@ class URLConnectionInspectorHeaders implements NetworkEventReporter.InspectorHea
   public String firstHeaderValue(String name) {
     int N = headerCount();
     for (int i = 0; i < N; i++) {
-      if (name.equals(headerName(i))) {
+      if (name.equalsIgnoreCase(headerName(i))) {
         return headerValue(i);
       }
     }
