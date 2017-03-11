@@ -189,10 +189,17 @@ public class JsRuntimeReplFactoryBuilder {
     for (Class<?> aClass : mClasses) {
       String className = aClass.getName();
       try {
+        // import from default classes
         String expression = String.format("importClass(%s)", className);
         jsContext.evaluateString(scope, expression, SOURCE_NAME, 1, null);
       } catch (Exception e) {
-        throw new StethoJsException(e, "Failed to import class: %s", className);
+        try {
+          // import from application classes
+          String expression = String.format("importClass(Packages.%s)", className);
+          jsContext.evaluateString(scope, expression, SOURCE_NAME, 1, null);
+        } catch (Exception e1) {
+          throw new StethoJsException(e1, "Failed to import class: %s", className);
+        }
       }
     }
   }
@@ -201,10 +208,17 @@ public class JsRuntimeReplFactoryBuilder {
     // Import the packages that the caller requested
     for (String packageName : mPackages) {
       try {
+        // import from default packages
         String expression = String.format("importPackage(%s)", packageName);
         jsContext.evaluateString(scope, expression, SOURCE_NAME, 1, null);
       } catch (Exception e) {
-        throw new StethoJsException(e, "Failed to import package: %s", packageName);
+        try {
+          // import from application packages
+          String expression = String.format("importPackage(Packages.%s)", packageName);
+          jsContext.evaluateString(scope, expression, SOURCE_NAME, 1, null);
+        } catch (Exception e1) {
+          throw new StethoJsException(e, "Failed to import package: %s", packageName);
+        }
       }
     }
   }
