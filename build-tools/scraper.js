@@ -55,15 +55,18 @@ function resolveName(name) {
     };
 }
 
-function findCommandDefinition(resolved) {
+function findCommandOrEventDefinition(resolved) {
     var match = null;
 
     documentation.domains.forEach(function (domain) {
         if (!resolved.domain || resolved.domain == domain.domain) {
             if (domain.types) {
-                var matches = domain.commands.filter(function (command) {
-                    return command.name == resolved.name;
-                });
+                var filterFunc = function(commandOrEvent) {
+                    return commandOrEvent.name == resolved.name;
+                };
+
+                var matches = domain.commands.filter(filterFunc);
+                matches = matches.concat(domain.events.filter(filterFunc));
 
                 if (matches.length > 0) {
                     match = matches[0];
@@ -161,21 +164,21 @@ function generateJavaTypeEquivalent(currentType, prop) {
 function generateJavaClassForType(typeDefinition) {
     var result = 'public static class ' + typeDefinition.id + ' {';
 
-    if (typeDefinition.properties == undefined) {
-        debugger;
-    }
-
-    typeDefinition.properties.forEach(function (prop) {
-        result += ret() + tab() + '\@JsonProperty';
-
-        if (!prop.optional) {
-            result += '(required = true)';
-        }
-
+    if (typeDefinition.properties != undefined) {
+        typeDefinition.properties.forEach(function (prop) {
+            result += ret() + tab() + '\@JsonProperty';
+    
+            if (!prop.optional) {
+                result += '(required = true)';
+            }
+    
+            result += ret();
+    
+            result += tab() + 'public ' + generateJavaTypeEquivalent(typeDefinition.id, prop) + ' ' + prop.name + ';' + ret();
+        });
+    } else {
         result += ret();
-
-        result += tab() + 'public ' + generateJavaTypeEquivalent(typeDefinition.id, prop) + ' ' + prop.name + ';' + ret();
-    });
+    }
 
     result += '}';
 
@@ -199,7 +202,7 @@ function dependencyExists(resolvedDependency) {
         }).length != 0;
 }
 
-function generateCommand(commandDef) {
+function generateCommandOrEvent(commandDef) {
     var className = commandDef.name.charAt(0).toUpperCase() + commandDef.name.slice(1);
 
     var hasParams = !!commandDef.parameters;
@@ -280,10 +283,10 @@ function generateType(typeDef) {
 
 function generate(name) {
     var resolved = resolveName(name);
-    var command = findCommandDefinition(resolved);
+    var command = findCommandOrEventDefinition(resolved);
 
     if (command != null) {
-        return generateCommand(command);
+        return generateCommandOrEvent(command);
     }
 
     var type = findTypeDefinition(resolved);
