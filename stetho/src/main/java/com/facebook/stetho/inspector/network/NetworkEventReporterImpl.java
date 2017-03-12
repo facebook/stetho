@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Implementation of {@link NetworkEventReporter} which allows callers to inform the Stetho
@@ -32,6 +33,7 @@ import java.util.ArrayList;
  * implementation will be automatically wired up to them.
  */
 public class NetworkEventReporterImpl implements NetworkEventReporter {
+  private final AtomicInteger mNextRequestId = new AtomicInteger(0);
   @Nullable
   private ResourceTypeHelper mResourceTypeHelper;
 
@@ -312,6 +314,11 @@ public class NetworkEventReporterImpl implements NetworkEventReporter {
       dataReceivedParams.encodedDataLength = encodedDataLength;
       peerManager.sendNotificationToPeers("Network.dataReceived", dataReceivedParams);
     }
+  }
+
+  @Override
+  public String nextRequestId() {
+    return String.valueOf(mNextRequestId.getAndIncrement());
   }
 
   @Nullable

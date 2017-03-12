@@ -29,7 +29,6 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Provides easy integration with <a href="http://square.github.io/okhttp/">OkHttp</a> 2.2.0+
@@ -46,11 +45,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class StethoInterceptor implements Interceptor {
   private final NetworkEventReporter mEventReporter = NetworkEventReporterImpl.get();
 
-  private final AtomicInteger mNextRequestId = new AtomicInteger(0);
-
   @Override
   public Response intercept(Chain chain) throws IOException {
-    String requestId = String.valueOf(mNextRequestId.getAndIncrement());
+    String requestId = mEventReporter.nextRequestId();
 
     Request request = chain.request();
 

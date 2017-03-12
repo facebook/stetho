@@ -145,6 +145,11 @@ public interface NetworkEventReporter {
   void dataReceived(String requestId, int dataLength, int encodedDataLength);
 
   /**
+   * Provides unique request id for {@link InspectorRequest#id()}.
+   */
+  String nextRequestId();
+
+  /**
    * Represents the request that will be sent over HTTP.  Note that for many implementations
    * of HTTP the request constructed may differ from the request actually sent over the wire.
    * For instance, additional headers like {@code Host}, {@code User-Agent}, {@code Content-Type},
