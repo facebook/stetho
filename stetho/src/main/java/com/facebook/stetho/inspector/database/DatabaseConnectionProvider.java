@@ -9,8 +9,8 @@
 
 package com.facebook.stetho.inspector.database;
 
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
+import com.tencent.mmdb.database.SQLiteDatabase;
+import com.tencent.mmdb.database.SQLiteException;
 
 import java.io.File;
 
@@ -25,4 +25,9 @@ public interface DatabaseConnectionProvider {
    * @throws SQLiteException if there is an error opening the specified database
    */
   SQLiteDatabase openDatabase(File databaseFile) throws SQLiteException;
+  /**
+   * @param databaseFile Full path to the database file.
+   * @return a boolean to determine if the database need to close after execute.
+   */
+  boolean shouldCloseDatabase(File databaseFile);
 }

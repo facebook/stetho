@@ -12,7 +12,7 @@ package com.facebook.stetho.inspector.database;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteException;
+import com.tencent.mmdb.database.SQLiteException;
 import com.facebook.stetho.inspector.protocol.module.Database;
 
 import javax.annotation.concurrent.ThreadSafe;
