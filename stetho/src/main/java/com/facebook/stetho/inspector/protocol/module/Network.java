@@ -311,4 +311,114 @@ public class Network implements ChromeDevtoolsDomain {
     @JsonProperty(required = true)
     public double receivedHeadersEnd;
   }
+
+  public static class WebSocketCreatedParams {
+    @JsonProperty(required = true)
+    public String requestId;
+
+    @JsonProperty(required = true)
+    public String url;
+  }
+
+  public static class WebSocketClosedParams {
+    @JsonProperty(required = true)
+    public String requestId;
+
+    @JsonProperty(required = true)
+    public double timestamp;
+  }
+
+  public static class WebSocketWillSendHandshakeRequestParams {
+    @JsonProperty(required = true)
+    public String requestId;
+
+    @JsonProperty(required = true)
+    public double timestamp;
+
+    @JsonProperty(required = true)
+    public double wallTime;
+
+    @JsonProperty(required = true)
+    public WebSocketRequest request;
+  }
+
+  public static class WebSocketRequest {
+    @JsonProperty(required = true)
+    public JSONObject headers;
+  }
+
+  public static class WebSocketHandshakeResponseReceivedParams {
+    @JsonProperty(required = true)
+    public String requestId;
+
+    @JsonProperty(required = true)
+    public double timestamp;
+
+    @JsonProperty(required = true)
+    public WebSocketResponse response;
+  }
+
+  public static class WebSocketResponse {
+    @JsonProperty(required = true)
+    public int status;
+
+    @JsonProperty(required = true)
+    public String statusText;
+
+    @JsonProperty(required = true)
+    public JSONObject headers;
+
+    @JsonProperty
+    public String headersText;
+
+    @JsonProperty
+    public JSONObject requestHeaders;
+
+    @JsonProperty
+    public String requestHeadersText;
+  }
+
+  public static class WebSocketFrameReceivedParams {
+    @JsonProperty(required = true)
+    public String requestId;
+
+    @JsonProperty(required = true)
+    public double timestamp;
+
+    @JsonProperty(required = true)
+    public WebSocketFrame response;
+  }
+
+  public static class WebSocketFrameSentParams {
+    @JsonProperty(required = true)
+    public String requestId;
+
+    @JsonProperty(required = true)
+    public double timestamp;
+
+    @JsonProperty(required = true)
+    public WebSocketFrame response;
+  }
+
+  public static class WebSocketFrame {
+    @JsonProperty(required = true)
+    public int opcode;
+
+    @JsonProperty(required = true)
+    public boolean mask;
+
+    @JsonProperty(required = true)
+    public String payloadData;
+  }
+
+  public static class WebSocketFrameErrorParams {
+    @JsonProperty(required = true)
+    public String requestId;
+
+    @JsonProperty(required = true)
+    public double timestamp;
+
+    @JsonProperty(required = true)
+    public String errorMessage;
+  }
 }
