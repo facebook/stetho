@@ -10,6 +10,8 @@
 package com.facebook.stetho.inspector.elements;
 
 import android.os.SystemClock;
+
+import com.facebook.stetho.AnalyticsLogger;
 import com.facebook.stetho.common.Accumulator;
 import com.facebook.stetho.common.ArrayListAccumulator;
 import com.facebook.stetho.common.LogUtil;

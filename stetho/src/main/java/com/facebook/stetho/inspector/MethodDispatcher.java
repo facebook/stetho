@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.facebook.stetho.AnalyticsLogger;
 import com.facebook.stetho.common.ExceptionUtil;
 import com.facebook.stetho.common.Util;
 import com.facebook.stetho.inspector.jsonrpc.JsonRpcException;
@@ -40,12 +41,15 @@ public class MethodDispatcher {
 
   private final ObjectMapper mObjectMapper;
   private final Iterable<ChromeDevtoolsDomain> mDomainHandlers;
+  private final @Nullable AnalyticsLogger mAnalyticsLogger;
 
   public MethodDispatcher(
       ObjectMapper objectMapper,
-      Iterable<ChromeDevtoolsDomain> domainHandlers) {
+      Iterable<ChromeDevtoolsDomain> domainHandlers,
+      @Nullable AnalyticsLogger analyticsLogger) {
     mObjectMapper = objectMapper;
     mDomainHandlers = domainHandlers;
+    mAnalyticsLogger = analyticsLogger;
   }
 
   private synchronized MethodDispatchHelper findMethodDispatcher(String methodName) {
@@ -63,6 +67,13 @@ public class MethodDispatcher {
           "Not implemented: " + methodName,
           null /* data */));
     }
+
+    if (mAnalyticsLogger != null) {
+      mAnalyticsLogger.track(
+          "inspector_method_called",
+          Collections.singletonMap("name", methodName));
+    }
+
     try {
       return dispatchHelper.invoke(peer, params);
     } catch (InvocationTargetException e) {

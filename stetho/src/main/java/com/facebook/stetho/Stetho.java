@@ -12,7 +12,6 @@ package com.facebook.stetho;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
 import com.facebook.stetho.common.LogUtil;
 import com.facebook.stetho.common.Util;
@@ -26,7 +25,6 @@ import com.facebook.stetho.dumpapp.plugins.HprofDumperPlugin;
 import com.facebook.stetho.dumpapp.plugins.SharedPreferencesDumperPlugin;
 import com.facebook.stetho.inspector.DevtoolsSocketHandler;
 import com.facebook.stetho.inspector.console.RuntimeReplFactory;
-import com.facebook.stetho.inspector.database.DatabaseConnectionProvider;
 import com.facebook.stetho.inspector.database.DatabaseFilesProvider;
 import com.facebook.stetho.inspector.database.DefaultDatabaseConnectionProvider;
 import com.facebook.stetho.inspector.database.DefaultDatabaseFilesProvider;
@@ -81,6 +79,7 @@ import java.util.Set;
  * the {@code stetho-sample} for more information.
  */
 public class Stetho {
+
   private Stetho() {
   }
 
@@ -91,8 +90,14 @@ public class Stetho {
    * <p />
    * For simple use cases, consider {@link #initializeWithDefaults(Context)}.
    */
+  public static InitializerBuilder newInitializerBuilder(
+      Context context,
+      @Nullable AnalyticsLogger analyticsLogger) {
+    return new InitializerBuilder(context, analyticsLogger);
+  }
+
   public static InitializerBuilder newInitializerBuilder(Context context) {
-    return new InitializerBuilder(context);
+    return newInitializerBuilder(context, null);
   }
 
   /**
@@ -100,8 +105,10 @@ public class Stetho {
    * first socket connection is received, allowing this to be safely used for debug builds on
    * even low-end hardware without noticeably affecting performance.
    */
-  public static void initializeWithDefaults(final Context context) {
-    initialize(new Initializer(context) {
+  public static void initializeWithDefaults(
+      final Context context,
+      @Nullable AnalyticsLogger analyticsLogger) {
+    initialize(new Initializer(context, analyticsLogger) {
       @Override
       protected Iterable<DumperPlugin> getDumperPlugins() {
         return new DefaultDumperPluginsBuilder(context).finish();
@@ -114,12 +121,16 @@ public class Stetho {
     });
   }
 
-  /**
-   * Start the listening service, providing a custom initializer as per
-   * {@link #newInitializerBuilder}.
-   *
-   * @see #initializeWithDefaults(Context)
-   */
+  public static void initializeWithDefaults(final Context context) {
+    initializeWithDefaults(context, null);
+  }
+
+      /**
+       * Start the listening service, providing a custom initializer as per
+       * {@link #newInitializerBuilder}.
+       *
+       * @see #initializeWithDefaults(Context)
+       */
   public static void initialize(final Initializer initializer) {
     // Hook activity tracking so that after Stetho is attached we can figure out what
     // activities are present.
@@ -405,9 +416,15 @@ public class Stetho {
    */
   public static abstract class Initializer {
     private final Context mContext;
+    private final @Nullable AnalyticsLogger mAnalyticsLogger;
+
+    protected Initializer(Context context, @Nullable AnalyticsLogger analyticsLogger) {
+      mContext = context.getApplicationContext();
+      mAnalyticsLogger = analyticsLogger;
+    }
 
     protected Initializer(Context context) {
-      mContext = context.getApplicationContext();
+      this(context, null);
     }
 
     @Nullable
@@ -459,7 +476,7 @@ public class Stetho {
         if (inspectorModules != null) {
           socketHandler.addHandler(
               new ProtocolDetectingSocketHandler.AlwaysMatchMatcher(),
-              new DevtoolsSocketHandler(mContext, inspectorModules));
+              new DevtoolsSocketHandler(mContext, mAnalyticsLogger, inspectorModules));
         }
 
         return socketHandler;
@@ -472,12 +489,14 @@ public class Stetho {
    */
   public static class InitializerBuilder {
     final Context mContext;
+    final AnalyticsLogger mAnalyticsLogger;
 
     @Nullable DumperPluginsProvider mDumperPlugins;
     @Nullable InspectorModulesProvider mInspectorModules;
 
-    private InitializerBuilder(Context context) {
+    private InitializerBuilder(Context context, @Nullable AnalyticsLogger analyticsLogger) {
       mContext = context.getApplicationContext();
+      mAnalyticsLogger = analyticsLogger;
     }
 
     /**
@@ -513,7 +532,7 @@ public class Stetho {
     @Nullable private final InspectorModulesProvider mInspectorModules;
 
     private BuilderBasedInitializer(InitializerBuilder b) {
-      super(b.mContext);
+      super(b.mContext, b.mAnalyticsLogger);
       mDumperPlugins = b.mDumperPlugins;
       mInspectorModules = b.mInspectorModules;
     }
