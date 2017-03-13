@@ -27,6 +27,14 @@
         android:label="@string/apod_title"
         android:name=".APODActivity" />
 
+    <activity
+        android:label="@string/irc_connect_title"
+        android:name=".IRCConnectActivity" />
+
+    <activity
+        android:label="@string/irc_chat_title"
+        android:name=".IRCChatActivity" />
+
     <provider
         android:name=".APODContentProvider"
         android:authorities="com.facebook.stetho.sample.apod"

@@ -4,6 +4,7 @@
   <string name="app_name">Stetho Sample</string>
   <string name="settings_btn">Settings</string>
   <string name="apod_btn">APOD RSS Feed</string>
+  <string name="irc_btn">IRC Client</string>
   <string name="settings_title">Settings</string>
   <string name="pref_category1_title">General</string>
   <string name="pref_checkbox_title">Boolean setting</string>
@@ -14,5 +15,11 @@
   <string name="pref_list_dialog_title">Choices</string>
   <string name="pref_change_message">%1$s is now \'%2$s\'</string>
   <string name="apod_title">APOD Listing</string>
+  <string name="irc_connect_title">IRC Connect</string>
+  <string name="irc_chat_title">IRC Chat</string>
   <string name="stetho_missing">Stetho missing in %s build!</string>
+  <string name="send">Send</string>
+  <string name="irc_connect">Connect</string>
+  <string name="irc_nickname">Nickname:</string>
+  <string name="irc_server">IRC Server:</string>
 </resources>
