@@ -107,11 +107,8 @@ final class ViewGroupDescriptor extends AbstractChainedDescriptor<ViewGroup>
     View hitChild = null;
     for (int i = element.getChildCount() - 1; i >= 0; --i) {
       final View childView = element.getChildAt(i);
-      final boolean hasChildren = childView instanceof ViewGroup &&
-          ((ViewGroup) childView).getChildCount() > 0;
       if (isChildVisible(childView) &&
-          childView.getVisibility() == View.VISIBLE &&
-          (hasChildren || childView.isFocusable())) {
+          childView.getVisibility() == View.VISIBLE) {
         childView.getHitRect(bounds);
         if (bounds.contains(x, y)) {
           hitChild = childView;
