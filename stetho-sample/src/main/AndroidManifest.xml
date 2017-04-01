@@ -4,6 +4,7 @@
     package="com.facebook.stetho.sample">
 
   <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
 
   <application
       android:label="@string/app_name"
@@ -31,6 +32,9 @@
         android:name=".APODContentProvider"
         android:authorities="com.facebook.stetho.sample.apod"
         android:exported="false" />
+
+    <service
+        android:name=".ChatHeadService"/>
 
   </application>
 
