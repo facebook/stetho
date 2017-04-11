@@ -4,4 +4,5 @@
   <dimen name="main_button_width">150dp</dimen>
   <dimen name="apod_image_width">90dp</dimen>
   <dimen name="apod_image_height">90dp</dimen>
+  <dimen name="profiler_button_width">220dp</dimen>
 </resources>

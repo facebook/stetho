@@ -4,6 +4,7 @@
     package="com.facebook.stetho.sample">
 
   <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
   <application
       android:label="@string/app_name"
@@ -31,6 +32,10 @@
         android:name=".APODContentProvider"
         android:authorities="com.facebook.stetho.sample.apod"
         android:exported="false" />
+
+    <activity
+        android:label="@string/profiler_title"
+        android:name=".ProfilerActivity" />
 
   </application>
 

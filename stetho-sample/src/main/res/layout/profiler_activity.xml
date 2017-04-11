@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_horizontal"
+    android:padding="15dp">
+
+  <CheckBox
+      android:id="@+id/microscoped_profile"
+      android:text="@string/microscoped_profile"
+      android:layout_width="@dimen/profiler_button_width"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="10dp"
+      android:checked="false"
+      />
+
+  <Button
+      android:id="@+id/alloc_simple_btn"
+      android:text="@string/alloc_simple_btn"
+      android:layout_width="@dimen/profiler_button_width"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="10dp"
+      />
+
+  <Button
+      android:id="@+id/alloc_gotcha_btn"
+      android:text="@string/alloc_gotcha_btn"
+      android:layout_width="@dimen/profiler_button_width"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="10dp"
+      />
+
+  <TextView
+      android:text="@string/profiler_disclaimer"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      />
+
+</LinearLayout>
