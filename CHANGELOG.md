@@ -1,6 +1,33 @@
 Change Log
 ==========
 
+## Version 1.5.0
+_2017_04_13_
+
+ * **Generic socket support**
+   Added the ability to inspect arbitrary sockets via Chrome devtools'
+   WebSocket APIs.  This support is integrated into stetho-sample
+   as a demo, and in future releases we'd like to make it available
+   generically for at least okhttp customers.
+
+ * **Major Elements tab extensibility points**
+   Significant expansion to AndroidDocumentProviderFactory which allows 
+   for a much greater degree of customization, including the
+   ability to have editable styles.  Over time we'd like to incorporate
+   this support into native Android UI but also to make it even
+   easier to unlock powerful new customizations for custom view or
+   entire rendering systems.
+
+ * Fix #392: Fix database id mapping for multiple database providers
+ * Fix #521: Fix hit testing for empty view groups
+ * Fix #513: Fix LeakCanary false positive
+ * Fix #514: Handle runtime exceptions from database drivers
+ * Fix #511: Remove accidental hard dependency on support library
+ * Fix #406: Fix stetho-rhino importClass/Package not working properly
+ * Fix #499: Treat HttpURLConnection headers as case insensitive
+ * Fix #512: Fix severe stdin issue in dumpapp script
+ * Fix #486: Fix TextViewDescriptor NPE when text is null
+
 ## Version 1.4.2
 _2016_12_14_
 
