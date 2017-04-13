@@ -39,7 +39,7 @@ public class IRCConnectActivity extends Activity {
     }
     mIRCNickname = (EditText) findViewById(R.id.irc_nickname);
     if (TextUtils.isEmpty(mIRCNickname.getText())) {
-      mIRCNickname.setText("Guest" + (new Random().nextInt(9999) + 1));
+      mIRCNickname.setText("stetho" + (new Random().nextInt(9999) + 1));
     }
 
     findViewById(R.id.irc_connect).setOnClickListener(mConnectClicked);
