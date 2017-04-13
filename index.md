@@ -5,14 +5,14 @@ id: home
 
 ## Download
 
-{% include ui/button.html button_href="https://github.com/facebook/stetho/releases/download/v1.4.2/stetho-1.4.2-fatjar.jar" button_text="Download v1.4.2" margin="small" align="center" %}
+{% include ui/button.html button_href="https://github.com/facebook/stetho/releases/download/v1.5.0/stetho-1.5.0-fatjar.jar" button_text="Download v1.5.0" margin="small" align="center" %}
 
 Alternatively you can include Stetho from Maven Central via Gradle or Maven. 
 
 ```groovy
   // Gradle dependency on Stetho 
   dependencies { 
-    compile 'com.facebook.stetho:stetho:1.4.2' 
+    compile 'com.facebook.stetho:stetho:1.5.0' 
   } 
 ```
 
@@ -20,7 +20,7 @@ Alternatively you can include Stetho from Maven Central via Gradle or Maven.
   <dependency>
     <groupid>com.facebook.stetho</groupid> 
     <artifactid>stetho</artifactid> 
-    <version>1.4.2</version> 
+    <version>1.5.0</version> 
   </dependency> 
 ```
 
@@ -28,7 +28,7 @@ Only the main `stetho` dependency is strictly required, however you may also wis
 
 ```groovy 
   dependencies { 
-    compile 'com.facebook.stetho:stetho-okhttp3:1.4.2' 
+    compile 'com.facebook.stetho:stetho-okhttp3:1.5.0' 
   } 
 ```
 
@@ -36,7 +36,7 @@ or:
 
 ```groovy 
   dependencies { 
-    compile 'com.facebook.stetho:stetho-okhttp:1.4.2' 
+    compile 'com.facebook.stetho:stetho-okhttp:1.5.0' 
   } 
 ```
 
@@ -44,7 +44,7 @@ or:
 
 ```groovy
   dependencies { 
-    compile 'com.facebook.stetho:stetho-urlconnection:1.4.2' 
+    compile 'com.facebook.stetho:stetho-urlconnection:1.5.0' 
   } 
 ```
 
