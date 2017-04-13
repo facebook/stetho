@@ -12,7 +12,6 @@ package com.facebook.stetho;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
 import com.facebook.stetho.common.LogUtil;
 import com.facebook.stetho.common.Util;
@@ -26,7 +25,8 @@ import com.facebook.stetho.dumpapp.plugins.HprofDumperPlugin;
 import com.facebook.stetho.dumpapp.plugins.SharedPreferencesDumperPlugin;
 import com.facebook.stetho.inspector.DevtoolsSocketHandler;
 import com.facebook.stetho.inspector.console.RuntimeReplFactory;
-import com.facebook.stetho.inspector.database.DatabaseConnectionProvider;
+import com.facebook.stetho.inspector.database.ContentProviderDatabaseDriver;
+import com.facebook.stetho.inspector.database.DatabaseDriver2Adapter;
 import com.facebook.stetho.inspector.database.DatabaseFilesProvider;
 import com.facebook.stetho.inspector.database.DefaultDatabaseConnectionProvider;
 import com.facebook.stetho.inspector.database.DefaultDatabaseFilesProvider;
@@ -44,6 +44,7 @@ import com.facebook.stetho.inspector.protocol.module.DOM;
 import com.facebook.stetho.inspector.protocol.module.DOMStorage;
 import com.facebook.stetho.inspector.protocol.module.Database;
 import com.facebook.stetho.inspector.protocol.module.DatabaseConstants;
+import com.facebook.stetho.inspector.protocol.module.DatabaseDriver2;
 import com.facebook.stetho.inspector.protocol.module.Debugger;
 import com.facebook.stetho.inspector.protocol.module.HeapProfiler;
 import com.facebook.stetho.inspector.protocol.module.Inspector;
@@ -241,7 +242,8 @@ public class Stetho {
     @Nullable private DocumentProviderFactory mDocumentProvider;
     @Nullable private RuntimeReplFactory mRuntimeRepl;
     @Nullable private DatabaseFilesProvider mDatabaseFilesProvider;
-    @Nullable private List<Database.DatabaseDriver> mDatabaseDrivers;
+    @Nullable private List<DatabaseDriver2> mDatabaseDrivers;
+    private boolean mExcludeSqliteDatabaseDriver;
 
     public DefaultInspectorModulesBuilder(Context context) {
       mContext = (Application)context.getApplicationContext();
@@ -285,7 +287,8 @@ public class Stetho {
      *       new DefaultDatabaseConnectionProvider(...)))
      * </pre>
      *
-     * @deprecated See example alternative above.
+     * @deprecated Use {@link #provideDatabaseDriver(DatabaseDriver2)} with
+     *     {@link SqliteDatabaseDriver} explicitly.
      */
     @Deprecated
     public DefaultInspectorModulesBuilder databaseFiles(DatabaseFilesProvider provider) {
@@ -294,16 +297,42 @@ public class Stetho {
     }
 
     /**
-     * Extend and provide additional database drivers. Currently two database drivers are supported
-     * in this lib: <br>
-     *   1. <code>SqliteDatabaseDriver</code> - Presents sqlite databases and all tables of the app.<br>
-     *   2. <code>ContentProviderDatabaseDriver</code> - Configure and present content providers data.
+     * @deprecated Convert your custom database driver to {@link DatabaseDriver2}.
      */
+    @Deprecated
     public DefaultInspectorModulesBuilder provideDatabaseDriver(Database.DatabaseDriver databaseDriver) {
+      provideDatabaseDriver(new DatabaseDriver2Adapter(databaseDriver));
+      return this;
+    }
+
+    /**
+     * Extend and provide additional database drivers.  Stetho provides two database
+     * drivers by default, with the option for developers to provide their own:
+     * <ol>
+     *   <li>{@link SqliteDatabaseDriver} - Presents SQLite databases.</li>
+     *   <li>{@link ContentProviderDatabaseDriver} - Configure and present content provider
+     *   data.</li>
+     * </ol>
+     *
+     * <p>Stetho assumes the {@link SqliteDatabaseDriver} should be installed if
+     * no driver of that type is provided and {@link #excludeSqliteDatabaseDriver} is not
+     * used.</p>
+     */
+    public DefaultInspectorModulesBuilder provideDatabaseDriver(DatabaseDriver2 databaseDriver) {
       if (mDatabaseDrivers == null) {
         mDatabaseDrivers = new ArrayList<>();
       }
       mDatabaseDrivers.add(databaseDriver);
+      return this;
+    }
+
+    /**
+     * Do not automatically provide the {@link SqliteDatabaseDriver} instance.  The instance
+     * is provided by default for backwards compatibility purposes and simplicity of API, with
+     * this API provided to disable that functionality if desired.
+     */
+    public DefaultInspectorModulesBuilder excludeSqliteDatabaseDriver(boolean exclude) {
+      mExcludeSqliteDatabaseDriver = exclude;
       return this;
     }
 
@@ -363,18 +392,14 @@ public class Stetho {
         Database database = new Database();
         boolean hasSqliteDatabaseDriver = false;
         if (mDatabaseDrivers != null) {
-          for (Database.DatabaseDriver databaseDriver : mDatabaseDrivers) {
+          for (DatabaseDriver2 databaseDriver : mDatabaseDrivers) {
             database.add(databaseDriver);
             if (databaseDriver instanceof SqliteDatabaseDriver) {
               hasSqliteDatabaseDriver = true;
             }
           }
         }
-        if (!hasSqliteDatabaseDriver) {
-          // Add the SqliteDatabaseDriver by default for convenience.  If this isn't desired,
-          // the caller must install a dummy version of the driver (with an empty files provider).
-          // Not ideal, but given the current API and the need for backwards compatability we
-          // don't have much of a choice here...
+        if (!hasSqliteDatabaseDriver && !mExcludeSqliteDatabaseDriver) {
           database.add(
               new SqliteDatabaseDriver(mContext,
                   mDatabaseFilesProvider != null ?

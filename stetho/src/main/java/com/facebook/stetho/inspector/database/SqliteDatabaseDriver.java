@@ -15,11 +15,12 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
+
 import com.facebook.stetho.common.Util;
 import com.facebook.stetho.inspector.protocol.module.Database;
 import com.facebook.stetho.inspector.protocol.module.DatabaseConstants;
-
-import javax.annotation.concurrent.ThreadSafe;
+import com.facebook.stetho.inspector.protocol.module.DatabaseDescriptor;
+import com.facebook.stetho.inspector.protocol.module.DatabaseDriver2;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -28,8 +29,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 @ThreadSafe
-public class SqliteDatabaseDriver extends Database.DatabaseDriver {
+public class SqliteDatabaseDriver
+    extends DatabaseDriver2<SqliteDatabaseDriver.SqliteDatabaseDescriptor> {
   private static final String[] UNINTERESTING_FILENAME_SUFFIXES = new String[]{
       "-journal",
       "-shm",
@@ -39,14 +43,13 @@ public class SqliteDatabaseDriver extends Database.DatabaseDriver {
 
   private final DatabaseFilesProvider mDatabaseFilesProvider;
   private final DatabaseConnectionProvider mDatabaseConnectionProvider;
-  private List<String> mDatabases;
 
   /**
    * Constructs the object with a {@link DatabaseFilesProvider} that supplies the database files
    * from {@link Context#databaseList()}.
    *
    * @param context the context
-   * @deprecated use {@link SqliteDatabaseDriver#SqliteDatabaseDriver(Context, DatabaseFilesProvider, DatabaseConnectionProvider)}
+   * @deprecated use {@link SqliteDatabaseDriver#SqliteDatabaseDriver(Context, String, DatabaseFilesProvider, DatabaseConnectionProvider)}
    */
   @Deprecated
   public SqliteDatabaseDriver(Context context) {
@@ -57,7 +60,21 @@ public class SqliteDatabaseDriver extends Database.DatabaseDriver {
   }
 
   /**
+   * @deprecated use {@link SqliteDatabaseDriver#SqliteDatabaseDriver(Context, String, DatabaseFilesProvider, DatabaseConnectionProvider)}
+   */
+  @Deprecated
+  public SqliteDatabaseDriver(
+      Context context,
+      DatabaseFilesProvider databaseFilesProvider) {
+    this(
+        context,
+        databaseFilesProvider,
+        new DefaultDatabaseConnectionProvider());
+  }
+
+  /**
    * @param context the context
+   * @param namespace label to apply to the driver when it appears in the UI
    * @param databaseFilesProvider a database file name provider
    * @param databaseConnectionProvider a database connection provider
    */
@@ -71,18 +88,15 @@ public class SqliteDatabaseDriver extends Database.DatabaseDriver {
   }
 
   @Override
-  public List<String> getDatabaseNames() {
-    if (mDatabases == null) {
-      mDatabases = new ArrayList<>();
-      List<File> potentialDatabaseFiles = mDatabaseFilesProvider.getDatabaseFiles();
-      Collections.sort(potentialDatabaseFiles);
-      Iterable<File> tidiedList = tidyDatabaseList(potentialDatabaseFiles);
-      for (File database : tidiedList) {
-        String name = database.getName();
-        mDatabases.add(name);
-      }
+  public List<SqliteDatabaseDescriptor> getDatabaseNames() {
+    ArrayList<SqliteDatabaseDescriptor> databases = new ArrayList<>();
+    List<File> potentialDatabaseFiles = mDatabaseFilesProvider.getDatabaseFiles();
+    Collections.sort(potentialDatabaseFiles);
+    Iterable<File> tidiedList = tidyDatabaseList(potentialDatabaseFiles);
+    for (File database : tidiedList) {
+      databases.add(new SqliteDatabaseDescriptor(database));
     }
-    return mDatabases;
+    return databases;
   }
 
   /**
@@ -116,9 +130,9 @@ public class SqliteDatabaseDriver extends Database.DatabaseDriver {
     return str;
   }
 
-  public List<String> getTableNames(String databaseName)
+  public List<String> getTableNames(SqliteDatabaseDescriptor databaseDesc)
       throws SQLiteException {
-    SQLiteDatabase database = openDatabase(databaseName);
+    SQLiteDatabase database = openDatabase(databaseDesc);
     try {
       Cursor cursor = database.rawQuery("SELECT name FROM sqlite_master WHERE type IN (?, ?)",
           new String[] { "table", "view" });
@@ -136,11 +150,14 @@ public class SqliteDatabaseDriver extends Database.DatabaseDriver {
     }
   }
 
-  public Database.ExecuteSQLResponse executeSQL(String databaseName, String query, ExecuteResultHandler<Database.ExecuteSQLResponse> handler)
-      throws SQLiteException {
+  public Database.ExecuteSQLResponse executeSQL(
+      SqliteDatabaseDescriptor databaseDesc,
+      String query,
+      ExecuteResultHandler<Database.ExecuteSQLResponse> handler)
+          throws SQLiteException {
     Util.throwIfNull(query);
     Util.throwIfNull(handler);
-    SQLiteDatabase database = openDatabase(databaseName);
+    SQLiteDatabase database = openDatabase(databaseDesc);
     try {
       String firstWordUpperCase = getFirstWord(query).toUpperCase();
       switch (firstWordUpperCase) {
@@ -206,18 +223,23 @@ public class SqliteDatabaseDriver extends Database.DatabaseDriver {
     return handler.handleRawQuery();
   }
 
-  private SQLiteDatabase openDatabase(String databaseName) throws SQLiteException {
-    Util.throwIfNull(databaseName);
-    return mDatabaseConnectionProvider.openDatabase(findDatabaseFile(databaseName));
+  private SQLiteDatabase openDatabase(
+      SqliteDatabaseDescriptor databaseDesc)
+      throws SQLiteException {
+    Util.throwIfNull(databaseDesc);
+    return mDatabaseConnectionProvider.openDatabase(databaseDesc.file);
   }
 
-  private File findDatabaseFile(String databaseName) {
-     for (File providedDatabaseFile : mDatabaseFilesProvider.getDatabaseFiles()) {
-       if (providedDatabaseFile.getName().equals(databaseName)) {
-         return providedDatabaseFile;
-       }
-     }
+  static class SqliteDatabaseDescriptor implements DatabaseDescriptor {
+    public final File file;
 
-     return mContext.getDatabasePath(databaseName);
-   }
+    public SqliteDatabaseDescriptor(File file) {
+      this.file = file;
+    }
+
+    @Override
+    public String name() {
+      return file.getName();
+    }
+  }
 }
