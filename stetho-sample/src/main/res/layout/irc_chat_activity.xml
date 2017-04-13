@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="15dp">
+
+  <ListView
+      android:id="@+id/console_display"
+      android:layout_width="match_parent"
+      android:layout_height="0px"
+      android:layout_weight="1"
+      android:layout_marginBottom="10dp"
+      android:transcriptMode="normal"
+      />
+
+  <LinearLayout
+      android:orientation="horizontal"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content">
+
+    <EditText
+        android:id="@+id/console_input"
+        android:layout_width="0px"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:typeface="monospace"
+        android:inputType="textAutoCorrect"
+        android:imeOptions="actionSend"
+        android:maxLines="1">
+
+      <requestFocus />
+
+    </EditText>
+
+    <Button
+        android:id="@+id/console_send"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/send"
+        />
+
+  </LinearLayout>
+
+</LinearLayout>

@@ -15,7 +15,7 @@ import java.io.InputStream;
 
 /**
  * Interface that callers must invoke in order to supply data to the Network tab in
- * the WebKit Inspector.
+ * the WebKit Inspector.  For HTTP specific traffic, the following call flow must be met:
  *
  * <pre>
  * requestWillBeSent +---> responseHeadersReceived +---> interpretResponseStream
@@ -25,10 +25,31 @@ import java.io.InputStream;
  *                   `-----------------------------`--------> httpExchangeFailed
  * </pre>
  *
- * Note that {@link #interpretResponseStream} combined with {@link DefaultResponseHandler}
+ * <p>Note that {@link #interpretResponseStream} combined with {@link DefaultResponseHandler}
  * will automatically invoke {@link #dataReceived}, {@link #responseReadFailed} and
  * {@link #responseReadFinished}.  If you use your own custom {@link ResponseHandler} you
- * must be sure to invoke these methods manually.
+ * must be sure to invoke these methods manually.</p>
+ *
+ * <p>For arbitrary sockets or explicitly for WebSockets, the following call flow must be met:</p>
+ *
+ * <pre>
+ * webSocketCreated +---> webSocketWillSendHandshakeRequest ----> webSocketHandshakeResponseReceived
+ *                  |                                                              |
+ *                  |                     ,----------------------+-----------------+--------,
+ *                  |                     v                      v                          |
+ *                  +---------> [ webSocketFrameSent | webSocketFrameReceiver ] ---,        |
+ *                  |                     ^                      ^                 |        |
+ *                  |                     `----------------------+-----------------+        |
+ *                  |                                                              |        |
+ *                  `---------> webSocketClosed <----------------------------------'        |
+ *                                     ^                                                    |
+ *                                     `----------------------------------------------------'
+ * </pre>
+ *
+ * <p>Explicitly worth nothing is that regular sockets in an Android app can be treated as
+ * WebSockets for the purpose of arbitrary socket inspection and can skip
+ * {@link #webSocketWillSendHandshakeRequest} and {@link #webSocketHandshakeResponseReceived}
+ * which are only used for the WebSocket-specific HTTP upgrade.</p>
  */
 public interface NetworkEventReporter {
   /**
@@ -150,26 +171,60 @@ public interface NetworkEventReporter {
   String nextRequestId();
 
   /**
+   * Invoked when a socket is created and implicitly being connected (but not necessarily connected
+   * yet).  If a websocket is being used, proceed to {@link #webSocketWillSendHandshakeRequest}.
+   * Otherwise you may proceed next to {@code webSocketFrame*} methods.
+   */
+  void webSocketCreated(String requestId, String url);
+
+  /**
+   * Socket has been closed for unknown reasons.  Consider first invoking
+   * {@link #webSocketFrameError} even for standard sockets to provide context.
+   */
+  void webSocketClosed(String requestId);
+
+  /**
+   * Invoked specifically for websockets to communicate the WebSocket upgrade messages.  Not
+   * necessary to call for standard sockets.
+   */
+  void webSocketWillSendHandshakeRequest(InspectorWebSocketRequest request);
+
+  /**
+   * Delivers the reply from the peer in response to the WebSocket upgrade request.
+   */
+  void webSocketHandshakeResponseReceived(InspectorWebSocketResponse response);
+
+  /**
+   * Send a "websocket" frame from our app to the remote peer.  Standard sockets can simply emulate
+   * this by capturing each socket send as a frame of either
+   * {@link InspectorWebSocketFrame#OPCODE_BINARY} or
+   * {@link InspectorWebSocketFrame#OPCODE_TEXT}.  Note that binary
+   * payloads are not visualized in Chrome but can be sent by simply assuming the data is UTF-8
+   * encoded (yes, really:
+   * https://chromium.googlesource.com/chromium/blink/+/master/Source/core/inspector/InspectorResourceAgent.cpp#850).
+   */
+  void webSocketFrameSent(InspectorWebSocketFrame frame);
+
+  /**
+   * The receive side of {@link #webSocketFrameSent}.
+   */
+  void webSocketFrameReceived(InspectorWebSocketFrame frame);
+
+  /**
+   * Indicates a web socket (or standard socket) error has occurred though this doesn't
+   * explicitly close the socket (see {@link #webSocketClosed}) but it does let the UI
+   * know that it should denote the closure as forceful or as a failure in some way.
+   */
+  void webSocketFrameError(String requestId, String errorMessage);
+
+  /**
    * Represents the request that will be sent over HTTP.  Note that for many implementations
    * of HTTP the request constructed may differ from the request actually sent over the wire.
    * For instance, additional headers like {@code Host}, {@code User-Agent}, {@code Content-Type},
    * etc may not be part of this request but should be injected if necessary.  Some stacks offer
    * inspection of the raw request about to be sent to the server which is preferable.
    */
-  interface InspectorRequest extends InspectorHeaders {
-    /**
-     * Unique identifier for this request.  This identifier must be used in all other network
-     * events corresponding to this request.  Identifiers may be re-used after
-     * {@link NetworkEventReporter#httpExchangeFailed} or {@link NetworkEventReporter#loadingFinished}
-     * are invoked.
-     */
-    String id();
-
-    /**
-     * Arbitrary debug-friendly name of the request.
-     */
-    String friendlyName();
-
+  interface InspectorRequest extends InspectorRequestCommon {
     /**
      * Provide an extra integer to decorate the {@link #friendlyName()}.  This shows up next to
      * it in the WebKit Inspector UI and can be used to indicate things like request priority.
@@ -192,14 +247,8 @@ public interface NetworkEventReporter {
     byte[] body() throws IOException;
   }
 
-  interface InspectorResponse extends InspectorHeaders {
-    /** @see InspectorRequest#id() */
-    String requestId();
-
+  interface InspectorResponse extends InspectorResponseCommon {
     String url();
-
-    int statusCode();
-    String reasonPhrase();
 
     /**
      * True if the response was furnished on a re-used socket; false otherwise or if unknown.
@@ -215,6 +264,56 @@ public interface NetworkEventReporter {
      * True if the response was furnished by disk cache; false otherwise or if unknown.
      */
     boolean fromDiskCache();
+  }
+
+  interface InspectorWebSocketRequest extends InspectorRequestCommon {
+  }
+
+  interface InspectorWebSocketResponse extends InspectorResponseCommon {
+    /**
+     * Optional and redundant set of headers from {@link InspectorWebSocketRequest} that are for
+     * some mysterious reason are included here in the response by Chrome.
+     */
+    @Nullable
+    InspectorHeaders requestHeaders();
+  }
+
+  interface InspectorWebSocketFrame {
+    String requestId();
+
+    int OPCODE_CONTINUATION = 0;
+    int OPCODE_TEXT = 1;
+    int OPCODE_BINARY = 2;
+    int OPCODE_CONNECTION_CLOSE = 8;
+    int OPCODE_PING = 9;
+    int OPCODE_PONG = 10;
+
+    int opcode();
+    boolean mask();
+    String payloadData();
+  }
+
+  interface InspectorRequestCommon extends InspectorHeaders {
+    /**
+     * Unique identifier for this request.  This identifier must be used in all other network
+     * events corresponding to this request.  Identifiers may be re-used for HTTP requests  or
+     * WebSockets that have exhuasted the state machine to its final closed/finished state.
+     */
+    String id();
+
+    /**
+     * Arbitrary debug-friendly name of the request.
+     */
+    String friendlyName();
+  }
+
+  interface InspectorResponseCommon extends InspectorHeaders {
+    /** @see InspectorRequest#id() */
+    String requestId();
+
+    int statusCode();
+
+    String reasonPhrase();
   }
 
   interface InspectorHeaders {

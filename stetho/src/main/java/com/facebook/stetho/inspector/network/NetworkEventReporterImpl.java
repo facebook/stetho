@@ -328,6 +328,109 @@ public class NetworkEventReporterImpl implements NetworkEventReporter {
     return headers.firstHeaderValue("Content-Type");
   }
 
+  @Override
+  public void webSocketCreated(String requestId, String url) {
+    NetworkPeerManager peerManager = getPeerManagerIfEnabled();
+    if (peerManager != null) {
+      Network.WebSocketCreatedParams params = new Network.WebSocketCreatedParams();
+      params.requestId = requestId;
+      params.url = url;
+      peerManager.sendNotificationToPeers("Network.webSocketCreated", params);
+    }
+  }
+
+  @Override
+  public void webSocketClosed(String requestId) {
+    NetworkPeerManager peerManager = getPeerManagerIfEnabled();
+    if (peerManager != null) {
+      Network.WebSocketClosedParams params = new Network.WebSocketClosedParams();
+      params.requestId = requestId;
+      params.timestamp = stethoNow() / 1000.0;
+      peerManager.sendNotificationToPeers("Network.webSocketClosed", params);
+    }
+  }
+
+  @Override
+  public void webSocketWillSendHandshakeRequest(InspectorWebSocketRequest request) {
+    NetworkPeerManager peerManager = getPeerManagerIfEnabled();
+    if (peerManager != null) {
+      Network.WebSocketWillSendHandshakeRequestParams params =
+          new Network.WebSocketWillSendHandshakeRequestParams();
+      params.requestId = request.id();
+      params.timestamp = stethoNow() / 1000.0;
+      params.wallTime = System.currentTimeMillis() / 1000.0;
+      Network.WebSocketRequest requestJSON = new Network.WebSocketRequest();
+      requestJSON.headers = formatHeadersAsJSON(request);
+      params.request = requestJSON;
+      peerManager.sendNotificationToPeers("Network.webSocketWillSendHandshakeRequest", params);
+    }
+  }
+
+  @Override
+  public void webSocketHandshakeResponseReceived(InspectorWebSocketResponse response) {
+    NetworkPeerManager peerManager = getPeerManagerIfEnabled();
+    if (peerManager != null) {
+      Network.WebSocketHandshakeResponseReceivedParams params =
+          new Network.WebSocketHandshakeResponseReceivedParams();
+      params.requestId = response.requestId();
+      params.timestamp = stethoNow() / 1000.0;
+      Network.WebSocketResponse responseJSON = new Network.WebSocketResponse();
+      responseJSON.headers = formatHeadersAsJSON(response);
+      responseJSON.headersText = null;
+      if (response.requestHeaders() != null) {
+        responseJSON.requestHeaders = formatHeadersAsJSON(response.requestHeaders());
+        responseJSON.requestHeadersText = null;
+      }
+      responseJSON.status = response.statusCode();
+      responseJSON.statusText = response.reasonPhrase();
+      params.response = responseJSON;
+    }
+  }
+
+  @Override
+  public void webSocketFrameSent(InspectorWebSocketFrame frame) {
+    NetworkPeerManager peerManager = getPeerManagerIfEnabled();
+    if (peerManager != null) {
+      Network.WebSocketFrameSentParams params = new Network.WebSocketFrameSentParams();
+      params.requestId = frame.requestId();
+      params.timestamp = stethoNow() / 1000.0;
+      params.response = convertFrame(frame);
+      peerManager.sendNotificationToPeers("Network.webSocketFrameSent", params);
+    }
+  }
+
+  @Override
+  public void webSocketFrameReceived(InspectorWebSocketFrame frame) {
+    NetworkPeerManager peerManager = getPeerManagerIfEnabled();
+    if (peerManager != null) {
+      Network.WebSocketFrameReceivedParams params = new Network.WebSocketFrameReceivedParams();
+      params.requestId = frame.requestId();
+      params.timestamp = stethoNow() / 1000.0;
+      params.response = convertFrame(frame);
+      peerManager.sendNotificationToPeers("Network.webSocketFrameReceived", params);
+    }
+  }
+
+  private static Network.WebSocketFrame convertFrame(InspectorWebSocketFrame in) {
+    Network.WebSocketFrame out = new Network.WebSocketFrame();
+    out.opcode = in.opcode();
+    out.mask = in.mask();
+    out.payloadData = in.payloadData();
+    return out;
+  }
+
+  @Override
+  public void webSocketFrameError(String requestId, String errorMessage) {
+    NetworkPeerManager peerManager = getPeerManagerIfEnabled();
+    if (peerManager != null) {
+      Network.WebSocketFrameErrorParams params = new Network.WebSocketFrameErrorParams();
+      params.requestId = requestId;
+      params.timestamp = stethoNow() / 1000.0;
+      params.errorMessage = errorMessage;
+      peerManager.sendNotificationToPeers("Network.webSocketFrameError", params);
+    }
+  }
+
   private static JSONObject formatHeadersAsJSON(InspectorHeaders headers) {
     JSONObject json = new JSONObject();
     for (int i = 0; i < headers.headerCount(); i++) {

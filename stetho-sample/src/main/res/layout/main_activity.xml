@@ -22,4 +22,12 @@
       android:layout_marginBottom="10dp"
       />
 
+  <Button
+      android:id="@+id/irc_btn"
+      android:text="@string/irc_btn"
+      android:layout_width="@dimen/main_button_width"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="10dp"
+      />
+
 </LinearLayout>
