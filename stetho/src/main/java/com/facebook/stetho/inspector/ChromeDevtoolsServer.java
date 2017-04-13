@@ -16,6 +16,7 @@ import java.util.Map;
 
 import android.util.Log;
 
+import com.facebook.stetho.AnalyticsLogger;
 import com.facebook.stetho.common.LogRedirector;
 import com.facebook.stetho.common.Util;
 import com.facebook.stetho.inspector.jsonrpc.JsonRpcException;
@@ -33,6 +34,8 @@ import com.facebook.stetho.websocket.SimpleSession;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import javax.annotation.Nullable;
+
 /**
  * Implements a limited version of the Chrome Debugger WebSocket protocol (using JSON-RPC 2.0).
  * The most up-to-date documentation can be found in the Blink source code:
@@ -49,9 +52,11 @@ public class ChromeDevtoolsServer implements SimpleEndpoint {
       Collections.synchronizedMap(
           new HashMap<SimpleSession, JsonRpcPeer>());
 
-  public ChromeDevtoolsServer(Iterable<ChromeDevtoolsDomain> domainModules) {
+  public ChromeDevtoolsServer(
+      Iterable<ChromeDevtoolsDomain> domainModules,
+      @Nullable AnalyticsLogger analyticsLogger) {
     mObjectMapper = new ObjectMapper();
-    mMethodDispatcher = new MethodDispatcher(mObjectMapper, domainModules);
+    mMethodDispatcher = new MethodDispatcher(mObjectMapper, domainModules, analyticsLogger);
   }
 
   @Override
