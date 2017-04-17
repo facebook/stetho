@@ -50,6 +50,7 @@ public class SampleDebugApplication extends SampleApplication {
           }
         })
         .enableWebKitInspector(new ExtInspectorModulesProvider(context))
+        .enableViewInspection(true) // Default setting is true
         .build());
   }
 
