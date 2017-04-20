@@ -384,6 +384,7 @@ public class NetworkEventReporterImpl implements NetworkEventReporter {
       responseJSON.status = response.statusCode();
       responseJSON.statusText = response.reasonPhrase();
       params.response = responseJSON;
+      peerManager.sendNotificationToPeers("Network.webSocketHandshakeResponseReceived", params);
     }
   }
 
