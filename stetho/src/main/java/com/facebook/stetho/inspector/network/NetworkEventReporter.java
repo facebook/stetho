@@ -37,7 +37,7 @@ import java.io.InputStream;
  *                  |                                                              |
  *                  |                     ,----------------------+-----------------+--------,
  *                  |                     v                      v                          |
- *                  +---------> [ webSocketFrameSent | webSocketFrameReceiver ] ---,        |
+ *                  +---------> [ webSocketFrameSent | webSocketFrameReceived ] ---,        |
  *                  |                     ^                      ^                 |        |
  *                  |                     `----------------------+-----------------+        |
  *                  |                                                              |        |
