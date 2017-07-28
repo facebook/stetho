@@ -1,0 +1,27 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 21
+    buildToolsVersion "21.1.2"
+
+    defaultConfig {
+        minSdkVersion 9
+        targetSdkVersion 21
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+    lintOptions {
+        // This seems to be firing due to okio referencing java.nio.File
+        // which is harmless for us. Not sure how to disable this in
+        // more targeted fashion...
+        warning 'InvalidPackage'
+    }
+}
+
+dependencies {
+    compile project(':stetho')
+    //provided scope, you must provide the volley jar in your project
+    provided files('libs/volley.jar')
+}

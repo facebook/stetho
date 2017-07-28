@@ -1,4 +1,5 @@
 include ':stetho'
+include ':stetho-volley'
 include ':stetho-urlconnection'
 include ':stetho-okhttp'
 include ':stetho-okhttp3'
