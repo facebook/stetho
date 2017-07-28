@@ -182,13 +182,13 @@ public class StethoInterceptor implements Interceptor {
     private final String mRequestId;
     private final Request mRequest;
     private final Response mResponse;
-    private final Connection mConnection;
+    private @Nullable final Connection mConnection;
 
     public OkHttpInspectorResponse(
         String requestId,
         Request request,
         Response response,
-        Connection connection) {
+        @Nullable Connection connection) {
       mRequestId = requestId;
       mRequest = request;
       mResponse = response;
@@ -223,7 +223,7 @@ public class StethoInterceptor implements Interceptor {
 
     @Override
     public int connectionId() {
-      return mConnection.hashCode();
+      return mConnection == null ? 0 : mConnection.hashCode();
     }
 
     @Override
