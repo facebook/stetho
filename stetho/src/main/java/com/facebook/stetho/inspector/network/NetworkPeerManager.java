@@ -72,6 +72,7 @@ public class NetworkPeerManager extends ChromePeerManager {
     protected void onLastPeerUnregistered() {
       mResponseBodyFileManager.cleanupFiles();
       AsyncPrettyPrinterExecutorHolder.shutdown();
+      AsyncPrettyPrinterSchemaManager.getInstance().clearCache();
     }
   };
 }

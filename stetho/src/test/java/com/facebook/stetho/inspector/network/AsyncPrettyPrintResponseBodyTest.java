@@ -19,9 +19,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.never;
 import static org.mockito.Matchers.any;
 
-import com.facebook.stetho.inspector.network.AsyncPrettyPrinter;
-import com.facebook.stetho.inspector.network.AsyncPrettyPrinterExecutorHolder;
-import dalvik.annotation.TestTargetClass;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -37,6 +34,7 @@ import java.lang.Override;
 import java.lang.String;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.net.URL;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -47,6 +45,7 @@ public class AsyncPrettyPrintResponseBodyTest {
   private static final String TEST_HEADER_NAME = "header name";
   private static final String TEST_HEADER_VALUE = "header value";
   private static final String PRETTY_PRINT_PREFIX = "pretty printed result: ";
+  private static final String TEST_URL = "https://www.facebook.com";
   private static final String[] UNREGISTERED_HEADER_NAMES = {"unregistered header name 1",
       "unregistered header name 2",
       "unregistered header name 3"};
@@ -67,12 +66,11 @@ public class AsyncPrettyPrintResponseBodyTest {
 
   private AsyncPrettyPrinterRegistry mAsyncPrettyPrinterRegistry;
   private PrettyPrinterTestFactory mPrettyPrinterTestFactory;
-  private ResponseBodyFileManager mResponseBodyFileManager;
+  private AsyncPrettyPrinterSchemaManager mAsyncPrettyPrinterSchemaFileManager;
 
   @Before
   public void setup() {
     mPrettyPrinterTestFactory = new PrettyPrinterTestFactory();
-    mResponseBodyFileManager = mock(ResponseBodyFileManager.class);
     mAsyncPrettyPrinterRegistry = new AsyncPrettyPrinterRegistry();
     mAsyncPrettyPrinterRegistry.register(TEST_HEADER_NAME, mPrettyPrinterTestFactory);
     AsyncPrettyPrinterExecutorHolder.ensureInitialized();
@@ -85,6 +83,8 @@ public class AsyncPrettyPrintResponseBodyTest {
     AsyncPrettyPrinter mAsyncPrettyPrinter = mPrettyPrinterTestFactory.getInstance(
         TEST_HEADER_NAME,
         TEST_HEADER_VALUE);
+    assert(mPrettyPrinterTestFactory != null);
+    assert(mAsyncPrettyPrinter != null);
     mAsyncPrettyPrinter.printTo(writer, mInputStream);
     assertEquals(PRETTY_PRINT_PREFIX + Arrays.toString(TEST_RESPONSE_BODY), out.toString());
   }
@@ -173,7 +173,7 @@ public class AsyncPrettyPrintResponseBodyTest {
     @Nullable
     protected MatchResult matchAndParseHeader(String headerName, String headerValue) {
       if (headerName.equals(TEST_HEADER_NAME) && headerValue.equals(TEST_HEADER_VALUE)) {
-        return new MatchResult("https://www.facebook.com", PrettyPrinterDisplayType.TEXT);
+        return new MatchResult(TEST_URL, PrettyPrinterDisplayType.TEXT);
       } else {
         return null;
       }

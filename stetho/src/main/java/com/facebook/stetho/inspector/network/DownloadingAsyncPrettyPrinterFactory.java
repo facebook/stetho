@@ -30,53 +30,77 @@ public abstract class DownloadingAsyncPrettyPrinterFactory implements AsyncPrett
       return null;
     }
     String uri = result.getSchemaUri();
-    URL schemaURL = parseURL(uri);
+    final URL schemaURL = parseURL(uri);
     if (schemaURL == null) {
-      return getErrorAsyncPrettyPrinter(headerName, headerValue);
+      String errorMessage = "[Failed to parse header: "
+          + headerName + " : " + headerValue + " ]";
+      return getErrorAsyncPrettyPrinter(errorMessage);
     } else {
-      ExecutorService  executorService = AsyncPrettyPrinterExecutorHolder.getExecutorService();
-      if (executorService == null) {
-        //last peer is unregistered...
-        return null;
-      }
-      final Future<String> response = executorService.submit(new Request(schemaURL));
-      return new AsyncPrettyPrinter() {
-        public void printTo(PrintWriter output, InputStream payload)
-            throws IOException {
-          try {
-            String schema;
+      final String schemaCache;
+      AsyncPrettyPrinterSchemaManager schemaFileManager
+          = AsyncPrettyPrinterSchemaManager.getInstance();
+      schemaCache = schemaFileManager.get(schemaURL);
+      if (schemaCache != null) {
+        return new AsyncPrettyPrinter() {
+          @Override
+          public void printTo(PrintWriter output, InputStream payload) throws IOException {
+            doPrint(output, payload, schemaCache);
+          }
+
+          @Override
+          public PrettyPrinterDisplayType getPrettifiedType() {
+            return result.getDisplayType();
+          }
+        };
+      } else {
+        ExecutorService  executorService = AsyncPrettyPrinterExecutorHolder.getExecutorService();
+        if (executorService == null) {
+          //last peer is unregistered...
+          return null;
+        }
+        final Future<String> response = executorService.submit(new Request(schemaURL));
+        return new AsyncPrettyPrinter() {
+
+          @Override
+          public void printTo(PrintWriter output, InputStream payload)
+              throws IOException {
             try {
-              schema = response.get();
+              String schema;
+              try {
+                schema = response.get();
+              } catch (ExecutionException e) {
+                Throwable cause = e.getCause();
+                if (IOException.class.isInstance(cause) ||
+                    IllegalArgumentException.class.isInstance(cause)) {
+                  doErrorPrint(
+                      output,
+                      payload,
+                      "Cannot successfully download schema: "
+                          + e.getMessage());
+                  return;
+                } else {
+                  throw e;
+                }
+              }
+              doPrint(output, payload, schema);
+            } catch (InterruptedException e) {
+              doErrorPrint(
+                  output,
+                  payload,
+                  "Encountered spurious interrupt while downloading schema for pretty printing: "
+                      + e.getMessage());
             } catch (ExecutionException e) {
               Throwable cause = e.getCause();
-              if (IOException.class.isInstance(cause)) {
-                doErrorPrint(
-                    output,
-                    payload,
-                    "Cannot successfully download schema: "
-                        + e.getMessage());
-                return;
-              } else {
-                throw e;
-              }
+              throw ExceptionUtil.propagate(cause);
             }
-            doPrint(output, payload, schema);
-          } catch (InterruptedException e) {
-            doErrorPrint(
-                output,
-                payload,
-                "Encountered spurious interrupt while downloading schema for pretty printing: "
-                    + e.getMessage());
-          } catch (ExecutionException e) {
-            Throwable cause = e.getCause();
-            throw ExceptionUtil.propagate(cause);
           }
-        }
 
-        public PrettyPrinterDisplayType getPrettifiedType() {
-          return result.getDisplayType();
-        }
-      };
+          @Override
+          public PrettyPrinterDisplayType getPrettifiedType() {
+            return result.getDisplayType();
+          }
+        };
+      }
     }
   }
 
@@ -113,13 +137,10 @@ public abstract class DownloadingAsyncPrettyPrinterFactory implements AsyncPrett
   }
 
   private static AsyncPrettyPrinter getErrorAsyncPrettyPrinter(
-      final String headerName,
-      final String headerValue) {
+      final String errorMessage) {
     return new AsyncPrettyPrinter() {
       @Override
       public void printTo(PrintWriter output, InputStream payload) throws IOException {
-        String errorMessage = "[Failed to parse header: "
-            + headerName + " : " + headerValue + " ]";
         doErrorPrint(output, payload, errorMessage);
       }
 
@@ -129,7 +150,6 @@ public abstract class DownloadingAsyncPrettyPrinterFactory implements AsyncPrett
       }
     };
   }
-
 
   protected class MatchResult {
     private final String mSchemaUri;
@@ -150,12 +170,13 @@ public abstract class DownloadingAsyncPrettyPrinterFactory implements AsyncPrett
   }
 
   private static class Request implements Callable<String> {
-    private URL url;
+    private final URL url;
 
     public Request(URL url) {
       this.url = url;
     }
 
+    @Nullable
     @Override
     public String call() throws IOException {
       HttpURLConnection connection = (HttpURLConnection)url.openConnection();
@@ -166,7 +187,11 @@ public abstract class DownloadingAsyncPrettyPrinterFactory implements AsyncPrett
       }
       InputStream urlStream = connection.getInputStream();
       try {
-        return Util.readAsUTF8(urlStream);
+        AsyncPrettyPrinterSchemaManager schemaFileManager
+            = AsyncPrettyPrinterSchemaManager.getInstance();
+        String result = Util.readAsUTF8(urlStream);
+        schemaFileManager.put(url, result);
+        return result;
       } finally {
         urlStream.close();
       }
