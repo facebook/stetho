@@ -103,7 +103,7 @@ public class StethoInterceptorTest {
         .build();
     Response filteredResponse =
         mInterceptor.intercept(
-            new SimpleTestChain(request, reply, null));
+            new SimpleTestChain(request, reply, Mockito.mock(Connection.class)));
 
     inOrder.verify(mMockEventReporter).isEnabled();
     inOrder.verify(mMockEventReporter)
@@ -198,6 +198,21 @@ public class StethoInterceptorTest {
 
     server.shutdown();
   }
+
+  @Test(expected = StethoInterceptor.RegistrationException.class)
+  public void testConnectionNotPresentThrowsRegistrationException() throws IOException {
+    Request request = new Request.Builder()
+            .url(Uri.parse("http://www.facebook.com/nowhere").toString())
+            .build();
+    Response reply = new Response.Builder()
+            .request(request)
+            .protocol(Protocol.HTTP_1_1)
+            .code(200)
+            .build();
+
+    mInterceptor.intercept(new SimpleTestChain(request, reply, null));
+  }
+
 
   private static String repeat(String s, int reps) {
     StringBuilder b = new StringBuilder(s.length() * reps);

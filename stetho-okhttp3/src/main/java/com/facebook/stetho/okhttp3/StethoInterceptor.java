@@ -67,6 +67,9 @@ public class StethoInterceptor implements Interceptor {
       }
 
       Connection connection = chain.connection();
+      if (connection == null) {
+        throw new RegistrationException();
+      }
       mEventReporter.responseHeadersReceived(
           new OkHttpInspectorResponse(
               requestId,
@@ -182,13 +185,13 @@ public class StethoInterceptor implements Interceptor {
     private final String mRequestId;
     private final Request mRequest;
     private final Response mResponse;
-    private @Nullable final Connection mConnection;
+    private final Connection mConnection;
 
     public OkHttpInspectorResponse(
         String requestId,
         Request request,
         Response response,
-        @Nullable Connection connection) {
+        Connection connection) {
       mRequestId = requestId;
       mRequest = request;
       mResponse = response;
@@ -223,7 +226,7 @@ public class StethoInterceptor implements Interceptor {
 
     @Override
     public int connectionId() {
-      return mConnection == null ? 0 : mConnection.hashCode();
+      return mConnection.hashCode();
     }
 
     @Override
@@ -280,4 +283,17 @@ public class StethoInterceptor implements Interceptor {
       return mInterceptedSource;
     }
   }
+
+  /**
+   * Thrown when {@link Connection} is {@code null} in an {@link Interceptor}. This indicates {@link StethoInterceptor}
+   * was incorrectly registered using {@link OkHttpClient.Builder#addInterceptor(Interceptor)} instead of
+   * {@link OkHttpClient.Builder#addNetworkInterceptor(Interceptor)}. Connection is always present in network
+   * interceptors and never present in vanilla interceptors.
+   */
+  static final class RegistrationException extends IllegalStateException {
+    public RegistrationException() {
+      super("Connection is not present. Are you sure you registered Stetho as a network interceptor?");
+    }
+  }
+
 }
