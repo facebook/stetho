@@ -137,7 +137,7 @@ public class NetworkEventReporterImpl implements NetworkEventReporter {
                 Console.MessageLevel.WARNING,
                 Console.MessageSource.NETWORK,
                 "Could not reproduce POST body do to a an invalid charset: " + e);
-        return "Data (length:"  +" cannot be represented as a string.";
+        return "Data (length:"+ body.length  +") cannot be represented as a string.";
       }
     } catch (IOException | OutOfMemoryError e) {
       CLog.writeToConsole(
