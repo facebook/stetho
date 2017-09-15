@@ -132,19 +132,21 @@ public class NetworkEventReporterImpl implements NetworkEventReporter {
         CharBuffer charBuffer = decoder.decode(ByteBuffer.wrap(body));
         return charBuffer.toString();
       } catch (CharacterCodingException e) {
+        String logMessage = "Charset in POST/PUT is not UTF-8. Data (length:"+ body.length
+                +") cannot be represented as a string. ";
         CLog.writeToConsole(
                 peerManager,
                 Console.MessageLevel.WARNING,
                 Console.MessageSource.NETWORK,
-                "Could not reproduce POST body do to a an invalid charset: " + e);
-        return "Data (length:"+ body.length  +") cannot be represented as a string.";
+                 logMessage + e);
+        return logMessage;
       }
     } catch (IOException | OutOfMemoryError e) {
       CLog.writeToConsole(
               peerManager,
               Console.MessageLevel.WARNING,
               Console.MessageSource.NETWORK,
-              "Could not reproduce POST body: " + e);
+              "Could not reproduce POST/PUT body: " + e);
 
     }
     return null;
