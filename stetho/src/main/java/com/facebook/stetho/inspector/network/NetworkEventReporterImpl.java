@@ -10,21 +10,30 @@
 package com.facebook.stetho.inspector.network;
 
 import android.os.SystemClock;
+
 import com.facebook.stetho.common.Utf8Charset;
 import com.facebook.stetho.inspector.console.CLog;
 import com.facebook.stetho.inspector.protocol.module.Console;
 import com.facebook.stetho.inspector.protocol.module.Network;
 import com.facebook.stetho.inspector.protocol.module.Page;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CodingErrorAction;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Implementation of {@link NetworkEventReporter} which allows callers to inform the Stetho
@@ -39,6 +48,8 @@ public class NetworkEventReporterImpl implements NetworkEventReporter {
 
   private static NetworkEventReporter sInstance;
 
+  private static final CharsetDecoder decoder = Charset.forName(Utf8Charset.NAME).newDecoder();
+
   private NetworkEventReporterImpl() {
   }
 
@@ -49,6 +60,8 @@ public class NetworkEventReporterImpl implements NetworkEventReporter {
   public static synchronized NetworkEventReporter get() {
     if (sInstance == null) {
       sInstance = new NetworkEventReporterImpl();
+      decoder.onUnmappableCharacter(CodingErrorAction.REPORT);
+      decoder.onMalformedInput(CodingErrorAction.REPORT);
     }
     return sInstance;
   }
@@ -115,15 +128,24 @@ public class NetworkEventReporterImpl implements NetworkEventReporter {
       InspectorRequest request) {
     try {
       byte[] body = request.body();
-      if (body != null) {
-        return new String(body, Utf8Charset.INSTANCE);
+      try {
+        CharBuffer charBuffer = decoder.decode(ByteBuffer.wrap(body));
+        return charBuffer.toString();
+      } catch (CharacterCodingException e) {
+        CLog.writeToConsole(
+                peerManager,
+                Console.MessageLevel.WARNING,
+                Console.MessageSource.NETWORK,
+                "Could not reproduce POST body do to a an invalid charset: " + e);
+        return "Data (length:"  +" cannot be represented as a string.";
       }
     } catch (IOException | OutOfMemoryError e) {
       CLog.writeToConsole(
-          peerManager,
-          Console.MessageLevel.WARNING,
-          Console.MessageSource.NETWORK,
-          "Could not reproduce POST body: " + e);
+              peerManager,
+              Console.MessageLevel.WARNING,
+              Console.MessageSource.NETWORK,
+              "Could not reproduce POST body: " + e);
+
     }
     return null;
   }
