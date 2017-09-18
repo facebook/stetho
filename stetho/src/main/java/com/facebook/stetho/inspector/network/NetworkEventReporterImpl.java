@@ -128,6 +128,9 @@ public class NetworkEventReporterImpl implements NetworkEventReporter {
       InspectorRequest request) {
     try {
       byte[] body = request.body();
+      if (body == null || body.length == 0) {
+        return "";
+      }
       try {
         CharBuffer charBuffer = decoder.decode(ByteBuffer.wrap(body));
         return charBuffer.toString();
