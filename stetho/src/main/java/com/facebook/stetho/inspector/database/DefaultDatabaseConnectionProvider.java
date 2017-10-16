@@ -9,12 +9,15 @@
 
 package com.facebook.stetho.inspector.database;
 
-import android.database.sqlite.SQLiteDatabase;
+//import android.database.sqlite.SQLiteDatabase;
+import net.sqlcipher.database.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 
 import com.facebook.stetho.inspector.database.SQLiteDatabaseCompat.SQLiteOpenOptions;
 
 import java.io.File;
+
+import static com.facebook.stetho.Stetho.password;
 
 /**
  * Opens the requested database using
@@ -62,7 +65,7 @@ public class DefaultDatabaseConnectionProvider implements DatabaseConnectionProv
     flags |= compatInstance.provideOpenFlags(options);
 
     SQLiteDatabase db = SQLiteDatabase.openDatabase(
-        databaseFile.getAbsolutePath(),
+        databaseFile.getAbsolutePath(), password,
         null /* cursorFactory */,
         flags);
     compatInstance.enableFeatures(options, db);

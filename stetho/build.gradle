@@ -19,6 +19,7 @@ dependencies {
     compile 'com.google.code.findbugs:jsr305:2.0.1'
 
     compile 'com.android.support:appcompat-v7:23.0.1' // optional
+    compile 'net.zetetic:android-database-sqlcipher:3.5.7@aar'
 
     testCompile 'junit:junit:4.12'
     testCompile('org.robolectric:robolectric:2.4') {
