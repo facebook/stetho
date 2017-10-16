@@ -82,6 +82,7 @@ import java.util.Set;
  * the {@code stetho-sample} for more information.
  */
 public class Stetho {
+  public static String password = "";
   private Stetho() {
   }
 
@@ -101,7 +102,8 @@ public class Stetho {
    * first socket connection is received, allowing this to be safely used for debug builds on
    * even low-end hardware without noticeably affecting performance.
    */
-  public static void initializeWithDefaults(final Context context) {
+  public static void initializeWithDefaults(final Context context, String password) {
+    Stetho.password = password;
     initialize(new Initializer(context) {
       @Override
       protected Iterable<DumperPlugin> getDumperPlugins() {

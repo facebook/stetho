@@ -9,7 +9,8 @@
 
 package com.facebook.stetho.inspector.database;
 
-import android.database.sqlite.SQLiteDatabase;
+//import android.database.sqlite.SQLiteDatabase;
+import net.sqlcipher.database.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 
 import java.io.File;
