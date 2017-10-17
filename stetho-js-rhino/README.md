@@ -97,7 +97,8 @@ The functions `importClass` and `importPackage` have been added.
 A `console` object is available too. It supports only a `log()` method for now.
 
 ### Import a class
-First define a JsRuntimeReplFactoryBuilder object
+
+First define a JsRuntimeReplFactoryBuilder object:
 
 ```
 // context is your application context
