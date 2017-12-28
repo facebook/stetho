@@ -52,6 +52,7 @@ import java.util.zip.GZIPOutputStream;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.mock;
 
 @Config(emulateSdk = Build.VERSION_CODES.JELLY_BEAN)
 @RunWith(RobolectricTestRunner.class)
@@ -69,7 +70,7 @@ public class StethoInterceptorTest {
   public void setUp() {
     PowerMockito.mockStatic(NetworkEventReporterImpl.class);
 
-    mMockEventReporter = Mockito.mock(NetworkEventReporter.class);
+    mMockEventReporter = mock(NetworkEventReporter.class);
     Mockito.when(mMockEventReporter.isEnabled()).thenReturn(true);
     PowerMockito.when(NetworkEventReporterImpl.get()).thenReturn(mMockEventReporter);
 
@@ -103,7 +104,7 @@ public class StethoInterceptorTest {
         .build();
     Response filteredResponse =
         mInterceptor.intercept(
-            new SimpleTestChain(request, reply, null));
+            new SimpleTestChain(request, reply, mock(Connection.class)));
 
     inOrder.verify(mMockEventReporter).isEnabled();
     inOrder.verify(mMockEventReporter)

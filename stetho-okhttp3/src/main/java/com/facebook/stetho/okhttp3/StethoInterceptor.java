@@ -68,7 +68,9 @@ public class StethoInterceptor implements Interceptor {
 
       Connection connection = chain.connection();
       if (connection == null) {
-        throw new IllegalStateException("No connection associated with this request; did you use addInterceptor instead of addNetworkInterceptor?")
+        throw new IllegalStateException(
+            "No connection associated with this request; " +
+                "did you use addInterceptor instead of addNetworkInterceptor?");
       }
       mEventReporter.responseHeadersReceived(
           new OkHttpInspectorResponse(
