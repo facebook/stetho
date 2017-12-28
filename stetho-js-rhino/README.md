@@ -98,6 +98,13 @@ A `console` object is available too. It supports only a `log()` method for now.
 
 ### Import a class
 
+First define a JsRuntimeReplFactoryBuilder object:
+
+```
+// context is your application context
+JsRuntimeReplFactoryBuilder jsRuntimeBuilder = new JsRuntimeReplFactoryBuilder(context);
+```
+
 To import a java class into the JavaScript runtime do:
 
 ```java
