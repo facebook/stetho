@@ -94,8 +94,8 @@ class Frame {
     } else if (firstLenByte == 127) {
       long len = 0;
       for (int i = 0; i < 8; i++) {
-        len |= (readByteOrThrow(in) & 0xff);
         len <<= 8;
+        len |= (readByteOrThrow(in) & 0xff);
       }
       return len;
     } else {
