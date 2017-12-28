@@ -41,7 +41,7 @@ variables, classes, packages and functions and provide this custom runtime REPL 
             ).finish();
           }
         })
-        .build());
+        .build();
 ```
 
 For more details see the next sections.
