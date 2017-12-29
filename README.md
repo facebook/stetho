@@ -56,6 +56,18 @@ public class MyApplication extends Application {
   }
 }
 ```
+Also ensure that your `MyApplication` Java class is registered in your `AndroidManifest.xml` file, otherwise you will not see an "Inspect" button in `chrome://inspect/#devices` :
+
+```xml
+<manifest
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        ...>
+        <application
+                android:name="MyApplication"
+                ...>
+         </application>
+</manifest>                
+```
 
 This brings up most of the default configuration but does not enable some
 additional hooks (most notably, network inspection).  See below for specific
