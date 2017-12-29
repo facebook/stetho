@@ -165,7 +165,7 @@ jsRuntimeBuilder.addFunction("toast", new BaseFunction() {
 
 ## Limitations
 
-As mentioned in the section (how it works)(#"user-content-how-it-works) the JavaScript runtime has to run in interpreted mode due to the nature of the android runtime.
+As mentioned in the section [how it works](#how-it-works) the JavaScript runtime has to run in interpreted mode due to the nature of the android runtime.
 
 ### Dex method count
 
@@ -174,7 +174,7 @@ The standard Rhino distribution includes a "tools" package that's not required b
 but it is still bundled.
 That package alone adds more than 1,200 methods to the dex count.
 
-Hopefully the Rhino devs will split the distribution in smaller artifacts (see mozilla/rhino#156).
+Hopefully the Rhino devs will split the distribution in smaller artifacts (see https://github.com/mozilla/rhino/issues/156).
 In the meanwhile you should consider using proguard to shrink the dex method count.
 
 Here's the dex count of the stetho-sample compiled under various scenarios:
