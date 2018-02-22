@@ -69,7 +69,7 @@ def _find_only_stetho_socket(device, port):
     last_stetho_socket_name = None
     process_names = []
     for line in adb.sock.makefile():
-      row = line.rstrip().split(' ')
+      row = re.split(r'\s+', line.rstrip())
       if len(row) < 8:
         continue
       socket_name = row[7]
