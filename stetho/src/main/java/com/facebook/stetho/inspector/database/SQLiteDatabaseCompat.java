@@ -10,7 +10,8 @@
 package com.facebook.stetho.inspector.database;
 
 import android.annotation.TargetApi;
-import android.database.sqlite.SQLiteDatabase;
+//import android.database.sqlite.SQLiteDatabase;
+import net.sqlcipher.database.SQLiteDatabase;
 import android.os.Build;
 import android.support.annotation.IntDef;
 
@@ -31,9 +32,10 @@ public abstract class SQLiteDatabaseCompat {
   private static final SQLiteDatabaseCompat sInstance;
 
   static {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-      sInstance = new JellyBeanAndBeyondImpl();
-    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+//    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+//      sInstance = new JellyBeanAndBeyondImpl();
+//    } else
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
       sInstance = new HoneycombImpl();
     } else {
       sInstance = new NoopImpl();
@@ -47,7 +49,7 @@ public abstract class SQLiteDatabaseCompat {
   public abstract int provideOpenFlags(@SQLiteOpenOptions int openOptions);
   public abstract void enableFeatures(@SQLiteOpenOptions int openOptions, SQLiteDatabase db);
 
-  @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+  /*@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
   private static class JellyBeanAndBeyondImpl extends SQLiteDatabaseCompat {
     @Override
     public int provideOpenFlags(@SQLiteOpenOptions int openOptions) {
@@ -64,9 +66,9 @@ public abstract class SQLiteDatabaseCompat {
         db.setForeignKeyConstraintsEnabled(true);
       }
     }
-  }
+  }*/
 
-  @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+ // @TargetApi(Build.VERSION_CODES.HONEYCOMB)
   private static class HoneycombImpl extends SQLiteDatabaseCompat {
     @Override
     public int provideOpenFlags(@SQLiteOpenOptions int openOptions) {
@@ -76,7 +78,7 @@ public abstract class SQLiteDatabaseCompat {
     @Override
     public void enableFeatures(@SQLiteOpenOptions int openOptions, SQLiteDatabase db) {
       if ((openOptions & ENABLE_WRITE_AHEAD_LOGGING) != 0) {
-        db.enableWriteAheadLogging();
+        db.execSQL("PRAGMA journal_mode=WAL;");
       }
 
       if ((openOptions & ENABLE_FOREIGN_KEY_CONSTRAINTS) != 0) {

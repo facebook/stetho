@@ -12,9 +12,12 @@ package com.facebook.stetho.inspector.database;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
-import android.database.sqlite.SQLiteStatement;
+//import android.database.sqlite.SQLiteDatabase;
+import net.sqlcipher.database.SQLiteDatabase;
+import net.sqlcipher.database.SQLiteException;
+import net.sqlcipher.database.SQLiteStatement;
+//import android.database.sqlite.SQLiteException;
+//import android.database.sqlite.SQLiteStatement;
 
 import com.facebook.stetho.common.Util;
 import com.facebook.stetho.inspector.protocol.module.Database;
@@ -57,6 +60,7 @@ public class SqliteDatabaseDriver
         context,
         new DefaultDatabaseFilesProvider(context),
         new DefaultDatabaseConnectionProvider());
+    SQLiteDatabase.loadLibs(context);
   }
 
   /**
