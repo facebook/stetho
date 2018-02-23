@@ -12,3 +12,9 @@ allprojects {
         jcenter()
     }
 }
+
+apply plugin: 'checkstyle'
+
+checkstyle {
+    configFile = new File("${project.projectDir}", "checkstyle.xml")
+}
