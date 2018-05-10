@@ -18,6 +18,7 @@ import android.text.TextUtils;
 import com.facebook.stetho.dumpapp.DumpUsageException;
 import com.facebook.stetho.dumpapp.DumperContext;
 import com.facebook.stetho.dumpapp.DumperPlugin;
+import com.facebook.stetho.inspector.domstorage.SharedPreferencesHelper;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -174,7 +175,7 @@ public class SharedPreferencesDumperPlugin implements DumperPlugin {
   private void printFile(PrintStream writer, String prefsName, String keyPrefix) {
     writer.println(prefsName + ":");
     SharedPreferences preferences = getSharedPreferences(prefsName);
-    for (Map.Entry<String, ?> entry : preferences.getAll().entrySet()) {
+    for (Map.Entry<String, ?> entry : SharedPreferencesHelper.getSharedPreferenceEntriesSorted(preferences)) {
       if (entry.getKey().startsWith(keyPrefix)) {
         writer.println("  " + entry.getKey() + " = " + entry.getValue());
       }
