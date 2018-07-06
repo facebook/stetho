@@ -7,7 +7,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "25.0.2"
+    buildToolsVersion versions.buildTools
 
     defaultConfig {
         applicationId "com.facebook.stetho.sample"
@@ -29,14 +29,14 @@ android {
 }
 
 dependencies {
-    debugCompile project(':stetho')
-    debugCompile project(':stetho-urlconnection')
+    debugImplementation project(':stetho')
+    debugImplementation project(':stetho-urlconnection')
 
     // Uncomment if you wish to play with the Console evaluation
     // features of the Rhino JS implementation.  Disabled by default
     // because it is a large JAR by comparison to the rest of
     // Stetho.
-    //debugCompile project(':stetho-js-rhino')
+    //debugImplementation project(':stetho-js-rhino')
 
     // We must use Maven dependency resolution to demonstrate our usage
     // of optional dependencies to include stetho-urlconnection but not
@@ -44,8 +44,8 @@ dependencies {
     // way to express this is:
     //
     //   dependencies {
-    //     debugCompile 'com.facebook.stetho:stetho:<VERSION>'
-    //     compile 'com.facebook.stetho:stetho-urlconnection:<VERSION>'
+    //     debugImplementation 'com.facebook.stetho:stetho:<VERSION>'
+    //     implementation 'com.facebook.stetho:stetho-urlconnection:<VERSION>'
     //   }
     //
     // For Stetho developers, to verify locally that things are working
@@ -55,8 +55,8 @@ dependencies {
     //   ./gradlew installArchives
     //
     // Then uncomment the Maven style dependency and comment the project one:
-    //releaseCompile "com.facebook.stetho:stetho-urlconnection:${VERSION_NAME}"
-    releaseCompile project(':stetho-urlconnection')
+    //releaseImplementation "com.facebook.stetho:stetho-urlconnection:${VERSION_NAME}"
+    releaseImplementation project(':stetho-urlconnection')
 
-    compile 'com.google.code.findbugs:jsr305:2.0.1'
+    api 'com.google.code.findbugs:jsr305:2.0.1'
 }
