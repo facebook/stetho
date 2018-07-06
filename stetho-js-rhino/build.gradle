@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "25.0.2"
+    buildToolsVersion versions.buildTools
 
     defaultConfig {
         minSdkVersion 9
@@ -19,11 +19,11 @@ android {
 }
 
 dependencies {
-    compile project(':stetho')
-    compile 'com.google.code.findbugs:jsr305:2.0.1'
-    compile 'org.mozilla:rhino:1.7.6'
+    api project(':stetho')
+    api 'com.google.code.findbugs:jsr305:2.0.1'
+    api 'org.mozilla:rhino:1.7.6'
 
-    testCompile 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.12'
 }
 
 apply from: rootProject.file('release.gradle')

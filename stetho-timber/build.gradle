@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "25.0.2"
+    buildToolsVersion versions.buildTools
 
     defaultConfig {
         minSdkVersion 11
@@ -13,8 +13,8 @@ android {
 }
 
 dependencies {
-    compile project(':stetho')
-    compile 'com.jakewharton.timber:timber:4.1.2'
+    api project(':stetho')
+    api 'com.jakewharton.timber:timber:4.1.2'
 }
 
 apply from: rootProject.file('release.gradle')

@@ -1,0 +1,6 @@
+
+ext {
+    versions = [
+            'buildTools': "27.0.3"
+    ]
+}
