@@ -117,7 +117,7 @@ public class Runtime implements ChromeDevtoolsDomain {
   }
 
   @ChromeDevtoolsMethod
-  public CallFunctionOnResponse callFunctionOn(JsonRpcPeer peer, JSONObject params)
+  public JsonRpcResult callFunctionOn(JsonRpcPeer peer, JSONObject params)
       throws JsonRpcException {
     CallFunctionOnRequest args = mObjectMapper.convertValue(params, CallFunctionOnRequest.class);
 
