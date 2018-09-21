@@ -11,10 +11,12 @@ package com.facebook.stetho.inspector.elements.android;
 
 import android.app.Activity;
 import android.app.Application;
+import android.view.View;
 
 import com.facebook.stetho.common.Accumulator;
 import com.facebook.stetho.inspector.elements.AbstractChainedDescriptor;
 import com.facebook.stetho.inspector.elements.NodeType;
+import com.facebook.stetho.inspector.elements.android.window.WindowFetcher;
 
 import java.lang.ref.WeakReference;
 import java.util.Collections;
@@ -61,8 +63,38 @@ final class ApplicationDescriptor extends AbstractChainedDescriptor<Application>
         children.store(activity);
       }
     }
+    storeWindowIfNeeded(element,children,activities);
+  }
+  private void storeWindowIfNeeded(Application application, Accumulator<Object> children, List<WeakReference<Activity>> activities){
+    List<View>windows = WindowFetcher.getWindowViews(application);
+    if (windows == null){
+      return;
+    }
+    for (View view : windows) {
+      if (belongToActivity(view, activities)) {
+        continue;
+      }
+      children.store(view);
+    }
   }
 
+
+
+  static boolean belongToActivity(View view, List<WeakReference<Activity>> references) {
+    if (references == null) {
+      return false;
+    }
+    for (WeakReference<Activity> reference : references) {
+      Activity activity = reference.get();
+      if (activity == null) {
+        continue;
+      }
+      if (activity.getWindow().getDecorView() == view) {
+        return true;
+      }
+    }
+    return false;
+  }
   private class ElementContext {
     private Application mElement;
 
