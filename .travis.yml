@@ -6,11 +6,8 @@ jdk:
 android:
   components:
     - tools
-    - build-tools-25.0.2
-    - android-23
+    - android-28
     - platform-tools
-    - extra-android-support
-    - extra-android-m2repository
 
 branches:
   except:
