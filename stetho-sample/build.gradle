@@ -28,8 +28,8 @@ android {
 }
 
 dependencies {
-    debugCompile project(':stetho')
-    debugCompile project(':stetho-urlconnection')
+    debugImplementation project(':stetho')
+    debugImplementation project(':stetho-urlconnection')
 
     // Uncomment if you wish to play with the Console evaluation
     // features of the Rhino JS implementation.  Disabled by default
@@ -55,7 +55,7 @@ dependencies {
     //
     // Then uncomment the Maven style dependency and comment the project one:
     //releaseCompile "com.facebook.stetho:stetho-urlconnection:${VERSION_NAME}"
-    releaseCompile project(':stetho-urlconnection')
+    releaseImplementation project(':stetho-urlconnection')
 
-    compile 'com.google.code.findbugs:jsr305:2.0.1'
+    implementation 'com.google.code.findbugs:jsr305:2.0.1'
 }
