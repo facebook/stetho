@@ -14,3 +14,7 @@ allprojects {
         jcenter()
     }
 }
+
+ext {
+    compileSdkVersion = 28
+}
