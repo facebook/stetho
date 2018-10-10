@@ -75,8 +75,8 @@ public class MainActivity extends Activity {
       } else if (id == R.id.irc_btn) {
         IRCConnectActivity.show(MainActivity.this);
       } else if (id == R.id.about) {
-        View view=LayoutInflater.from(MainActivity.this).inflate(R.layout.dialog_layout,null);
-        Dialog dialog=new Dialog(MainActivity.this);
+        View view = LayoutInflater.from(MainActivity.this).inflate(R.layout.dialog_layout, null);
+        Dialog dialog = new Dialog(MainActivity.this);
         dialog.setContentView(view);
         dialog.setTitle(getString(R.string.app_name));
         dialog.show();
