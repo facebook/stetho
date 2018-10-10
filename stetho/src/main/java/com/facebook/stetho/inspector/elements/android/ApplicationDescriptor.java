@@ -14,9 +14,10 @@ import android.app.Application;
 import android.view.View;
 
 import com.facebook.stetho.common.Accumulator;
+import com.facebook.stetho.common.Util;
 import com.facebook.stetho.inspector.elements.AbstractChainedDescriptor;
 import com.facebook.stetho.inspector.elements.NodeType;
-import com.facebook.stetho.inspector.elements.android.window.WindowFetcher;
+import com.facebook.stetho.inspector.elements.android.window.WindowRootViewCompat;
 
 import java.lang.ref.WeakReference;
 import java.util.Collections;
@@ -63,27 +64,20 @@ final class ApplicationDescriptor extends AbstractChainedDescriptor<Application>
         children.store(activity);
       }
     }
-    storeWindowIfNeeded(element,children,activities);
+    storeWindowIfNeeded(element, children, activities);
   }
-  private void storeWindowIfNeeded(Application application, Accumulator<Object> children, List<WeakReference<Activity>> activities){
-    List<View>windows = WindowFetcher.getWindowViews(application);
-    if (windows == null){
-      return;
-    }
-    for (View view : windows) {
-      if (belongToActivity(view, activities)) {
-        continue;
+
+  private void storeWindowIfNeeded(Application application, Accumulator<Object> children, List<WeakReference<Activity>> activities) {
+    List<View> rootViews = WindowRootViewCompat.get(application).getRootViews();
+    for (View view : rootViews) {
+      if (!isDecorViewOfActivity(view, activities)) {
+        children.store(view);
       }
-      children.store(view);
     }
   }
 
-
-
-  static boolean belongToActivity(View view, List<WeakReference<Activity>> references) {
-    if (references == null) {
-      return false;
-    }
+  private static boolean isDecorViewOfActivity(View view, List<WeakReference<Activity>> references) {
+    Util.throwIfNull(references);
     for (WeakReference<Activity> reference : references) {
       Activity activity = reference.get();
       if (activity == null) {
@@ -95,6 +89,7 @@ final class ApplicationDescriptor extends AbstractChainedDescriptor<Application>
     }
     return false;
   }
+
   private class ElementContext {
     private Application mElement;
 

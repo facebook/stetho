@@ -33,7 +33,6 @@ import com.facebook.stetho.inspector.elements.DescriptorMap;
 import com.facebook.stetho.inspector.elements.DocumentProviderListener;
 import com.facebook.stetho.inspector.elements.NodeDescriptor;
 import com.facebook.stetho.inspector.elements.ObjectDescriptor;
-import com.facebook.stetho.inspector.elements.android.window.WindowWrapper;
 import com.facebook.stetho.inspector.helper.ThreadBoundProxy;
 
 import javax.annotation.Nullable;
@@ -95,8 +94,7 @@ final class AndroidDocumentProvider extends ThreadBoundProxy
         .registerDescriptor(TextView.class, new TextViewDescriptor())
         .registerDescriptor(View.class, new ViewDescriptor())
         .registerDescriptor(ViewGroup.class, new ViewGroupDescriptor())
-        .registerDescriptor(Window.class, new WindowDescriptor())
-        .registerDescriptor(WindowWrapper.class, new RealWindowDescriptor());
+        .registerDescriptor(Window.class, new WindowDescriptor());
 
     DialogFragmentDescriptor.register(mDescriptorMap);
     FragmentDescriptor.register(mDescriptorMap);
