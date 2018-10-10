@@ -3,14 +3,15 @@ language: android
 jdk:
   - oraclejdk8
 
+before_install:
+    - mkdir "$ANDROID_HOME/licenses" || true
+    - echo "d56f5187479451eabf01fb78af6dfcb131a6481e" > "$ANDROID_HOME/licenses/android-sdk-license"
+
 android:
   components:
     - tools
-    - build-tools-25.0.2
-    - android-23
+    - android-28
     - platform-tools
-    - extra-android-support
-    - extra-android-m2repository
 
 branches:
   except:

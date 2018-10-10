@@ -6,13 +6,12 @@ repositories {
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "25.0.2"
+    compileSdkVersion rootProject.ext.compileSdkVersion
 
     defaultConfig {
         applicationId "com.facebook.stetho.sample"
         minSdkVersion 11
-        targetSdkVersion 23
+        targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
     }
@@ -29,8 +28,8 @@ android {
 }
 
 dependencies {
-    debugCompile project(':stetho')
-    debugCompile project(':stetho-urlconnection')
+    implementation project(':stetho')
+    implementation project(':stetho-urlconnection')
 
     // Uncomment if you wish to play with the Console evaluation
     // features of the Rhino JS implementation.  Disabled by default
@@ -56,7 +55,7 @@ dependencies {
     //
     // Then uncomment the Maven style dependency and comment the project one:
     //releaseCompile "com.facebook.stetho:stetho-urlconnection:${VERSION_NAME}"
-    releaseCompile project(':stetho-urlconnection')
+    releaseImplementation project(':stetho-urlconnection')
 
-    compile 'com.google.code.findbugs:jsr305:2.0.1'
+    implementation 'com.google.code.findbugs:jsr305:2.0.1'
 }

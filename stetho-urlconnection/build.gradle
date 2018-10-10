@@ -1,20 +1,19 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "25.0.2"
+    compileSdkVersion rootProject.ext.compileSdkVersion
 
     defaultConfig {
         minSdkVersion 9
-        targetSdkVersion 23
+        targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
     }
 }
 
 dependencies {
-    compile project(':stetho')
-    compile 'com.google.code.findbugs:jsr305:2.0.1'
+    implementation project(':stetho')
+    implementation 'com.google.code.findbugs:jsr305:2.0.1'
 }
 
 apply from: rootProject.file('release.gradle')

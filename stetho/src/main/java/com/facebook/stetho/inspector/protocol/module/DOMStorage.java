@@ -63,7 +63,7 @@ public class DOMStorage implements ChromeDevtoolsDomain {
     String prefTag = storage.securityOrigin;
     if (storage.isLocalStorage) {
       SharedPreferences prefs = mContext.getSharedPreferences(prefTag, Context.MODE_PRIVATE);
-      for (Map.Entry<String, ?> prefsEntry : prefs.getAll().entrySet()) {
+      for (Map.Entry<String, ?> prefsEntry : SharedPreferencesHelper.getSharedPreferenceEntriesSorted(prefs)) {
         ArrayList<String> entry = new ArrayList<String>(2);
         entry.add(prefsEntry.getKey());
         entry.add(SharedPreferencesHelper.valueToString(prefsEntry.getValue()));
