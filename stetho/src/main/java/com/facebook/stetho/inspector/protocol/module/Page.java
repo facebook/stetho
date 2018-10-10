@@ -29,13 +29,32 @@ import java.util.Iterator;
 import java.util.List;
 
 public class Page implements ChromeDevtoolsDomain {
+  public static final String BANNER = // Note: not using Android resources so we can maintain .jar distribution for now.
+  "_____/\\\\\\\\\\\\\\\\\\\\\\_______________________________________________/\\\\\\_______________________\n" +
+  " ___/\\\\\\/////////\\\\\\____________________________________________\\/\\\\\\_______________________\n" +
+  "  __\\//\\\\\\______\\///______/\\\\\\_________________________/\\\\\\______\\/\\\\\\_______________________\n" +
+  "   ___\\////\\\\\\__________/\\\\\\\\\\\\\\\\\\\\\\_____/\\\\\\\\\\\\\\\\___/\\\\\\\\\\\\\\\\\\\\\\_\\/\\\\\\_____________/\\\\\\\\\\____\n" +
+  "    ______\\////\\\\\\______\\////\\\\\\////____/\\\\\\/////\\\\\\_\\////\\\\\\////__\\/\\\\\\\\\\\\\\\\\\\\____/\\\\\\///\\\\\\__\n" +
+  "     _________\\////\\\\\\______\\/\\\\\\_______/\\\\\\\\\\\\\\\\\\\\\\_____\\/\\\\\\______\\/\\\\\\/////\\\\\\__/\\\\\\__\\//\\\\\\_\n" +
+  "      __/\\\\\\______\\//\\\\\\_____\\/\\\\\\_/\\\\__\\//\\\\///////______\\/\\\\\\_/\\\\__\\/\\\\\\___\\/\\\\\\_\\//\\\\\\__/\\\\\\__\n" +
+  "       _\\///\\\\\\\\\\\\\\\\\\\\\\/______\\//\\\\\\\\\\____\\//\\\\\\\\\\\\\\\\\\\\____\\//\\\\\\\\\\___\\/\\\\\\___\\/\\\\\\__\\///\\\\\\\\\\/___\n" +
+  "        ___\\///////////_________\\/////______\\//////////______\\/////____\\///____\\///_____\\/////_____\n" +
+  "         Welcome to Stetho";
+
+
   private final Context mContext;
+  private final String mMessage;
   private final ObjectMapper mObjectMapper = new ObjectMapper();
   @Nullable
   private ScreencastDispatcher mScreencastDispatcher;
 
   public Page(Context context) {
+    this(context, BANNER);
+  }
+
+  public Page(Context context, String message) {
     mContext = context;
+    mMessage = message;
   }
 
   @ChromeDevtoolsMethod
@@ -61,19 +80,7 @@ public class Page implements ChromeDevtoolsDomain {
     Console.ConsoleMessage message = new Console.ConsoleMessage();
     message.source = Console.MessageSource.JAVASCRIPT;
     message.level = Console.MessageLevel.LOG;
-    message.text =
-// Note: not using Android resources so we can maintain .jar distribution for now.
-"_____/\\\\\\\\\\\\\\\\\\\\\\_______________________________________________/\\\\\\_______________________\n" +
-" ___/\\\\\\/////////\\\\\\____________________________________________\\/\\\\\\_______________________\n" +
-"  __\\//\\\\\\______\\///______/\\\\\\_________________________/\\\\\\______\\/\\\\\\_______________________\n" +
-"   ___\\////\\\\\\__________/\\\\\\\\\\\\\\\\\\\\\\_____/\\\\\\\\\\\\\\\\___/\\\\\\\\\\\\\\\\\\\\\\_\\/\\\\\\_____________/\\\\\\\\\\____\n" +
-"    ______\\////\\\\\\______\\////\\\\\\////____/\\\\\\/////\\\\\\_\\////\\\\\\////__\\/\\\\\\\\\\\\\\\\\\\\____/\\\\\\///\\\\\\__\n" +
-"     _________\\////\\\\\\______\\/\\\\\\_______/\\\\\\\\\\\\\\\\\\\\\\_____\\/\\\\\\______\\/\\\\\\/////\\\\\\__/\\\\\\__\\//\\\\\\_\n" +
-"      __/\\\\\\______\\//\\\\\\_____\\/\\\\\\_/\\\\__\\//\\\\///////______\\/\\\\\\_/\\\\__\\/\\\\\\___\\/\\\\\\_\\//\\\\\\__/\\\\\\__\n" +
-"       _\\///\\\\\\\\\\\\\\\\\\\\\\/______\\//\\\\\\\\\\____\\//\\\\\\\\\\\\\\\\\\\\____\\//\\\\\\\\\\___\\/\\\\\\___\\/\\\\\\__\\///\\\\\\\\\\/___\n" +
-"        ___\\///////////_________\\/////______\\//////////______\\/////____\\///____\\///_____\\/////_____\n" +
-"         Welcome to Stetho\n" +
-"          Attached to " + ProcessUtil.getProcessName() + "\n";
+    message.text = mMessage + "\n" + "          Attached to " + ProcessUtil.getProcessName() + "\n";
     Console.MessageAddedRequest messageAddedRequest = new Console.MessageAddedRequest();
     messageAddedRequest.message = message;
     peer.invokeMethod("Console.messageAdded", messageAddedRequest, null /* callback */);
@@ -302,4 +309,6 @@ public class Page implements ChromeDevtoolsDomain {
     @JsonProperty
     public int maxHeight;
   }
+
+
 }
