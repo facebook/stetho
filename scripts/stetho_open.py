@@ -18,16 +18,26 @@ import socket
 import struct
 import re
 
+def get_adb_server_port_from_server_socket():
+  socket_spec = os.environ.get('ADB_SERVER_SOCKET')
+  if not socket_spec:
+      return None
+  if not socket_spec.startswith('tcp:'):
+    raise HumanReadableError(
+      'Invalid or unsupported socket spec \'%s\' specified in ADB_SERVER_SOCKET.' % (
+        socket_spec))
+  return socket_spec.split(':')[-1]
+
 def get_adb_server_port():
   defaultPort = 5037
-  portStr = os.environ.get('ANDROID_ADB_SERVER_PORT')
+  portStr = get_adb_server_port_from_server_socket() or os.environ.get('ANDROID_ADB_SERVER_PORT')
   if portStr is None:
     return defaultPort
   elif portStr.isdigit():
     return int(portStr)
   else:
     raise HumanReadableError(
-      'Invalid integer \'%s\' specified in ANDROID_ADB_SERVER_PORT.' % (
+      'Invalid integer \'%s\' specified in ANDROID_ADB_SERVER_PORT or ADB_SERVER_SOCKET.' % (
         portStr))
 
 def stetho_open(device=None, process=None, port=None):
