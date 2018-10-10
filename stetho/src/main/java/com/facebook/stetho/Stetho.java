@@ -177,7 +177,7 @@ public class Stetho {
 
     public void remove(String pluginName) {
       throwIfFinished();
-      mRemovedNames.remove(pluginName);
+      mRemovedNames.add(pluginName);
     }
 
     private void throwIfFinished() {
