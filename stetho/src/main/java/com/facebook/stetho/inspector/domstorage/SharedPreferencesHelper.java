@@ -10,6 +10,8 @@
 package com.facebook.stetho.inspector.domstorage;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -17,9 +19,12 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeSet;
 
 public class SharedPreferencesHelper {
   private static final String PREFS_SUFFIX = ".xml";
@@ -44,6 +49,17 @@ public class SharedPreferencesHelper {
     Collections.sort(tags);
 
     return tags;
+  }
+
+  public static Set<Entry<String, ?>> getSharedPreferenceEntriesSorted(SharedPreferences preferences) {
+    TreeSet<Entry<String, ?>> entries = new TreeSet<>(new Comparator<Entry<String, ?>>() {
+      @Override
+      public int compare(Entry<String, ?> lhs, Entry<String, ?> rhs) {
+        return lhs.getKey().compareTo(rhs.getKey());
+      }
+    });
+    entries.addAll(preferences.getAll().entrySet());
+    return entries;
   }
 
   public static String valueToString(Object value) {
