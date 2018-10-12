@@ -45,26 +45,26 @@ import java.util.List;
  */
 public abstract class WindowRootViewCompat {
 
-	private static WindowRootViewCompat sInstance;
+  private static WindowRootViewCompat sInstance;
 
-	public static WindowRootViewCompat get(Context context) {
-		if (sInstance != null) {
-			return sInstance;
-		}
+  public static WindowRootViewCompat get(Context context) {
+    if (sInstance != null) {
+      return sInstance;
+    }
 
-		Util.throwIfNull(context);
+    Util.throwIfNull(context);
 
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-			sInstance = new WindowRootViewCompactV19Impl();
-		} else if (Build.VERSION.SDK_INT == Build.VERSION_CODES.JELLY_BEAN_MR1
-			|| Build.VERSION.SDK_INT == Build.VERSION_CODES.JELLY_BEAN_MR2) {
-			sInstance = new WindowRootViewCompactV18Impl();
-		} else {
-			sInstance = new WindowRootViewCompactV16Impl(context.getApplicationContext());
-		}
-		return sInstance;
-	}
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+      sInstance = new WindowRootViewCompactV19Impl();
+    } else if (Build.VERSION.SDK_INT == Build.VERSION_CODES.JELLY_BEAN_MR1
+      || Build.VERSION.SDK_INT == Build.VERSION_CODES.JELLY_BEAN_MR2) {
+      sInstance = new WindowRootViewCompactV18Impl();
+    } else {
+      sInstance = new WindowRootViewCompactV16Impl(context.getApplicationContext());
+    }
+    return sInstance;
+  }
 
-	@NonNull
-	public abstract List<View> getRootViews();
+  @NonNull
+  public abstract List<View> getRootViews();
 }
