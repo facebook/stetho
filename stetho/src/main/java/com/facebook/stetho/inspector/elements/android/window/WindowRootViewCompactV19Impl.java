@@ -18,10 +18,10 @@ class WindowRootViewCompactV19Impl extends WindowRootViewCompat {
       Class wmClz = Class.forName("android.view.WindowManagerGlobal");
       Method getInstanceMethod = wmClz.getDeclaredMethod("getInstance");
       Object managerGlobal = getInstanceMethod.invoke(wmClz);
-      Field mViewsFiled = wmClz.getDeclaredField("mViews");
-      mViewsFiled.setAccessible(true);
-      mRootViews = (List<View>) mViewsFiled.get(managerGlobal);
-      mViewsFiled.setAccessible(false);
+      Field mViewsField = wmClz.getDeclaredField("mViews");
+      mViewsField.setAccessible(true);
+      mRootViews = (List<View>) mViewsField.get(managerGlobal);
+      mViewsField.setAccessible(false);
     } catch (ClassNotFoundException e) {
       throw new RuntimeException(e);
     } catch (NoSuchMethodException e) {
