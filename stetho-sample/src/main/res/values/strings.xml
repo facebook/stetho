@@ -22,4 +22,7 @@
   <string name="irc_connect">Connect</string>
   <string name="irc_nickname">Nickname:</string>
   <string name="irc_server">IRC Server:</string>
+  <string name="about">About</string>
+  <string name="about_info_title">A debug bridge for Android applications</string>
+  <string name="about_info_content">you can view window View Hierarchy now !</string>
 </resources>
