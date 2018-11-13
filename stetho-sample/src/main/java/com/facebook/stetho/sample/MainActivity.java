@@ -18,6 +18,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Toast;
 
+import timber.log.Timber;
+
 public class MainActivity extends Activity {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -33,10 +35,25 @@ public class MainActivity extends Activity {
           .show();
     }
 
-    findViewById(R.id.settings_btn).setOnClickListener(mMainButtonClicked);
-    findViewById(R.id.apod_btn).setOnClickListener(mMainButtonClicked);
-    findViewById(R.id.irc_btn).setOnClickListener(mMainButtonClicked);
-    findViewById(R.id.about).setOnClickListener(mMainButtonClicked);
+    findViewById(R.id.log_btn).setOnClickListener(v -> {
+      Timber.i("log button clicked");
+    });
+    findViewById(R.id.settings_btn).setOnClickListener(v -> {
+      SettingsActivity.show(MainActivity.this);
+    });
+    findViewById(R.id.apod_btn).setOnClickListener(v -> {
+      APODActivity.show(MainActivity.this);
+    });
+    findViewById(R.id.irc_btn).setOnClickListener(v -> {
+      IRCConnectActivity.show(MainActivity.this);
+    });
+    findViewById(R.id.about).setOnClickListener(v -> {
+      View view = LayoutInflater.from(MainActivity.this).inflate(R.layout.dialog_layout, null);
+      Dialog dialog = new Dialog(MainActivity.this);
+      dialog.setContentView(view);
+      dialog.setTitle(getString(R.string.app_name));
+      dialog.show();
+    });
   }
 
   private static boolean isStethoPresent() {
@@ -63,26 +80,6 @@ public class MainActivity extends Activity {
   private SharedPreferences getPrefs() {
     return PreferenceManager.getDefaultSharedPreferences(this /* context */);
   }
-
-  private final View.OnClickListener mMainButtonClicked = new View.OnClickListener() {
-    @Override
-    public void onClick(View v) {
-      int id = v.getId();
-      if (id == R.id.settings_btn) {
-        SettingsActivity.show(MainActivity.this);
-      } else if (id == R.id.apod_btn) {
-        APODActivity.show(MainActivity.this);
-      } else if (id == R.id.irc_btn) {
-        IRCConnectActivity.show(MainActivity.this);
-      } else if (id == R.id.about) {
-        View view = LayoutInflater.from(MainActivity.this).inflate(R.layout.dialog_layout, null);
-        Dialog dialog = new Dialog(MainActivity.this);
-        dialog.setContentView(view);
-        dialog.setTitle(getString(R.string.app_name));
-        dialog.show();
-      }
-    }
-  };
 
   private final SharedPreferences.OnSharedPreferenceChangeListener mToastingPrefListener =
       new SharedPreferences.OnSharedPreferenceChangeListener() {
