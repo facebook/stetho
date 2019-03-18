@@ -36,18 +36,17 @@ android.libraryVariants.all { variant ->
 
     // Ugly kludge to rename license files in the bundled commons-cli
     // dependency so that they do not appear to describe Stetho's license.
-    afterEvaluate {
-        configurations.compile.each {
-            if (it.getName() == 'commons-cli-1.2.jar') {
-                def depJarPath = it.getPath()
-                task "tidyCommonsCli${name}"(type: Copy) {
-                    from zipTree(depJarPath)
-                    into "build/commons-cli-tidy-${name}"
-                    rename 'LICENSE', 'commons-cli-LICENSE'
-                    rename 'NOTICE', 'commons-cli-NOTICE'
-                }
+    task "tidyCommonsCli${name}"(type: Copy) {
+        from {
+            variant.javaCompile.classpath.findAll {
+                it.getName() == 'commons-cli-1.2.jar'
+            }.collect {
+                zipTree(it)
             }
         }
+        into "build/commons-cli-tidy-${name}"
+        rename 'LICENSE', 'commons-cli-LICENSE'
+        rename 'NOTICE', 'commons-cli-NOTICE'
     }
 
     task "metainf${name}"(type: Copy) {
@@ -60,6 +59,6 @@ android.libraryVariants.all { variant ->
         from variant.javaCompile.destinationDir
         from "build/commons-cli-tidy-${name}"
         from "build/metainf-${name}"
-        exclude 'android/support/**/*'
+        exclude "android/support/**/*"
     }
 }
