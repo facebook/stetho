@@ -1,6 +1,27 @@
 Change Log
 ==========
 
+## Version 1.5.1
+_2019-03-17_
+
+ * **Fix view inspection crash on Android P+**
+   View highlighting was using a legacy pre-O API which was removed in P that caused
+   a crash when highlighting a view in the Elements tab.  This has now been fixed (#607)
+   and the Elements tab is expected to work normally again.
+
+ * Fix #325/295: Add ability to track windows in Elements tab (dialog, popups, etc)
+ * Fix #614: Add the ability to manually control Runtime class object tracking (for 
+   J2V8 integration)
+ * Fix #612/613: Fix issue subclassing Runtime class and other devtools domain modules
+ * Fix #602: Make it possible to change welcome banner (see Page class constructor)
+ * Fix #600: Actually make .remove() method work properly in DefaultDumperPluginsBuilder
+ * Fix #596: Sort SharedPreferences entries
+ * Fix #623: dumpapp now supports ADB_SERVER_SOCKET variable
+ * Fix #589: Fix parsing issue using dumpapp script causing failure to connect
+ * Fix #529: WebSocket session info now displayed correctly on upgrade
+ * Fix #541/580: Avoid crash when installing the Stetho interceptor in the 
+   wrong okhttp chain (the request chain lacks a connection instance)
+
 ## Version 1.5.0
 _2017_04_13_
 
