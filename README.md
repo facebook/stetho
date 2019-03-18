@@ -125,4 +125,4 @@ See the [`stetho-sample` project](stetho-sample) for more details.
 See the [CONTRIBUTING.md](CONTRIBUTING.md) file for how to help out.
 
 ## License
-Stetho is BSD-licensed. We also provide an additional patent grant.
+Stetho is MIT-licensed. See LICENSE file for more details.

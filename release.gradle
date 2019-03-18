@@ -36,7 +36,7 @@ def configureStethoPom(def pom) {
 
         licenses {
             license {
-                name 'BSD License'
+                name 'MIT License'
                 url 'https://github.com/facebook/stetho/blob/master/LICENSE'
                 distribution 'repo'
             }
