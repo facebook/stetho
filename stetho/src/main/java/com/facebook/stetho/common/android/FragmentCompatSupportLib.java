@@ -96,6 +96,10 @@ final class FragmentCompatSupportLib
     @Nullable
     @Override
     public FragmentManager getChildFragmentManager(Fragment fragment) {
+      if (!fragment.isAdded() || fragment.isDetached()) {
+        return null;
+      }
+
       return fragment.getChildFragmentManager();
     }
   }
