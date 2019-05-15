@@ -373,15 +373,17 @@ public final class ShadowDocument implements DocumentView {
       // changes have been applied and after our caller (removeGarbageSubTree) removed another
       // element that claims this element as its child, then that means this element should not be
       // removed. It has been reparented, and recursion stops here.
-      if (elementInfo.parentElement != null &&
+      if (elementInfo != null && elementInfo.parentElement != null &&
           elementToInfoMap.containsKey(elementInfo.parentElement)) {
         return;
       }
 
       elementToInfoMap.remove(element);
 
-      for (int i = 0, N = elementInfo.children.size(); i < N; ++i) {
-        removeGarbageSubTree(elementToInfoMap, elementInfo.children.get(i));
+      if (elementInfo != null) {
+        for (int i = 0, N = elementInfo.children.size(); i < N; ++i) {
+          removeGarbageSubTree(elementToInfoMap, elementInfo.children.get(i));
+        }
       }
     }
 
