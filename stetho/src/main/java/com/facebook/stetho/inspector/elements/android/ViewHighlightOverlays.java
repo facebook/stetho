@@ -140,7 +140,9 @@ abstract class ViewHighlightOverlays {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
           canvas.clipRect(newRect, Region.Op.REPLACE);
         } else {
-          canvas.clipOutRect(newRect);
+          canvas.save();
+          canvas.clipRect(newRect);
+          canvas.restore();
         }
         super.draw(canvas);
       }
