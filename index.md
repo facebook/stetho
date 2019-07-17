@@ -48,7 +48,7 @@ or:
   } 
 ```
 
-##Features 
+## Features 
 
 {% include content/gridblocks.html data_source=site.data.features grid_type="twoByGridBlock" %}
 
