@@ -117,6 +117,9 @@ final class FragmentCompatFramework
     @Nullable
     @Override
     public FragmentManager getChildFragmentManager(Fragment fragment) {
+      if (!fragment.isAdded()) {
+        return null;
+      }
       return fragment.getChildFragmentManager();
     }
   }
