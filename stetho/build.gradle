@@ -19,6 +19,7 @@ dependencies {
     implementation 'androidx.annotation:annotation:1.1.0'
 
     implementation 'androidx.appcompat:appcompat:1.0.2' // optional
+    implementation 'androidx.fragment:fragment:1.0.0' // optional
 
     testImplementation 'junit:junit:4.12'
     testImplementation('org.robolectric:robolectric:2.4') {
