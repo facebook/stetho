@@ -19,7 +19,7 @@ android {
 
 dependencies {
     implementation project(':stetho')
-    implementation 'com.google.code.findbugs:jsr305:2.0.1'
+    implementation 'com.google.code.findbugs:jsr305:2.0.3'
     implementation 'org.mozilla:rhino:1.7.6'
     implementation 'com.android.support:support-annotations:28.0.0'
 

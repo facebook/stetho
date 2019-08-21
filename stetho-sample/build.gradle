@@ -57,5 +57,5 @@ dependencies {
     //releaseImplementation "com.facebook.stetho:stetho-urlconnection:${VERSION_NAME}"
     releaseImplementation project(':stetho-urlconnection')
 
-    implementation 'com.google.code.findbugs:jsr305:2.0.1'
+    implementation 'com.google.code.findbugs:jsr305:2.0.3'
 }
