@@ -7,13 +7,14 @@
 
 package com.facebook.stetho.rhino;
 
-import android.support.annotation.NonNull;
 import android.util.Log;
+
 import com.facebook.stetho.common.LogUtil;
 import com.facebook.stetho.inspector.console.CLog;
 import com.facebook.stetho.inspector.console.RuntimeRepl;
 import com.facebook.stetho.inspector.console.RuntimeReplFactory;
 import com.facebook.stetho.inspector.protocol.module.Console;
+
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.ImporterTopLevel;
@@ -25,6 +26,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import androidx.annotation.NonNull;
 
 /**
  * <p>Builder used to setup the javascript runtime to be used by stetho.</p>
