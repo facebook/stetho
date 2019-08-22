@@ -15,8 +15,10 @@ import android.widget.EditText;
 
 import com.facebook.stetho.common.android.AccessibilityUtil;
 
+import androidx.annotation.Nullable;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat.AccessibilityActionCompat;
 
 public final class AccessibilityNodeInfoWrapper {
 
