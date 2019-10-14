@@ -170,7 +170,7 @@ public class Runtime implements ChromeDevtoolsDomain {
 
   private static String getPropertyClassName(Object o) {
     String name = o.getClass().getSimpleName();
-    if (name == null || name.length() == 0) {
+    if (name.isEmpty()) {
       // Looks better for anonymous classes.
       name = o.getClass().getName();
     }

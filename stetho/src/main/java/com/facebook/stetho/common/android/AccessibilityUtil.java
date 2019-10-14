@@ -242,9 +242,6 @@ public final class AccessibilityUtil {
     AccessibilityNodeInfoCompat parentNode = AccessibilityNodeInfoCompat.obtain();
     try {
       ViewCompat.onInitializeAccessibilityNodeInfo((View) parentView, parentNode);
-      if (parentNode == null) {
-        return false;
-      }
 
       if (isAccessibilityFocusable(parentNode, (View) parentView)) {
         return true;
