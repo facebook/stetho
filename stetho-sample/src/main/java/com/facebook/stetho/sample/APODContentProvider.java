@@ -7,8 +7,6 @@
 
 package com.facebook.stetho.sample;
 
-import java.util.ArrayList;
-
 import android.content.ContentProvider;
 import android.content.ContentProviderOperation;
 import android.content.ContentProviderResult;
@@ -19,6 +17,10 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+
+import java.util.ArrayList;
+
+import javax.annotation.Nonnull;
 
 public class APODContentProvider extends ContentProvider {
   private APODSQLiteOpenHelper mOpenHelper;
@@ -31,7 +33,7 @@ public class APODContentProvider extends ContentProvider {
 
   @Override
   public Cursor query(
-      Uri uri,
+      @Nonnull Uri uri,
       String[] projection,
       String selection,
       String[] selectionArgs,
@@ -51,7 +53,7 @@ public class APODContentProvider extends ContentProvider {
   }
 
   @Override
-  public String getType(Uri uri) {
+  public String getType(@Nonnull Uri uri) {
     return null;
   }
 
@@ -64,7 +66,7 @@ public class APODContentProvider extends ContentProvider {
   }
 
   @Override
-  public int delete(Uri uri, String selection, String[] selectionArgs) {
+  public int delete(@Nonnull Uri uri, String selection, String[] selectionArgs) {
     SQLiteDatabase db = mOpenHelper.getWritableDatabase();
     int count = db.delete(APODContract.TABLE_NAME, selection, selectionArgs);
     notifyChange();
@@ -72,15 +74,16 @@ public class APODContentProvider extends ContentProvider {
   }
 
   @Override
-  public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+  public int update(@Nonnull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
     SQLiteDatabase db = mOpenHelper.getWritableDatabase();
     int count = db.update(APODContract.TABLE_NAME, values, selection, selectionArgs);
     notifyChange();
     return count;
   }
 
+  @Nonnull
   @Override
-  public ContentProviderResult[] applyBatch(ArrayList<ContentProviderOperation> operations)
+  public ContentProviderResult[] applyBatch(@Nonnull ArrayList<ContentProviderOperation> operations)
       throws OperationApplicationException {
     SQLiteDatabase db = mOpenHelper.getWritableDatabase();
     db.beginTransaction();

@@ -10,11 +10,12 @@ package com.facebook.stetho.inspector.network;
 import com.facebook.stetho.inspector.console.CLog;
 import com.facebook.stetho.inspector.protocol.module.Console;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.zip.InflaterOutputStream;
+
+import javax.annotation.Nullable;
 
 // @VisibleForTest
 public class DecompressionHelper {
@@ -39,7 +40,7 @@ public class DecompressionHelper {
         decompressedCounter = new CountingOutputStream(decompressedOutput);
         if (gzipEncoding) {
           output = GunzippingOutputStream.create(decompressedCounter);
-        } else if (deflateEncoding) {
+        } else {
           output = new InflaterOutputStream(decompressedCounter);
         }
       } else {

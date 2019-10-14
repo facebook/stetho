@@ -7,12 +7,13 @@
 
 package com.facebook.stetho.server;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import com.facebook.stetho.common.LogUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-import com.facebook.stetho.common.LogUtil;
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.NotThreadSafe;
 
 @NotThreadSafe
 public class CompositeInputStream extends InputStream {
@@ -70,12 +71,12 @@ public class CompositeInputStream extends InputStream {
   }
 
   @Override
-  public int read(byte[] buffer) throws IOException {
+  public int read(@Nonnull byte[] buffer) throws IOException {
     return read(buffer, 0, buffer.length);
   }
 
   @Override
-  public int read(byte[] buffer, int byteOffset, int byteCount) throws IOException {
+  public int read(@Nonnull byte[] buffer, int byteOffset, int byteCount) throws IOException {
     int n;
     while ((n = mStreams[mCurrentIndex].read(buffer, byteOffset, byteCount)) == -1) {
       if (!tryMoveToNextStream()) {

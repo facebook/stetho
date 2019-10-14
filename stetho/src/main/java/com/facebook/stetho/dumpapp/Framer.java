@@ -9,10 +9,7 @@ package com.facebook.stetho.dumpapp;
 
 import com.facebook.stetho.common.LogUtil;
 
-import javax.annotation.Nullable;
-
 import java.io.BufferedOutputStream;
-import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -20,6 +17,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
+
+import javax.annotation.Nullable;
+
+import androidx.annotation.NonNull;
 
 /**
  * Implements framing protocol that allows us to implement a command-line protocol via
@@ -145,12 +146,12 @@ class Framer {
     }
 
     @Override
-    public int read(byte[] buffer) throws IOException {
+    public int read(@NonNull byte[] buffer) throws IOException {
       return read(buffer, 0, buffer.length);
     }
 
     @Override
-    public int read(byte[] buffer, int byteOffset, int byteCount) throws IOException {
+    public int read(@NonNull byte[] buffer, int byteOffset, int byteCount) throws IOException {
       mClosedHelper.throwIfClosed();
 
       synchronized (Framer.this) {

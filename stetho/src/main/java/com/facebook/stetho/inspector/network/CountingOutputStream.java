@@ -11,6 +11,8 @@ import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import androidx.annotation.NonNull;
+
 class CountingOutputStream extends FilterOutputStream {
   private long mCount;
 
@@ -29,12 +31,12 @@ class CountingOutputStream extends FilterOutputStream {
   }
 
   @Override
-  public void write(byte[] buffer) throws IOException {
+  public void write(@NonNull byte[] buffer) throws IOException {
     write(buffer, 0, buffer.length);
   }
 
   @Override
-  public void write(byte[] buffer, int offset, int length) throws IOException {
+  public void write(@NonNull byte[] buffer, int offset, int length) throws IOException {
     out.write(buffer, offset, length);
     mCount += length;
   }
