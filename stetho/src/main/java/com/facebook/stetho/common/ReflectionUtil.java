@@ -8,8 +8,6 @@
 package com.facebook.stetho.common;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 import javax.annotation.Nullable;
 
