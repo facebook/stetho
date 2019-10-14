@@ -18,7 +18,9 @@ dependencies {
     implementation 'com.google.code.findbugs:jsr305:2.0.3'
     implementation 'androidx.annotation:annotation:1.1.0'
 
-    implementation 'androidx.fragment:fragment:1.1.0' // optional
+    // Optional: reflection is used to test whether Fragment (and the transient AndroidX Core) are actually present.
+    // TODO: either make the optional dependencies actually optional via `compileOnly` or remove the runtime checks
+    implementation 'androidx.fragment:fragment:1.1.0'
 
     testImplementation 'junit:junit:4.12'
     testImplementation('org.robolectric:robolectric:2.4') {
