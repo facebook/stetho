@@ -13,7 +13,6 @@ import android.view.ViewDebug;
 
 import com.facebook.stetho.common.ExceptionUtil;
 import com.facebook.stetho.common.LogUtil;
-import com.facebook.stetho.common.ReflectionUtil;
 import com.facebook.stetho.common.StringUtil;
 import com.facebook.stetho.common.android.ResourcesUtil;
 import com.facebook.stetho.inspector.elements.AbstractChainedDescriptor;
@@ -50,8 +49,14 @@ final class ViewDescriptor extends AbstractChainedDescriptor<View>
   private static final boolean sHasSupportNodeInfo;
 
   static {
-    sHasSupportNodeInfo = ReflectionUtil.tryGetClassForName(
-        "androidx.core.view.accessibility.AccessibilityNodeInfoCompat") != null;
+    boolean hasSupportNodeInfo = false;
+    try {
+      androidx.core.view.accessibility.AccessibilityNodeInfoCompat.class.getClass();
+      hasSupportNodeInfo = true;
+    } catch (NoClassDefFoundError ignore) {
+      // AndroidX Fragment is not in classpath.
+    }
+    sHasSupportNodeInfo = hasSupportNodeInfo;
   }
 
   /**

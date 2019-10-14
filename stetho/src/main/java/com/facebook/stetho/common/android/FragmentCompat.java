@@ -45,8 +45,14 @@ public abstract class FragmentCompat<
   private static final boolean sHasSupportFragment;
 
   static {
-    sHasSupportFragment = ReflectionUtil.tryGetClassForName(
-        "androidx.fragment.app.Fragment") != null;
+    boolean hasSupportFragment = false;
+    try {
+      androidx.fragment.app.Fragment.class.getClass();
+      hasSupportFragment = true;
+    } catch (NoClassDefFoundError ignore) {
+      // AndroidX Fragment is not in classpath.
+    }
+    sHasSupportFragment = hasSupportFragment;
   }
 
   @NonNull
