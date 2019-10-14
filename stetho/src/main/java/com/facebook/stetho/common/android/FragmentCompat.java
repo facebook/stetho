@@ -8,14 +8,16 @@
 package com.facebook.stetho.common.android;
 
 import android.app.Activity;
-import android.os.Build;
+
 import com.facebook.stetho.common.ReflectionUtil;
-import com.facebook.stetho.common.Util;
+
+import java.lang.reflect.Field;
+import java.util.List;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
-import java.lang.reflect.Field;
-import java.util.List;
+
+import androidx.annotation.NonNull;
 
 /**
  * Compatibility abstraction which allows us to generalize access to both the
@@ -47,10 +49,9 @@ public abstract class FragmentCompat<
         "android.support.v4.app.Fragment") != null;
   }
 
-  @Nullable
+  @NonNull
   public static FragmentCompat getFrameworkInstance() {
-    if (sFrameworkInstance == null &&
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+    if (sFrameworkInstance == null) {
       sFrameworkInstance = new FragmentCompatFramework();
     }
     return sFrameworkInstance;
@@ -58,8 +59,7 @@ public abstract class FragmentCompat<
 
   @Nullable
   public static FragmentCompat getSupportLibInstance() {
-    if (sSupportInstance == null &&
-        sHasSupportFragment) {
+    if (sSupportInstance == null && sHasSupportFragment) {
       sSupportInstance = new FragmentCompatSupportLib();
     }
     return sSupportInstance;

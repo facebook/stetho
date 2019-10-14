@@ -11,6 +11,7 @@ import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
+
 import com.facebook.stetho.common.LogUtil;
 import com.facebook.stetho.common.Util;
 import com.facebook.stetho.dumpapp.DumpappHttpSocketLikeHandler;
@@ -41,7 +42,6 @@ import com.facebook.stetho.inspector.protocol.module.Console;
 import com.facebook.stetho.inspector.protocol.module.DOM;
 import com.facebook.stetho.inspector.protocol.module.DOMStorage;
 import com.facebook.stetho.inspector.protocol.module.Database;
-import com.facebook.stetho.inspector.protocol.module.DatabaseConstants;
 import com.facebook.stetho.inspector.protocol.module.DatabaseDriver2;
 import com.facebook.stetho.inspector.protocol.module.Debugger;
 import com.facebook.stetho.inspector.protocol.module.HeapProfiler;
@@ -55,18 +55,18 @@ import com.facebook.stetho.inspector.runtime.RhinoDetectingRuntimeReplFactory;
 import com.facebook.stetho.server.AddressNameHelper;
 import com.facebook.stetho.server.LazySocketHandler;
 import com.facebook.stetho.server.LocalSocketServer;
-import com.facebook.stetho.server.ServerManager;
 import com.facebook.stetho.server.ProtocolDetectingSocketHandler;
+import com.facebook.stetho.server.ServerManager;
 import com.facebook.stetho.server.SocketHandler;
 import com.facebook.stetho.server.SocketHandlerFactory;
-
-import javax.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import javax.annotation.Nullable;
 
 /**
  * Initialization and configuration entry point for the Stetho debugging system.  Simple usage with
@@ -386,27 +386,25 @@ public class Stetho {
               mRuntimeRepl :
               new RhinoDetectingRuntimeReplFactory(mContext)));
       provideIfDesired(new Worker());
-      if (Build.VERSION.SDK_INT >= DatabaseConstants.MIN_API_LEVEL) {
-        Database database = new Database();
-        boolean hasSqliteDatabaseDriver = false;
-        if (mDatabaseDrivers != null) {
-          for (DatabaseDriver2 databaseDriver : mDatabaseDrivers) {
-            database.add(databaseDriver);
-            if (databaseDriver instanceof SqliteDatabaseDriver) {
-              hasSqliteDatabaseDriver = true;
-            }
+      Database database = new Database();
+      boolean hasSqliteDatabaseDriver = false;
+      if (mDatabaseDrivers != null) {
+        for (DatabaseDriver2 databaseDriver : mDatabaseDrivers) {
+          database.add(databaseDriver);
+          if (databaseDriver instanceof SqliteDatabaseDriver) {
+            hasSqliteDatabaseDriver = true;
           }
         }
-        if (!hasSqliteDatabaseDriver && !mExcludeSqliteDatabaseDriver) {
-          database.add(
-              new SqliteDatabaseDriver(mContext,
-                  mDatabaseFilesProvider != null ?
-                      mDatabaseFilesProvider :
-                      new DefaultDatabaseFilesProvider(mContext),
-                  new DefaultDatabaseConnectionProvider()));
-        }
-        provideIfDesired(database);
       }
+      if (!hasSqliteDatabaseDriver && !mExcludeSqliteDatabaseDriver) {
+        database.add(
+            new SqliteDatabaseDriver(mContext,
+                mDatabaseFilesProvider != null ?
+                    mDatabaseFilesProvider :
+                    new DefaultDatabaseFilesProvider(mContext),
+                new DefaultDatabaseConnectionProvider()));
+      }
+      provideIfDesired(database);
       return mDelegate.finish();
     }
 

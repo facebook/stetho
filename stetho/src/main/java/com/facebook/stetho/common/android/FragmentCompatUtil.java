@@ -26,12 +26,7 @@ public final class FragmentCompatUtil {
     }
 
     FragmentCompat framework = FragmentCompat.getFrameworkInstance();
-    if (framework != null &&
-        framework.getDialogFragmentClass().isInstance(fragment)) {
-      return true;
-    }
-
-    return false;
+    return framework.getDialogFragmentClass().isInstance(fragment);
   }
 
   @Nullable
@@ -62,14 +57,7 @@ public final class FragmentCompatUtil {
     // version in the same object instance due to FragmentActivity extending Activity (which has
     // fragment support in the system).
     FragmentCompat framework = FragmentCompat.getFrameworkInstance();
-    if (framework != null) {
-      Object fragment = findFragmentForViewInActivity(framework, activity, view);
-      if (fragment != null) {
-        return fragment;
-      }
-    }
-
-    return null;
+    return findFragmentForViewInActivity(framework, activity, view);
   }
 
   private static Object findFragmentForViewInActivity(
