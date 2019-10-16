@@ -7,17 +7,9 @@
 
 package com.facebook.stetho.inspector.protocol.module;
 
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
-import android.os.Build;
 import android.util.SparseArray;
 
 import com.facebook.stetho.common.LogUtil;
@@ -36,10 +28,15 @@ import com.facebook.stetho.json.annotation.JsonProperty;
 
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
-@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class Database implements ChromeDevtoolsDomain {
   /**
    * The protocol doesn't offer an efficient means of pagination or anything like that so

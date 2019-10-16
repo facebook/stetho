@@ -39,12 +39,12 @@ public class IRCConnectActivity extends Activity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.irc_connect_activity);
 
-    mIRCPriorError = (TextView) findViewById(R.id.irc_prior_error);
-    mIRCServer = (EditText) findViewById(R.id.irc_server);
+    mIRCPriorError = findViewById(R.id.irc_prior_error);
+    mIRCServer = findViewById(R.id.irc_server);
     if (TextUtils.isEmpty(mIRCServer.getText())) {
       mIRCServer.setText(DEFAULT_HOST);
     }
-    mIRCNickname = (EditText) findViewById(R.id.irc_nickname);
+    mIRCNickname = findViewById(R.id.irc_nickname);
     if (TextUtils.isEmpty(mIRCNickname.getText())) {
       mIRCNickname.setText("stetho" + (new Random().nextInt(9999) + 1));
     }

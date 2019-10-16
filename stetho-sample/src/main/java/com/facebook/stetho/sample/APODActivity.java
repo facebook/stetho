@@ -7,8 +7,6 @@
 
 package com.facebook.stetho.sample;
 
-import java.io.IOException;
-
 import android.app.ListActivity;
 import android.app.LoaderManager;
 import android.content.Context;
@@ -28,6 +26,8 @@ import android.view.ViewGroup;
 import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import java.io.IOException;
 
 /**
  * Simple demonstration of fetching and caching a specific RSS feed showing the
@@ -164,9 +164,9 @@ public class APODActivity extends ListActivity {
     int position;
 
     public ViewHolder(View v) {
-      image = (ImageView)v.findViewById(R.id.image);
-      title = (TextView)v.findViewById(R.id.title);
-      description = (TextView)v.findViewById(R.id.description);
+      image = v.findViewById(R.id.image);
+      title = v.findViewById(R.id.title);
+      description = v.findViewById(R.id.description);
     }
   }
 

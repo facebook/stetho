@@ -7,9 +7,9 @@
 
 package com.facebook.stetho.server.http;
 
-import android.support.annotation.Nullable;
-
 import java.util.ArrayList;
+
+import androidx.annotation.Nullable;
 
 public class LightHttpMessage {
   public final ArrayList<String> headerNames = new ArrayList<>();

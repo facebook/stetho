@@ -9,10 +9,7 @@ package com.facebook.stetho.dumpapp;
 
 import com.facebook.stetho.common.LogUtil;
 
-import javax.annotation.Nullable;
-
 import java.io.BufferedOutputStream;
-import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -20,6 +17,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+import androidx.annotation.NonNull;
 
 /**
  * Implements framing protocol that allows us to implement a command-line protocol via
@@ -145,12 +147,12 @@ class Framer {
     }
 
     @Override
-    public int read(byte[] buffer) throws IOException {
+    public int read(@NonNull byte[] buffer) throws IOException {
       return read(buffer, 0, buffer.length);
     }
 
     @Override
-    public int read(byte[] buffer, int byteOffset, int byteCount) throws IOException {
+    public int read(@NonNull byte[] buffer, int byteOffset, int byteCount) throws IOException {
       mClosedHelper.throwIfClosed();
 
       synchronized (Framer.this) {
@@ -207,7 +209,7 @@ class Framer {
     }
 
     @Override
-    public void write(byte[] buffer, int offset, int length) throws IOException {
+    public void write(@Nonnull byte[] buffer, int offset, int length) throws IOException {
       mClosedHelper.throwIfClosed();
       if (length > 0) {
         try {
@@ -231,7 +233,7 @@ class Framer {
     }
 
     @Override
-    public void write(byte[] buffer) throws IOException {
+    public void write(@Nonnull byte[] buffer) throws IOException {
       write(buffer, 0, buffer.length);
     }
 

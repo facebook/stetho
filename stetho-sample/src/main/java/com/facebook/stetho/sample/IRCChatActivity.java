@@ -58,11 +58,11 @@ public class IRCChatActivity extends Activity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.irc_chat_activity);
 
-    mConsoleDisplay = (ListView) findViewById(R.id.console_display);
+    mConsoleDisplay = findViewById(R.id.console_display);
     mConsoleRowAdapter = new IRCConsoleRowAdapter(this);
     mConsoleDisplay.setAdapter(mConsoleRowAdapter);
 
-    mConsoleInput = (TextView) findViewById(R.id.console_input);
+    mConsoleInput = findViewById(R.id.console_input);
     mConsoleInput.setOnEditorActionListener(mOnConsoleInputEditorAction);
     findViewById(R.id.console_send).setOnClickListener(mConsoleSendClicked);
 

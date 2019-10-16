@@ -7,7 +7,6 @@
 
 package com.facebook.stetho.inspector.database;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -16,7 +15,6 @@ import android.database.sqlite.SQLiteStatement;
 
 import com.facebook.stetho.common.Util;
 import com.facebook.stetho.inspector.protocol.module.Database;
-import com.facebook.stetho.inspector.protocol.module.DatabaseConstants;
 import com.facebook.stetho.inspector.protocol.module.DatabaseDescriptor;
 import com.facebook.stetho.inspector.protocol.module.DatabaseDriver2;
 
@@ -182,7 +180,6 @@ public class SqliteDatabaseDriver
     return firstSpace >= 0 ? s.substring(0, firstSpace) : s;
   }
 
-  @TargetApi(DatabaseConstants.MIN_API_LEVEL)
   private <T> T executeUpdateDelete(
       SQLiteDatabase database,
       String query,

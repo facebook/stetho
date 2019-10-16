@@ -7,10 +7,6 @@
 
 package com.facebook.stetho.inspector.elements.android;
 
-import android.support.annotation.Nullable;
-import android.support.v4.view.ViewCompat;
-import android.support.v4.view.accessibility.AccessibilityNodeInfoCompat;
-import android.support.v4.view.accessibility.AccessibilityNodeInfoCompat.AccessibilityActionCompat;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +14,11 @@ import android.view.ViewParent;
 import android.widget.EditText;
 
 import com.facebook.stetho.common.android.AccessibilityUtil;
+
+import androidx.annotation.Nullable;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat.AccessibilityActionCompat;
 
 public final class AccessibilityNodeInfoWrapper {
 

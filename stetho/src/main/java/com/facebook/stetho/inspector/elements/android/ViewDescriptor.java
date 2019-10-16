@@ -13,7 +13,6 @@ import android.view.ViewDebug;
 
 import com.facebook.stetho.common.ExceptionUtil;
 import com.facebook.stetho.common.LogUtil;
-import com.facebook.stetho.common.ReflectionUtil;
 import com.facebook.stetho.common.StringUtil;
 import com.facebook.stetho.common.android.ResourcesUtil;
 import com.facebook.stetho.inspector.elements.AbstractChainedDescriptor;
@@ -22,9 +21,6 @@ import com.facebook.stetho.inspector.elements.ComputedStyleAccumulator;
 import com.facebook.stetho.inspector.elements.StyleAccumulator;
 import com.facebook.stetho.inspector.elements.StyleRuleNameAccumulator;
 import com.facebook.stetho.inspector.helper.IntegerFormatter;
-
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.GuardedBy;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -36,6 +32,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy;
 
 final class ViewDescriptor extends AbstractChainedDescriptor<View>
     implements HighlightableDescriptor<View> {
@@ -50,8 +49,14 @@ final class ViewDescriptor extends AbstractChainedDescriptor<View>
   private static final boolean sHasSupportNodeInfo;
 
   static {
-    sHasSupportNodeInfo = ReflectionUtil.tryGetClassForName(
-        "android.support.v4.view.accessibility.AccessibilityNodeInfoCompat") != null;
+    boolean hasSupportNodeInfo = false;
+    try {
+      androidx.core.view.accessibility.AccessibilityNodeInfoCompat.class.getClass();
+      hasSupportNodeInfo = true;
+    } catch (NoClassDefFoundError ignore) {
+      // AndroidX Fragment is not in classpath.
+    }
+    sHasSupportNodeInfo = hasSupportNodeInfo;
   }
 
   /**

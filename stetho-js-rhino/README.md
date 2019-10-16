@@ -7,7 +7,7 @@ This [Stetho](https://facebook.github.io/stetho) plugin adds a JavaScript consol
 ### Download
 Download [the latest JARs](https://github.com/facebook/stetho/releases/latest) or grab via Gradle:
 ```groovy
-compile 'com.facebook.stetho:stetho-js-rhino:1.4.2'
+implementation 'com.facebook.stetho:stetho-js-rhino:1.4.2'
 ```
 or Maven:
 ```xml

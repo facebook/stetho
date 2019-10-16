@@ -11,13 +11,14 @@ import com.facebook.stetho.inspector.console.CLog;
 import com.facebook.stetho.inspector.helper.ChromePeerManager;
 import com.facebook.stetho.inspector.protocol.module.Console;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.GuardedBy;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy;
 
 /**
  * {@link InputStream} that caches the data as the data is read, and writes them to the given
@@ -105,12 +106,12 @@ public final class ResponseHandlingInputStream extends FilterInputStream {
   }
 
   @Override
-  public int read(byte[] b) throws IOException {
+  public int read(@Nonnull byte[] b) throws IOException {
     return this.read(b, 0, b.length);
   }
 
   @Override
-  public int read(byte[] b, int off, int len) throws IOException {
+  public int read(@Nonnull byte[] b, int off, int len) throws IOException {
     try {
       int result = checkEOF(in.read(b, off, len));
       if (result != -1) {
