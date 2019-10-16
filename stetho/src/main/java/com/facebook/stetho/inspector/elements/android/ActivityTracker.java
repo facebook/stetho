@@ -7,17 +7,12 @@
 
 package com.facebook.stetho.inspector.elements.android;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Application;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
-import com.facebook.stetho.common.Util;
 
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.GuardedBy;
-import javax.annotation.concurrent.NotThreadSafe;
+import com.facebook.stetho.common.Util;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -25,15 +20,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy;
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * Tracks which {@link Activity} instances have been created and not yet destroyed in creation
- * order for use by Stetho features.  Note that automatic tracking is not available for
- * all versions of Android but it is possible to manually track activities using the {@link #add}
- * and {@link #remove} methods exposed below.  Be aware that this is an easy opportunity to
- * cause serious memory leaks in your application however.  Use with caution.
- * <p/>
- * Most callers can and should ignore this class, though it is necessary if you are implementing
- * Activity tracking pre-ICS.
+ * order for use by Stetho features.
  */
 @NotThreadSafe
 public final class ActivityTracker {
@@ -66,22 +59,14 @@ public final class ActivityTracker {
   }
 
   /**
-   * Start automatic tracking if we are running on ICS+.
-   *
-   * @return Automatic tracking has been started.  No need to manually invoke {@link #add} or
-   *     {@link #remove} methods.
+   * Start automatic tracking.
    */
-  public boolean beginTrackingIfPossible(Application application) {
+  public void beginTracking(Application application) {
     if (mAutomaticTracker == null) {
-      AutomaticTracker automaticTracker =
-          AutomaticTracker.newInstanceIfPossible(application, this /* tracker */);
-      if (automaticTracker != null) {
-        automaticTracker.register();
-        mAutomaticTracker = automaticTracker;
-        return true;
-      }
+      AutomaticTracker automaticTracker = new AutomaticTracker(application, this /* tracker */);
+      automaticTracker.register();
+      mAutomaticTracker = automaticTracker;
     }
-    return false;
   }
 
   public boolean endTracking() {
@@ -146,76 +131,59 @@ public final class ActivityTracker {
     public void onActivityRemoved(Activity activity);
   }
 
-  private static abstract class AutomaticTracker {
-    @Nullable
-    public static AutomaticTracker newInstanceIfPossible(
-        Application application,
-        ActivityTracker tracker) {
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-        return new AutomaticTrackerICSAndBeyond(application, tracker);
-      } else {
-        return null;
-      }
+  private static class AutomaticTracker {
+    private final Application mApplication;
+    private final ActivityTracker mTracker;
+
+    public AutomaticTracker(Application application, ActivityTracker tracker) {
+      mApplication = application;
+      mTracker = tracker;
     }
 
-    public abstract void register();
-    public abstract void unregister();
-
-    @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-    private static class AutomaticTrackerICSAndBeyond extends AutomaticTracker {
-      private final Application mApplication;
-      private final ActivityTracker mTracker;
-
-      public AutomaticTrackerICSAndBeyond(Application application, ActivityTracker tracker) {
-        mApplication = application;
-        mTracker = tracker;
-      }
-
-      public void register() {
-        mApplication.registerActivityLifecycleCallbacks(mLifecycleCallbacks);
-      }
-
-      public void unregister() {
-        mApplication.unregisterActivityLifecycleCallbacks(mLifecycleCallbacks);
-      }
-
-      private final Application.ActivityLifecycleCallbacks mLifecycleCallbacks =
-          new Application.ActivityLifecycleCallbacks() {
-        @Override
-        public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-          mTracker.add(activity);
-        }
-
-        @Override
-        public void onActivityStarted(Activity activity) {
-
-        }
-
-        @Override
-        public void onActivityResumed(Activity activity) {
-
-        }
-
-        @Override
-        public void onActivityPaused(Activity activity) {
-
-        }
-
-        @Override
-        public void onActivityStopped(Activity activity) {
-
-        }
-
-        @Override
-        public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-
-        }
-
-        @Override
-        public void onActivityDestroyed(Activity activity) {
-          mTracker.remove(activity);
-        }
-      };
+    public void register() {
+      mApplication.registerActivityLifecycleCallbacks(mLifecycleCallbacks);
     }
+
+    public void unregister() {
+      mApplication.unregisterActivityLifecycleCallbacks(mLifecycleCallbacks);
+    }
+
+    private final Application.ActivityLifecycleCallbacks mLifecycleCallbacks =
+        new Application.ActivityLifecycleCallbacks() {
+      @Override
+      public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+        mTracker.add(activity);
+      }
+
+      @Override
+      public void onActivityStarted(Activity activity) {
+
+      }
+
+      @Override
+      public void onActivityResumed(Activity activity) {
+
+      }
+
+      @Override
+      public void onActivityPaused(Activity activity) {
+
+      }
+
+      @Override
+      public void onActivityStopped(Activity activity) {
+
+      }
+
+      @Override
+      public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+
+      }
+
+      @Override
+      public void onActivityDestroyed(Activity activity) {
+        mTracker.remove(activity);
+      }
+    };
   }
 }

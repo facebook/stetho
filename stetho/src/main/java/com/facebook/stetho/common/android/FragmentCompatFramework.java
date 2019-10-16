@@ -19,7 +19,6 @@ import android.view.View;
 
 import javax.annotation.Nullable;
 
-@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 final class FragmentCompatFramework
     extends FragmentCompat<Fragment, DialogFragment, FragmentManager, Activity> {
   private static final FragmentAccessorFrameworkHoneycomb sFragmentAccessor;

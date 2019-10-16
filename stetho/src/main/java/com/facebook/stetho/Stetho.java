@@ -10,9 +10,7 @@ package com.facebook.stetho;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Build;
 
-import com.facebook.stetho.common.LogUtil;
 import com.facebook.stetho.common.Util;
 import com.facebook.stetho.dumpapp.DumpappHttpSocketLikeHandler;
 import com.facebook.stetho.dumpapp.DumpappSocketLikeHandler;
@@ -34,7 +32,6 @@ import com.facebook.stetho.inspector.elements.DescriptorProvider;
 import com.facebook.stetho.inspector.elements.Document;
 import com.facebook.stetho.inspector.elements.DocumentProviderFactory;
 import com.facebook.stetho.inspector.elements.android.ActivityTracker;
-import com.facebook.stetho.inspector.elements.android.AndroidDocumentConstants;
 import com.facebook.stetho.inspector.elements.android.AndroidDocumentProviderFactory;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
 import com.facebook.stetho.inspector.protocol.module.CSS;
@@ -66,6 +63,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -122,13 +120,7 @@ public class Stetho {
   public static void initialize(final Initializer initializer) {
     // Hook activity tracking so that after Stetho is attached we can figure out what
     // activities are present.
-    boolean isTrackingActivities = ActivityTracker.get().beginTrackingIfPossible(
-        (Application)initializer.mContext.getApplicationContext());
-    if (!isTrackingActivities) {
-      LogUtil.w("Automatic activity tracking not available on this API level, caller must invoke " +
-          "ActivityTracker methods manually!");
-    }
-
+    ActivityTracker.get().beginTracking((Application)initializer.mContext.getApplicationContext());
     initializer.start();
   }
 
@@ -369,11 +361,9 @@ public class Stetho {
       provideIfDesired(new Console());
       provideIfDesired(new Debugger());
       DocumentProviderFactory documentModel = resolveDocumentProvider();
-      if (documentModel != null) {
-        Document document = new Document(documentModel);
-        provideIfDesired(new DOM(document));
-        provideIfDesired(new CSS(document));
-      }
+      Document document = new Document(documentModel);
+      provideIfDesired(new DOM(document));
+      provideIfDesired(new CSS(document));
       provideIfDesired(new DOMStorage(mContext));
       provideIfDesired(new HeapProfiler());
       provideIfDesired(new Inspector());
@@ -408,15 +398,12 @@ public class Stetho {
       return mDelegate.finish();
     }
 
-    @Nullable
+    @Nonnull
     private DocumentProviderFactory resolveDocumentProvider() {
       if (mDocumentProvider != null) {
         return mDocumentProvider;
       }
-      if (Build.VERSION.SDK_INT >= AndroidDocumentConstants.MIN_API_LEVEL) {
-        return new AndroidDocumentProviderFactory(mContext, Collections.<DescriptorProvider>emptyList());
-      }
-      return null;
+      return new AndroidDocumentProviderFactory(mContext, Collections.<DescriptorProvider>emptyList());
     }
   }
 

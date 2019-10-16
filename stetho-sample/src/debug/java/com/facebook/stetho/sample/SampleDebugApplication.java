@@ -7,12 +7,11 @@
 
 package com.facebook.stetho.sample;
 
-import android.annotation.TargetApi;
 import android.content.Context;
-import android.os.Build;
 import android.os.SystemClock;
 import android.provider.CalendarContract;
 import android.util.Log;
+
 import com.facebook.stetho.DumperPluginsProvider;
 import com.facebook.stetho.InspectorModulesProvider;
 import com.facebook.stetho.Stetho;
@@ -66,7 +65,6 @@ public class SampleDebugApplication extends SampleApplication {
           .finish();
     }
 
-    @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
     private ContentProviderDatabaseDriver createContentProviderDatabaseDriver(Context context) {
       ContentProviderSchema calendarsSchema = new ContentProviderSchema.Builder()
           .table(new Table.Builder()

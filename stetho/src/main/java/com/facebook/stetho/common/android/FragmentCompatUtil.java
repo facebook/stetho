@@ -52,8 +52,7 @@ public final class FragmentCompatUtil {
       }
     }
 
-    // Try the actual Android runtime version if we are on a sufficiently high API level for it to
-    // exist.  Note that technically we can have both the support library and the framework
+    // Use the actual Android runtime version. Note that technically we can have both the support library and the framework
     // version in the same object instance due to FragmentActivity extending Activity (which has
     // fragment support in the system).
     FragmentCompat framework = FragmentCompat.getFrameworkInstance();
