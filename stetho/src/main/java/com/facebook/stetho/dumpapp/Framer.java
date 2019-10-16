@@ -18,6 +18,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import androidx.annotation.NonNull;
@@ -208,7 +209,7 @@ class Framer {
     }
 
     @Override
-    public void write(byte[] buffer, int offset, int length) throws IOException {
+    public void write(@Nonnull byte[] buffer, int offset, int length) throws IOException {
       mClosedHelper.throwIfClosed();
       if (length > 0) {
         try {
@@ -232,7 +233,7 @@ class Framer {
     }
 
     @Override
-    public void write(byte[] buffer) throws IOException {
+    public void write(@Nonnull byte[] buffer) throws IOException {
       write(buffer, 0, buffer.length);
     }
 

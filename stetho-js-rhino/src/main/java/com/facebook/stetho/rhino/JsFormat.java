@@ -64,6 +64,7 @@ class JsFormat {
       return array[start + index];
     }
 
+    @NonNull
     @Override
     public CharSequence subSequence(int start, int end) {
       return new ArrayCharSequence(array, this.start + start, this.start + end);

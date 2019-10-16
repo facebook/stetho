@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -151,37 +152,37 @@ public final class ActivityTracker {
     private final Application.ActivityLifecycleCallbacks mLifecycleCallbacks =
         new Application.ActivityLifecycleCallbacks() {
       @Override
-      public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+      public void onActivityCreated(@Nonnull Activity activity, Bundle savedInstanceState) {
         mTracker.add(activity);
       }
 
       @Override
-      public void onActivityStarted(Activity activity) {
+      public void onActivityStarted(@Nonnull Activity activity) {
 
       }
 
       @Override
-      public void onActivityResumed(Activity activity) {
+      public void onActivityResumed(@Nonnull Activity activity) {
 
       }
 
       @Override
-      public void onActivityPaused(Activity activity) {
+      public void onActivityPaused(@Nonnull Activity activity) {
 
       }
 
       @Override
-      public void onActivityStopped(Activity activity) {
+      public void onActivityStopped(@Nonnull Activity activity) {
 
       }
 
       @Override
-      public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+      public void onActivitySaveInstanceState(@Nonnull Activity activity, @Nonnull Bundle outState) {
 
       }
 
       @Override
-      public void onActivityDestroyed(Activity activity) {
+      public void onActivityDestroyed(@Nonnull Activity activity) {
         mTracker.remove(activity);
       }
     };
