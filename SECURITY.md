@@ -75,3 +75,11 @@ Use Semantic Versioning to help other see at a glance if this document has been 
 - Major version incremented when contact information changes in the `security.md` file or in the `security.txt` file that refers to this file. Or a required field in the `security.txt` has changed in a non backwards compatible manner.
 - Minor update is a backward compatible change has been made to the aforementioned files.
 - Patch update is when a minor typo is fixed but no significant change has been made.
+
+# Security Policy
+
+Please do not open GitHub issues or pull requests - this makes the problem immediately visible to everyone, including malicious actors. Security issues in the SDK can be safely reported via Facebook's Whitehat Bug Bounty program:
+
+[facebook.com/whitehat](https://www.facebook.com/whitehat)
+
+Facebook's security team will triage your report and determine whether or not is it eligible for a bounty under our program.
