@@ -9,10 +9,7 @@ package com.facebook.stetho.dumpapp;
 
 import com.facebook.stetho.common.LogUtil;
 
-import javax.annotation.Nullable;
-
 import java.io.BufferedOutputStream;
-import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -20,6 +17,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
+
+import javax.annotation.Nullable;
 
 /**
  * Implements framing protocol that allows us to implement a command-line protocol via

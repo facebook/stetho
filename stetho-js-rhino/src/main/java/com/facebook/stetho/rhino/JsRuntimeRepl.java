@@ -7,11 +7,14 @@
 
 package com.facebook.stetho.rhino;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
 import com.facebook.stetho.inspector.console.RuntimeRepl;
+
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ScriptableObject;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 class JsRuntimeRepl implements RuntimeRepl {
 

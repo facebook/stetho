@@ -4,7 +4,7 @@ android {
     compileSdkVersion rootProject.ext.compileSdkVersion
 
     defaultConfig {
-        minSdkVersion 9
+        minSdkVersion 14
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
@@ -21,7 +21,7 @@ android {
 
 dependencies {
     implementation project(':stetho')
-    implementation 'com.google.code.findbugs:jsr305:2.0.1'
+    implementation 'com.google.code.findbugs:jsr305:3.0.2'
     implementation 'com.squareup.okhttp:okhttp:2.7.2'
 
     testImplementation 'junit:junit:4.12'
@@ -29,12 +29,12 @@ dependencies {
         exclude module: 'commons-logging'
         exclude module: 'httpclient'
     }
-    testImplementation 'org.powermock:powermock-api-mockito:1.6.1'
-    testImplementation 'org.powermock:powermock-module-junit4:1.6.1'
+    testImplementation 'org.powermock:powermock-api-mockito:1.6.6'
+    testImplementation 'org.powermock:powermock-module-junit4:1.6.6'
 
     // Needed for Robolectric and PowerMock to be combined in a single test.
-    testImplementation 'org.powermock:powermock-module-junit4-rule:1.6.1'
-    testImplementation 'org.powermock:powermock-classloading-xstream:1.6.1'
+    testImplementation 'org.powermock:powermock-module-junit4-rule:1.6.6'
+    testImplementation 'org.powermock:powermock-classloading-xstream:1.6.6'
 
     testImplementation 'com.squareup.okhttp:mockwebserver:2.7.2'
 }

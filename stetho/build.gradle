@@ -4,7 +4,7 @@ android {
     compileSdkVersion rootProject.ext.compileSdkVersion
 
     defaultConfig {
-        minSdkVersion 9
+        minSdkVersion 14
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
@@ -15,18 +15,19 @@ android {
 
 dependencies {
     implementation 'commons-cli:commons-cli:1.2'
-    implementation 'com.google.code.findbugs:jsr305:2.0.1'
-    implementation 'com.android.support:support-annotations:28.0.0'
+    implementation 'com.google.code.findbugs:jsr305:3.0.2'
+    implementation 'androidx.annotation:annotation:1.1.0'
 
-    implementation 'com.android.support:appcompat-v7:23.0.1' // optional
+    // Optional: reflection is used to test whether Fragment (and the transient AndroidX Core) are actually present.
+    implementation 'androidx.appcompat:appcompat:1.2.0' // optional
 
     testImplementation 'junit:junit:4.12'
     testImplementation('org.robolectric:robolectric:2.4') {
         exclude module: 'commons-logging'
         exclude module: 'httpclient'
     }
-    testImplementation 'org.powermock:powermock-api-mockito:1.6.1'
-    testImplementation 'org.powermock:powermock-module-junit4:1.6.1'
+    testImplementation 'org.powermock:powermock-api-mockito:1.6.6'
+    testImplementation 'org.powermock:powermock-module-junit4:1.6.6'
 }
 
 apply from: rootProject.file('release.gradle')

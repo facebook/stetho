@@ -10,7 +10,8 @@ package com.facebook.stetho.inspector.database;
 import android.annotation.TargetApi;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
-import android.support.annotation.IntDef;
+
+import androidx.annotation.IntDef;
 
 /**
  * Compatibility layer which supports opening databases with WAL and foreign key support

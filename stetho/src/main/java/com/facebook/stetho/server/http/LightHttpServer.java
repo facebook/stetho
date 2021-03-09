@@ -7,9 +7,8 @@
 
 package com.facebook.stetho.server.http;
 
-import android.net.LocalSocket;
 import android.net.Uri;
-import android.support.annotation.Nullable;
+
 import com.facebook.stetho.server.LeakyBufferedInputStream;
 import com.facebook.stetho.server.SocketLike;
 
@@ -21,6 +20,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+
+import androidx.annotation.Nullable;
 
 /**
  * Somewhat crude but very fast HTTP server designed exclusively to handle the

@@ -8,7 +8,6 @@
 package com.facebook.stetho.inspector.elements.android.window;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
 import android.view.View;
 import android.view.WindowManager;
 
@@ -16,6 +15,8 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import androidx.annotation.NonNull;
 
 class WindowRootViewCompactV16Impl extends WindowRootViewCompat {
   private Context mContext;

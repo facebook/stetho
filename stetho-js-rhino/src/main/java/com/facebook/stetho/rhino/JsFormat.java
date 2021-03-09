@@ -7,11 +7,11 @@
 
 package com.facebook.stetho.rhino;
 
-import android.support.annotation.NonNull;
-
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import androidx.annotation.NonNull;
 
 /**
  * <p>Formatter that tries to mimic <pre>console.log()</pre>'s format as close as possible.</p>
@@ -64,6 +64,7 @@ class JsFormat {
       return array[start + index];
     }
 
+    @NonNull
     @Override
     public CharSequence subSequence(int start, int end) {
       return new ArrayCharSequence(array, this.start + start, this.start + end);
@@ -124,7 +125,7 @@ class JsFormat {
       }
 
       // Analyze the format. We don't have named captures in android yet so we will inspect
-      // the groups. They are each optional but we can find out which one is whic easily.
+      // the groups. They are each optional but we can find out which one is which easily.
       // Remember that we want to parse: %[argument_index$][flags][width][.precision]conversion
       //
       //  - `index` ends with '$'

@@ -7,12 +7,12 @@
 
 package com.facebook.stetho.server;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import com.facebook.stetho.common.LogUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-import com.facebook.stetho.common.LogUtil;
+import javax.annotation.concurrent.NotThreadSafe;
 
 @NotThreadSafe
 public class CompositeInputStream extends InputStream {

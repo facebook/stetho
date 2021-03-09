@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId "com.facebook.stetho.sample"
-        minSdkVersion 11
+        minSdkVersion 14
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
@@ -43,8 +43,8 @@ dependencies {
     // way to express this is:
     //
     //   dependencies {
-    //     debugCompile 'com.facebook.stetho:stetho:<VERSION>'
-    //     compile 'com.facebook.stetho:stetho-urlconnection:<VERSION>'
+    //     debugImplementation 'com.facebook.stetho:stetho:<VERSION>'
+    //     implementation 'com.facebook.stetho:stetho-urlconnection:<VERSION>'
     //   }
     //
     // For Stetho developers, to verify locally that things are working
@@ -54,8 +54,8 @@ dependencies {
     //   ./gradlew installArchives
     //
     // Then uncomment the Maven style dependency and comment the project one:
-    //releaseCompile "com.facebook.stetho:stetho-urlconnection:${VERSION_NAME}"
+    //releaseImplementation "com.facebook.stetho:stetho-urlconnection:${VERSION_NAME}"
     releaseImplementation project(':stetho-urlconnection')
 
-    implementation 'com.google.code.findbugs:jsr305:2.0.1'
+    implementation 'com.google.code.findbugs:jsr305:3.0.2'
 }

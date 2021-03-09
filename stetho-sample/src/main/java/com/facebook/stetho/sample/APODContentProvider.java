@@ -7,8 +7,6 @@
 
 package com.facebook.stetho.sample;
 
-import java.util.ArrayList;
-
 import android.content.ContentProvider;
 import android.content.ContentProviderOperation;
 import android.content.ContentProviderResult;
@@ -19,6 +17,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+
+import java.util.ArrayList;
 
 public class APODContentProvider extends ContentProvider {
   private APODSQLiteOpenHelper mOpenHelper;

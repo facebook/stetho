@@ -11,6 +11,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
+
 import com.facebook.stetho.inspector.console.CLog;
 import com.facebook.stetho.inspector.domstorage.DOMStoragePeerManager;
 import com.facebook.stetho.inspector.domstorage.SharedPreferencesHelper;
@@ -21,6 +22,7 @@ import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsMethod;
 import com.facebook.stetho.json.ObjectMapper;
 import com.facebook.stetho.json.annotation.JsonProperty;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 

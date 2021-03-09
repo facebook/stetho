@@ -9,12 +9,13 @@ package com.facebook.stetho.inspector.elements.android.window;
 
 import android.content.Context;
 import android.os.Build;
-import android.support.annotation.NonNull;
 import android.view.View;
 
 import com.facebook.stetho.common.Util;
 
 import java.util.List;
+
+import androidx.annotation.NonNull;
 
 /**
  * get the root view of all windows

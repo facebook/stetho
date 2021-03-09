@@ -8,7 +8,7 @@
 package com.facebook.stetho.inspector.protocol.module;
 
 import android.content.Context;
-import android.support.annotation.Nullable;
+
 import com.facebook.stetho.common.ProcessUtil;
 import com.facebook.stetho.inspector.domstorage.SharedPreferencesHelper;
 import com.facebook.stetho.inspector.jsonrpc.JsonRpcPeer;
@@ -19,12 +19,15 @@ import com.facebook.stetho.inspector.screencast.ScreencastDispatcher;
 import com.facebook.stetho.json.ObjectMapper;
 import com.facebook.stetho.json.annotation.JsonProperty;
 import com.facebook.stetho.json.annotation.JsonValue;
+
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+
+import androidx.annotation.Nullable;
 
 public class Page implements ChromeDevtoolsDomain {
   public static final String BANNER = // Note: not using Android resources so we can maintain .jar distribution for now.

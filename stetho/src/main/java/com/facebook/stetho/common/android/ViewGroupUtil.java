@@ -10,12 +10,6 @@ package com.facebook.stetho.common.android;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.facebook.stetho.common.ReflectionUtil;
-
-import java.lang.reflect.Field;
-
-import javax.annotation.Nullable;
-
 public final class ViewGroupUtil {
   private ViewGroupUtil() {
   }

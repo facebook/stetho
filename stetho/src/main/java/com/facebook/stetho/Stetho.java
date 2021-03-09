@@ -11,6 +11,7 @@ import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
+
 import com.facebook.stetho.common.LogUtil;
 import com.facebook.stetho.common.Util;
 import com.facebook.stetho.dumpapp.DumpappHttpSocketLikeHandler;
@@ -55,18 +56,18 @@ import com.facebook.stetho.inspector.runtime.RhinoDetectingRuntimeReplFactory;
 import com.facebook.stetho.server.AddressNameHelper;
 import com.facebook.stetho.server.LazySocketHandler;
 import com.facebook.stetho.server.LocalSocketServer;
-import com.facebook.stetho.server.ServerManager;
 import com.facebook.stetho.server.ProtocolDetectingSocketHandler;
+import com.facebook.stetho.server.ServerManager;
 import com.facebook.stetho.server.SocketHandler;
 import com.facebook.stetho.server.SocketHandlerFactory;
-
-import javax.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import javax.annotation.Nullable;
 
 /**
  * Initialization and configuration entry point for the Stetho debugging system.  Simple usage with
