@@ -8,7 +8,6 @@
 package com.facebook.stetho.common.android;
 
 import android.app.Activity;
-import android.os.Build;
 
 import com.facebook.stetho.common.ReflectionUtil;
 
@@ -17,8 +16,6 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
-
-import androidx.annotation.NonNull;
 
 /**
  * Compatibility abstraction which allows us to generalize access to both the
@@ -52,8 +49,7 @@ public abstract class FragmentCompat<
 
   @Nullable
   public static FragmentCompat getFrameworkInstance() {
-    if (sFrameworkInstance == null &&
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+    if (sFrameworkInstance == null) {
       sFrameworkInstance = new FragmentCompatFramework();
     }
     return sFrameworkInstance;

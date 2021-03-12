@@ -8,10 +8,8 @@
 package com.facebook.stetho.dumpapp.plugins;
 
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.text.TextUtils;
 
 import com.facebook.stetho.dumpapp.DumpUsageException;
@@ -120,7 +118,6 @@ public class SharedPreferencesDumperPlugin implements DumperPlugin {
     return nextArg(iter, "Expected <value>");
   }
 
-  @TargetApi(Build.VERSION_CODES.HONEYCOMB)
   private static void putStringSet(
       SharedPreferences.Editor editor,
       String key,

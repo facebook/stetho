@@ -7,10 +7,8 @@
 
 package com.facebook.stetho.inspector.protocol.module;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Build;
 
 import com.facebook.stetho.inspector.console.CLog;
 import com.facebook.stetho.inspector.domstorage.DOMStoragePeerManager;
@@ -162,15 +160,10 @@ public class DOMStorage implements ChromeDevtoolsDomain {
     } else if (value instanceof String) {
       editor.putString(key, (String)value);
     } else if (value instanceof Set) {
-      putStringSet(editor, key, (Set<String>)value);
+      editor.putStringSet(key, (Set<String>)value);
     } else {
       throw new IllegalArgumentException("Unsupported type=" + value.getClass().getName());
     }
-  }
-
-  @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-  private static void putStringSet(SharedPreferences.Editor editor, String key, Set<String> value) {
-    editor.putStringSet(key, value);
   }
 
   public static class StorageId {

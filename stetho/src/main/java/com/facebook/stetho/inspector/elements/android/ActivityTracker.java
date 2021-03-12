@@ -14,6 +14,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 
+import androidx.annotation.NonNull;
+
 import com.facebook.stetho.common.Util;
 
 import java.lang.ref.WeakReference;
@@ -75,12 +77,10 @@ public final class ActivityTracker {
   public boolean beginTrackingIfPossible(Application application) {
     if (mAutomaticTracker == null) {
       AutomaticTracker automaticTracker =
-          AutomaticTracker.newInstanceIfPossible(application, this /* tracker */);
-      if (automaticTracker != null) {
+          AutomaticTracker.newInstance(application, this /* tracker */);
         automaticTracker.register();
         mAutomaticTracker = automaticTracker;
         return true;
-      }
     }
     return false;
   }
@@ -148,15 +148,11 @@ public final class ActivityTracker {
   }
 
   private static abstract class AutomaticTracker {
-    @Nullable
-    public static AutomaticTracker newInstanceIfPossible(
-        Application application,
-        ActivityTracker tracker) {
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-        return new AutomaticTrackerICSAndBeyond(application, tracker);
-      } else {
-        return null;
-      }
+    @NonNull
+    public static AutomaticTracker newInstance(
+            Application application,
+            ActivityTracker tracker) {
+      return new AutomaticTrackerICSAndBeyond(application, tracker);
     }
 
     public abstract void register();

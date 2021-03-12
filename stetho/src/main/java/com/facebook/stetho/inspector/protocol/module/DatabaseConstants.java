@@ -14,5 +14,5 @@ public interface DatabaseConstants {
   /**
    * Minimum API version required to use the {@link Database}.
    */
-  public static final int MIN_API_LEVEL = Build.VERSION_CODES.HONEYCOMB;
+  public static final int MIN_API_LEVEL = Build.VERSION_CODES.ICE_CREAM_SANDWICH;
 }
