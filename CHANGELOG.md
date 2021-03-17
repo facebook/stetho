@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+## Version 1.6.0
+_2021-03-17_
+
+ * Fix #662/665: AndroidX upgrade.
+
 ## Version 1.5.1
 _2019-03-17_
 
