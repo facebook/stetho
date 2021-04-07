@@ -141,7 +141,11 @@ class AdbSmartSocketClient(object):
 
   def connect(self, port=5037):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect(('127.0.0.1', port))
+    try:
+      sock.connect(('localhost', port))
+    except ConnectionRefusedError:
+      sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+      sock.connect(('localhost', port))
     self.sock = sock
 
   def select_service(self, service):
