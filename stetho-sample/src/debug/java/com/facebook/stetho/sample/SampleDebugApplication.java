@@ -22,6 +22,9 @@ import com.facebook.stetho.inspector.database.ContentProviderDatabaseDriver;
 import com.facebook.stetho.inspector.database.ContentProviderSchema;
 import com.facebook.stetho.inspector.database.ContentProviderSchema.Table;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
+import com.facebook.stetho.timber.StethoTree;
+
+import timber.log.Timber;
 
 public class SampleDebugApplication extends SampleApplication {
   private static final String TAG = "SampleDebugApplication";
@@ -30,6 +33,7 @@ public class SampleDebugApplication extends SampleApplication {
   public void onCreate() {
     super.onCreate();
 
+    Timber.plant(new StethoTree());
     long startTime = SystemClock.elapsedRealtime();
     initializeStetho(this);
     long elapsed = SystemClock.elapsedRealtime() - startTime;
