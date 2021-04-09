@@ -140,7 +140,11 @@ abstract class ViewHighlightOverlays {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
           canvas.clipRect(newRect, Region.Op.REPLACE);
         } else {
-          canvas.clipOutRect(newRect);
+          // https://github.com/facebook/stetho/issues/648
+          // Android P deprecated calls to clipRect with Ops other than INTERSECT and DIFFERENCE
+          canvas.save();
+          canvas.clipRect(newRect);
+          canvas.restore();
         }
         super.draw(canvas);
       }
