@@ -121,8 +121,18 @@ Stetho.initialize(Stetho.newInitializerBuilder(context)
 
 See the [`stetho-sample` project](stetho-sample) for more details.
 
-## Improve Stetho!
-See the [CONTRIBUTING.md](CONTRIBUTING.md) file for how to help out.
+## Contributing
 
-## License
-Stetho is MIT-licensed. See LICENSE file for more details.
+The main purpose of this repository is to continue to evolve Stetho, making it faster and more efficient. We are grateful to the community for contributing bugfixes and improvements. Read below to learn how you can take part in improving Stetho.
+
+### Code of Conduct
+
+Facebook has adopted a [Code of Conduct](./CODE_OF_CONDUCT.md) that we expect project participants to adhere to. Please read [the full text](https://code.fb.com/codeofconduct) so that you can understand what actions will and will not be tolerated.
+
+### Contributing Guide
+
+Read our [contributing guide](CONTRIBUTING.md) to learn about our development process, how to propose bugfixes and improvements, and how to build and test your changes to Hermes.
+
+### License
+
+Stetho is [MIT licensed](./LICENSE).
