@@ -117,10 +117,10 @@ See the stetho-sample project for more details.
 ### Contributions
 Use [GitHub issues](https://github.com/facebook/stetho/issues) for requests. We actively welcome pull requests; learn how to [contribute](https://github.com/facebook/stetho/blob/master/CONTRIBUTING.md).
 
-###Changelog
+### Changelog
 Changes are tracked as [GitHub releases](https://github.com/facebook/stetho/releases).
 
-###License  
+### License  
 
 Stetho is [BSD-licensed](https://github.com/facebook/stetho/blob/master/LICENSE). We also provide an additional [patent grant](https://github.com/facebook/stetho/blob/master/PATENTS).
 
