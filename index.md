@@ -48,7 +48,7 @@ or:
   } 
 ```
 
-##Features 
+## Features 
 
 {% include content/gridblocks.html data_source=site.data.features grid_type="twoByGridBlock" %}
 
@@ -92,7 +92,7 @@ As interceptors can modify the request and response, add the Stetho interceptor 
 
 If you are using `HttpURLConnection`, you can use `StethoURLConnectionManager` to assist with integration though you should be aware that there are some caveats with this approach. In particular, you must explicitly add `Accept-Encoding: gzip` to the request headers and manually handle compressed responses in order for Stetho to report compressed payload sizes.
 
-See the stetho-sample project for more details. 
+See the [stetho-sample project](https://github.com/facebook/stetho/tree/master/stetho-sample) for more details. 
 
 ### Custom dumpapp Plugins
 
@@ -112,16 +112,16 @@ Stetho.initialize(Stetho.newInitializerBuilder(context)
     .build());
 ```
 
-See the stetho-sample project for more details. 
+See the [stetho-sample project](https://github.com/facebook/stetho/tree/master/stetho-sample) for more details. 
 
 ### Contributions
 Use [GitHub issues](https://github.com/facebook/stetho/issues) for requests. We actively welcome pull requests; learn how to [contribute](https://github.com/facebook/stetho/blob/master/CONTRIBUTING.md).
 
-###Changelog
+### Changelog
 Changes are tracked as [GitHub releases](https://github.com/facebook/stetho/releases).
 
-###License  
+### License  
 
-Stetho is [BSD-licensed](https://github.com/facebook/stetho/blob/master/LICENSE). We also provide an additional [patent grant](https://github.com/facebook/stetho/blob/master/PATENTS).
+Stetho is [MIT-licensed](https://github.com/facebook/stetho/blob/master/LICENSE). We also provide an additional [patent grant](https://github.com/facebook/stetho/blob/master/LICENSE).
 
 {% include plugins/all_share.html %}
