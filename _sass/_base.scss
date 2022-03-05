@@ -928,4 +928,10 @@ a.blockButton {
   max-width: 768px;
   margin: 0 auto;
   text-align: center;
+  color: white;
+
+  a {
+    color: #f2f2f2;
+    border-bottom-color: #d9deff;
+  }
 }
