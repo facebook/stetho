@@ -7,7 +7,7 @@ gacode: "UA-44373548-5"
 description: > # this means to ignore newlines until "baseurl:"
   Stetho is a sophisticated debug bridge for Android applications. When enabled, developers have access to the Chrome Developer Tools feature natively part of the Chrome desktop browser. Developers can also choose to enable the optional dumpapp tool which offers a powerful command-line interface to application internals. 
 baseurl: "/stetho" # the subpath of your site, e.g. /blog/
-url: "http://facebook.github.io" # the base hostname & protocol for your site
+url: "https://facebook.github.io" # the base hostname & protocol for your site
 ghrepo: "facebook/stetho"
 
 # Build settings

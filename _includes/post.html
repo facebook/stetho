@@ -2,7 +2,7 @@
   {% assign author = site.data.authors[page.author] %}
   <header class="post-header">
     {% if author %}
-    <div class="authorPhoto"><img src="http://graph.facebook.com/{{ author.fbid }}/picture/" alt="{{ author.fullname }}" title="{{ author.fullname }}" /></div>
+    <div class="authorPhoto"><img src="https://graph.facebook.com/{{ author.fbid }}/picture/" alt="{{ author.fullname }}" title="{{ author.fullname }}" /></div>
     {% endif %}
     <h1 class="post-title">{% if include.truncate %}<a href="{{ site.baseurl }}{{ page.url }}">{{ page.title }}</a>{% else %}{{ page.title }}{% endif %}</h1>
     <p class="post-meta">Posted {{ page.date | date: '%B %d, %Y' }}{% if page.meta %} • {{ page.meta }}{% endif %}</p>
