@@ -11,6 +11,7 @@ import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
+import android.os.StrictMode;
 
 import com.facebook.stetho.common.LogUtil;
 import com.facebook.stetho.common.Util;
@@ -443,9 +444,17 @@ public class Stetho {
     final void start() {
       // Note that _devtools_remote is a magic suffix understood by Chrome which causes
       // the discovery process to begin.
+      StrictMode.ThreadPolicy oldPolicy = StrictMode.allowThreadDiskReads();
+      String customAddress;
+      try {
+        customAddress = AddressNameHelper.createCustomAddress("_devtools_remote");
+      } finally {
+        StrictMode.setThreadPolicy(oldPolicy);
+      }
+
       LocalSocketServer server = new LocalSocketServer(
           "main",
-          AddressNameHelper.createCustomAddress("_devtools_remote"),
+          customAddress,
           new LazySocketHandler(new RealSocketHandlerFactory()));
 
       ServerManager serverManager = new ServerManager(server);
