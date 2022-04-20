@@ -7,6 +7,7 @@
 
 package com.facebook.stetho.common;
 
+import android.os.StrictMode;
 import javax.annotation.Nullable;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -46,6 +47,9 @@ public class ProcessUtil {
     // Avoid using a Reader to not pick up a forced 16K buffer.  Silly java.io...
     FileInputStream stream = new FileInputStream("/proc/self/cmdline");
     boolean success = false;
+
+    // /proc/self/cmdline is a memory file and won't actually hit disk
+    StrictMode.ThreadPolicy oldPolicy = StrictMode.allowThreadDiskReads();
     try {
       int n = stream.read(cmdlineBuffer);
       success = true;
@@ -53,6 +57,7 @@ public class ProcessUtil {
       return new String(cmdlineBuffer, 0, endIndex > 0 ? endIndex : n);
     } finally {
       Util.close(stream, !success);
+      StrictMode.setThreadPolicy(oldPolicy);
     }
   }
 
