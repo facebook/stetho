@@ -13,9 +13,11 @@ public class AddressNameHelper {
   private static final String PREFIX = "stetho_";
 
   public static String createCustomAddress(String suffix) {
+    final int userId = ProcessUtil.getUserId();
     return
         PREFIX +
         ProcessUtil.getProcessName() +
+        (userId == 0 ? "" : ("_" + userId)) +
         suffix;
   }
 }
