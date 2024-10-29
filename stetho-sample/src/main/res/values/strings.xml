@@ -2,6 +2,7 @@
 
 <resources>
   <string name="app_name">Stetho Sample</string>
+  <string name="log_btn">Log</string>
   <string name="settings_btn">Settings</string>
   <string name="apod_btn">APOD RSS Feed</string>
   <string name="irc_btn">IRC Client</string>
