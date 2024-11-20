@@ -197,7 +197,7 @@ To proguard your project add the following rules to your proguard file:
 
 ```
 # stetho
-+keep class com.facebook.stetho.** { *; }
+-keep class com.facebook.stetho.** { *; }
 
 # rhino (javascript)
 -dontwarn org.mozilla.javascript.**
@@ -209,7 +209,7 @@ If you want to remove the *tools* package for a more aggressive proguard use:
 
 ```
 # stetho
-+keep class com.facebook.stetho.** { *; }
+-keep class com.facebook.stetho.** { *; }
 
 # rhino (javascript)
 -dontwarn org.mozilla.javascript.**
