@@ -60,6 +60,7 @@ public class StethoInterceptorTest {
   @Rule
   public PowerMockRule rule = new PowerMockRule();
 
+  private final int HTTP_OK = 200;
   private NetworkEventReporter mMockEventReporter;
   private StethoInterceptor mInterceptor;
   private OkHttpClient mClientWithInterceptor;
@@ -96,7 +97,7 @@ public class StethoInterceptorTest {
     Response reply = new Response.Builder()
         .request(request)
         .protocol(Protocol.HTTP_1_1)
-        .code(200)
+        .code(HTTP_OK)
         .body(ResponseBody.create(MediaType.parse("text/plain"), originalBodyData))
         .build();
     Response filteredResponse =
