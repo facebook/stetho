@@ -44,7 +44,7 @@ public class ContentProviderDatabaseDriver
   }
 
   @Override
-  public List<String> getTableNames(ContentProviderDatabaseDescriptor databaseDesc) {
+  public synchronized List<String> getTableNames(ContentProviderDatabaseDescriptor databaseDesc) {
     if (mTableNames == null) {
       mTableNames = new ArrayList<>();
       for (ContentProviderSchema schema : mContentProviderSchemas) {
