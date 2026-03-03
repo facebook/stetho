@@ -32,7 +32,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Tests for {@link ObjectMapper}
  */
-@Config(emulateSdk = Build.VERSION_CODES.JELLY_BEAN)
+@Config(sdk = Build.VERSION_CODES.JELLY_BEAN)
 @RunWith(RobolectricTestRunner.class)
 public class ObjectMapperTest {
 

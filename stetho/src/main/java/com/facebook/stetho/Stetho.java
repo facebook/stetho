@@ -367,6 +367,10 @@ public class Stetho {
     }
 
     public Iterable<ChromeDevtoolsDomain> finish() {
+      // Add Chrome 120+ required domains first
+      provideIfDesired(new com.facebook.stetho.inspector.protocol.module.Target());
+      provideIfDesired(new com.facebook.stetho.inspector.protocol.module.Browser());
+      
       provideIfDesired(new Console());
       provideIfDesired(new Debugger());
       DocumentProviderFactory documentModel = resolveDocumentProvider();

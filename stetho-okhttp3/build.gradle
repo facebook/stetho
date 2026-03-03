@@ -8,7 +8,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     lintOptions {
@@ -17,26 +17,33 @@ android {
         // more targeted fashion...
         warning 'InvalidPackage'
     }
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+            returnDefaultValues = true
+        }
+    }
 }
 
 dependencies {
     implementation project(':stetho')
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
-    implementation 'com.squareup.okhttp3:okhttp:3.4.2'
+    // Updated OkHttp3 to a stable, well-tested version compatible with the codebase
+    implementation 'com.squareup.okhttp3:okhttp:3.14.9'
 
-    testImplementation 'junit:junit:4.12'
-    testImplementation('org.robolectric:robolectric:2.4') {
-        exclude module: 'commons-logging'
-        exclude module: 'httpclient'
-    }
-    testImplementation 'org.powermock:powermock-api-mockito:1.6.6'
-    testImplementation 'org.powermock:powermock-module-junit4:1.6.6'
-
-    // Needed for Robolectric and PowerMock to be combined in a single test.
-    testImplementation 'org.powermock:powermock-module-junit4-rule:1.6.6'
-    testImplementation 'org.powermock:powermock-classloading-xstream:1.6.6'
-
-    testImplementation 'com.squareup.okhttp3:mockwebserver:3.4.2'
+    // Modern testing dependencies
+    testImplementation 'junit:junit:4.13.2'
+    
+    // Robolectric 4.x - compatible with modern Android and Java
+    testImplementation 'org.robolectric:robolectric:4.9.2'
+    
+    // Mockito 3.x - modern mocking framework (no PowerMock needed)
+    testImplementation 'org.mockito:mockito-core:3.12.4'
+    testImplementation 'org.mockito:mockito-inline:3.12.4'
+    
+    // MockWebServer for OkHttp testing
+    testImplementation 'com.squareup.okhttp3:mockwebserver:3.14.9'
 }
 
 apply from: rootProject.file('release.gradle')

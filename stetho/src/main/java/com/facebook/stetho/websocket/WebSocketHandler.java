@@ -44,6 +44,7 @@ public class WebSocketHandler implements HttpHandler {
   private static final String HEADER_SEC_WEBSOCKET_ACCEPT = "Sec-WebSocket-Accept";
   private static final String HEADER_SEC_WEBSOCKET_PROTOCOL = "Sec-WebSocket-Protocol";
   private static final String HEADER_SEC_WEBSOCKET_VERSION = "Sec-WebSocket-Version";
+  private static final String HEADER_SEC_WEBSOCKET_EXTENSIONS = "Sec-WebSocket-Extensions";
 
   private static final String HEADER_UPGRADE_WEBSOCKET = "websocket";
   private static final String HEADER_CONNECTION_UPGRADE = "Upgrade";
@@ -83,12 +84,26 @@ public class WebSocketHandler implements HttpHandler {
   }
 
   private static boolean isSupportableUpgradeRequest(LightHttpRequest request) {
-    return HEADER_UPGRADE_WEBSOCKET.equalsIgnoreCase(getFirstHeaderValue(request, HEADER_UPGRADE)) &&
-        HEADER_CONNECTION_UPGRADE.equals(getFirstHeaderValue(request, HEADER_CONNECTION)) &&
-        HEADER_SEC_WEBSOCKET_VERSION_13.equals(
-            getFirstHeaderValue(request, HEADER_SEC_WEBSOCKET_VERSION));
+    String upgrade = getFirstHeaderValue(request, HEADER_UPGRADE);
+    String connection = getFirstHeaderValue(request, HEADER_CONNECTION);
+    String version = getFirstHeaderValue(request, HEADER_SEC_WEBSOCKET_VERSION);
+    
+    // More lenient version checking for Chrome 120+ compatibility
+    return HEADER_UPGRADE_WEBSOCKET.equalsIgnoreCase(upgrade) &&
+        connection != null && connection.toLowerCase().contains("upgrade") &&
+        HEADER_SEC_WEBSOCKET_VERSION_13.equals(version);
   }
 
+  private void handleWebSocketExtensions(LightHttpRequest request, LightHttpResponse response) {
+    // Chrome 120+ may request extensions like permessage-deflate
+    // For now, we don't support extensions, so we simply don't include them in response
+    String extensions = getFirstHeaderValue(request, HEADER_SEC_WEBSOCKET_EXTENSIONS);
+    if (extensions != null) {
+        // Log that extensions were requested but not supported
+        // In future, could add support for permessage-deflate compression
+    }
+  }
+  
   private void doUpgrade(
       SocketLike socketLike,
       LightHttpRequest request,

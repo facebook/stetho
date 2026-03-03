@@ -11,6 +11,25 @@ android {
         consumerProguardFiles 'proguard-consumer.pro'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+            all {
+                jvmArgs(
+                    '--add-opens=java.base/java.lang=ALL-UNNAMED',
+                    '--add-opens=java.base/java.lang.reflect=ALL-UNNAMED',
+                    '--add-opens=java.base/java.io=ALL-UNNAMED',
+                    '--add-opens=java.base/java.util=ALL-UNNAMED',
+                    '--add-opens=java.base/sun.nio.ch=ALL-UNNAMED',
+                    '--add-opens=java.base/sun.net.www.protocol.http=ALL-UNNAMED'
+                )
+                // Configure Robolectric to use SDK 30
+                systemProperty 'robolectric.enabledSdks', '30'
+                systemProperty 'robolectric.offline', 'true'
+            }
+        }
+    }
 }
 
 dependencies {
@@ -21,13 +40,14 @@ dependencies {
     // Optional: reflection is used to test whether Fragment (and the transient AndroidX Core) are actually present.
     implementation 'androidx.appcompat:appcompat:1.2.0' // optional
 
-    testImplementation 'junit:junit:4.12'
-    testImplementation('org.robolectric:robolectric:2.4') {
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation('org.robolectric:robolectric:4.9.2') {
         exclude module: 'commons-logging'
         exclude module: 'httpclient'
     }
-    testImplementation 'org.powermock:powermock-api-mockito:1.6.6'
-    testImplementation 'org.powermock:powermock-module-junit4:1.6.6'
+    testImplementation 'org.mockito:mockito-core:3.12.4'
+    testImplementation 'org.powermock:powermock-api-mockito2:2.0.9'
+    testImplementation 'org.powermock:powermock-module-junit4:2.0.9'
 }
 
 apply from: rootProject.file('release.gradle')

@@ -73,14 +73,13 @@ public class ResponseHandlingInputStreamTest {
     assertBufferMatchesResponseBody(mTestOutputStream.toByteArray(), 1);
 
     PowerMockito.mockStatic(CLog.class);
-    PowerMockito.doNothing().when(CLog.class);
+    mResponseHandlingInputStream.close();
+    PowerMockito.verifyStatic(CLog.class, Mockito.times(1));
     CLog.writeToConsole(
-        Mockito.any(ChromePeerManager.class),
+        Mockito.isNull(ChromePeerManager.class),
         Mockito.any(Console.MessageLevel.class),
         Mockito.any(Console.MessageSource.class),
         Mockito.anyString());
-    mResponseHandlingInputStream.close();
-    PowerMockito.verifyStatic();
   }
 
   @Test
@@ -93,14 +92,13 @@ public class ResponseHandlingInputStreamTest {
     assertBufferMatchesResponseBody(mTestOutputStream.toByteArray(), numBytesToRead);
 
     PowerMockito.mockStatic(CLog.class);
-    PowerMockito.doNothing().when(CLog.class);
+    mResponseHandlingInputStream.close();
+    PowerMockito.verifyStatic(CLog.class, Mockito.times(1));
     CLog.writeToConsole(
-        Mockito.any(ChromePeerManager.class),
+        Mockito.isNull(ChromePeerManager.class),
         Mockito.any(Console.MessageLevel.class),
         Mockito.any(Console.MessageSource.class),
         Mockito.anyString());
-    mResponseHandlingInputStream.close();
-    PowerMockito.verifyStatic();
   }
 
   @Test
@@ -112,9 +110,13 @@ public class ResponseHandlingInputStreamTest {
     assertBufferMatchesResponseBody(mTestOutputStream.toByteArray(), TEST_RESPONSE_BODY.length);
 
     PowerMockito.mockStatic(CLog.class);
-    PowerMockito.verifyZeroInteractions(CLog.class);
     mResponseHandlingInputStream.close();
-    PowerMockito.verifyStatic();
+    PowerMockito.verifyStatic(CLog.class, Mockito.never());
+    CLog.writeToConsole(
+        Mockito.any(ChromePeerManager.class),
+        Mockito.any(Console.MessageLevel.class),
+        Mockito.any(Console.MessageSource.class),
+        Mockito.anyString());
   }
 
   @Test
@@ -125,14 +127,13 @@ public class ResponseHandlingInputStreamTest {
     assertBufferMatchesResponseBody(mTestOutputStream.toByteArray(), (int) numBytesToSkip);
 
     PowerMockito.mockStatic(CLog.class);
-    PowerMockito.doNothing().when(CLog.class);
+    mResponseHandlingInputStream.close();
+    PowerMockito.verifyStatic(CLog.class, Mockito.times(1));
     CLog.writeToConsole(
-        Mockito.any(ChromePeerManager.class),
+        Mockito.isNull(ChromePeerManager.class),
         Mockito.any(Console.MessageLevel.class),
         Mockito.any(Console.MessageSource.class),
         Mockito.anyString());
-    mResponseHandlingInputStream.close();
-    PowerMockito.verifyStatic();
   }
 
   @Test
@@ -165,7 +166,12 @@ public class ResponseHandlingInputStreamTest {
 
     PowerMockito.mockStatic(CLog.class);
     responseHandlingInputStream.read();
-    PowerMockito.verifyStatic();
+    PowerMockito.verifyStatic(CLog.class, Mockito.times(1));
+    CLog.writeToConsole(
+        Mockito.isNull(ChromePeerManager.class),
+        Mockito.any(Console.MessageLevel.class),
+        Mockito.any(Console.MessageSource.class),
+        Mockito.anyString());
   }
 
   /**

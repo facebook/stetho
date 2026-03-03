@@ -9,7 +9,7 @@
         xmlns:tools="http://schemas.android.com/tools"
         package="com.facebook.stetho.timber">
 
-    //fixes Timber Library min sdk issue
+    <!-- Fixes Timber Library min sdk issue -->
     <uses-sdk tools:overrideLibrary="timber.log"/>
 
     <application/>

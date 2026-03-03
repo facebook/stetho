@@ -1,4 +1,4 @@
-apply plugin: 'maven'
+apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
 def isReleaseBuild() {
@@ -15,51 +15,6 @@ def getMavenRepositoryUsername() {
 
 def getMavenRepositoryPassword() {
     return hasProperty('repositoryPassword') ? property('repositoryPassword') : ""
-}
-
-def configureStethoPom(def pom) {
-    pom.whenConfigured {
-        applyOptionalDeps it, getOptionalDeps()
-    }
-    pom.project {
-        name POM_NAME
-        artifactId POM_ARTIFACT_ID
-        packaging POM_PACKAGING
-        description 'Stetho Debugging Platform for Android'
-        url 'https://github.com/facebook/stetho'
-
-        scm {
-            url 'https://github.com/facebook/stetho.git'
-            connection 'scm:git:https://github.com/facebook/stetho.git'
-            developerConnection 'scm:git:git@github.com:facebook/stetho.git'
-        }
-
-        licenses {
-            license {
-                name 'MIT License'
-                url 'https://github.com/facebook/stetho/blob/master/LICENSE'
-                distribution 'repo'
-            }
-        }
-
-        developers {
-            developer {
-                id 'facebook'
-                name 'Facebook'
-            }
-        }
-    }
-}
-
-// Hack to modify the resulting pom's dependencies to use
-// <optional>true</optional> where appropriate.
-def applyOptionalDeps(def pom, def optionalDeps) {
-    pom.dependencies.each { dep ->
-        def artifactLabel = dep.groupId + ':' + dep.artifactId
-        if (optionalDeps.contains(artifactLabel)) {
-            dep.optional = true
-        }
-    }
 }
 
 def getOptionalDeps() {
@@ -80,60 +35,90 @@ afterEvaluate { project ->
     }
 
     task androidJavadocJar(type: Jar, dependsOn: androidJavadoc) {
-        classifier = 'javadoc'
+        archiveClassifier = 'javadoc'
         from androidJavadoc.destinationDir
     }
 
     task androidSourcesJar(type: Jar) {
-        classifier = 'sources'
+        archiveClassifier = 'sources'
         from android.sourceSets.main.java.srcDirs
     }
 
     android.libraryVariants.all { variant ->
         def name = variant.name.capitalize()
-        task "jar${name}"(type: Jar, dependsOn: variant.javaCompile) {
-            from variant.javaCompile.destinationDir
+        task "jar${name}"(type: Jar, dependsOn: variant.javaCompileProvider) {
+            from variant.javaCompileProvider.get().destinationDirectory
         }
-    }
-
-    artifacts {
-        archives androidJavadocJar
-        archives androidSourcesJar
     }
 
     version = VERSION_NAME
     group = GROUP
 
-    signing {
-        required { isReleaseBuild() && gradle.taskGraph.hasTask("uploadArchives") }
-        sign configurations.archives
-    }
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                
+                artifact androidJavadocJar
+                artifact androidSourcesJar
 
-    uploadArchives {
-        configuration = configurations.archives
-        repositories.mavenDeployer {
-            beforeDeployment {
-                MavenDeployment deployment -> signing.signPom(deployment)
+                groupId = GROUP
+                artifactId = POM_ARTIFACT_ID
+                version = VERSION_NAME
+
+                pom {
+                    name = POM_NAME
+                    description = 'Stetho Debugging Platform for Android'
+                    url = 'https://github.com/facebook/stetho'
+                    packaging = POM_PACKAGING
+
+                    scm {
+                        url = 'https://github.com/facebook/stetho.git'
+                        connection = 'scm:git:https://github.com/facebook/stetho.git'
+                        developerConnection = 'scm:git:git@github.com:facebook/stetho.git'
+                    }
+
+                    licenses {
+                        license {
+                            name = 'MIT License'
+                            url = 'https://github.com/facebook/stetho/blob/master/LICENSE'
+                            distribution = 'repo'
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id = 'facebook'
+                            name = 'Facebook'
+                        }
+                    }
+
+                    withXml {
+                        def optionalDeps = getOptionalDeps()
+                        asNode().dependencies.'*'.findAll {
+                            def artifactLabel = it.groupId.text() + ':' + it.artifactId.text()
+                            optionalDeps.contains(artifactLabel)
+                        }.each {
+                            it.appendNode('optional', true)
+                        }
+                    }
+                }
             }
-
-            repository(url: getMavenRepositoryUrl()) {
-                authentication(
-                        userName: getMavenRepositoryUsername(),
-                        password: getMavenRepositoryPassword())
-
-            }
-
-            configureStethoPom pom
         }
-    }
 
-    task installArchives(type: Upload) {
-        configuration = configurations.archives
         repositories {
-            mavenDeployer {
-                repository url: "file://${System.properties['user.home']}/.m2/repository"
-                configureStethoPom pom
+            maven {
+                url = getMavenRepositoryUrl()
+                credentials {
+                    username = getMavenRepositoryUsername()
+                    password = getMavenRepositoryPassword()
+                }
             }
         }
+    }
+
+    signing {
+        required { isReleaseBuild() && gradle.taskGraph.hasTask("publish") }
+        sign publishing.publications.release
     }
 }

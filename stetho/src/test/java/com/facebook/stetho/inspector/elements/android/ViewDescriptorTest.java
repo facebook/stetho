@@ -18,13 +18,13 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-@Config(emulateSdk = Build.VERSION_CODES.JELLY_BEAN)
+@Config(sdk = Build.VERSION_CODES.JELLY_BEAN)
 @RunWith(RobolectricTestRunner.class)
 public class ViewDescriptorTest {
 
@@ -62,6 +62,6 @@ public class ViewDescriptorTest {
   @Test
   public void testSetAttributeAsTextIgnoreInvalidFormat() {
     mDescriptor.setAttributesAsText(mTextView, "garbage");
-    verify(mMethodInvoker, never()).invoke(anyObject(), anyString(), anyString());
+    verify(mMethodInvoker, never()).invoke(any(), anyString(), anyString());
   }
 }

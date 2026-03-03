@@ -15,7 +15,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.never;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 
 import com.facebook.stetho.inspector.network.AsyncPrettyPrinter;
 import com.facebook.stetho.inspector.network.AsyncPrettyPrinterExecutorHolder;

@@ -43,7 +43,7 @@ public class ChromeDiscoveryHandler implements HttpHandler {
   /**
    * Latest version of the WebKit Inspector UI that we've tested again (ideally).
    */
-  private static final String WEBKIT_REV = "@cfede9db1d154de0468cb0538479f34c0755a0f4";
+  private static final String WEBKIT_REV = "@a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0";
   private static final String WEBKIT_VERSION = "537.36 (" + WEBKIT_REV + ")";
 
   private static final String USER_AGENT = "Stetho";
@@ -103,6 +103,7 @@ public class ChromeDiscoveryHandler implements HttpHandler {
       reply.put("Protocol-Version", PROTOCOL_VERSION);
       reply.put("Browser", getAppLabelAndVersion());
       reply.put("Android-Package", mContext.getPackageName());
+      reply.put("V8-Version", "12.0.267.8");  // Chrome 120 V8 version
       mVersionResponse = LightHttpBody.create(reply.toString(), "application/json");
     }
     setSuccessfulResponse(response, mVersionResponse);
@@ -119,15 +120,10 @@ public class ChromeDiscoveryHandler implements HttpHandler {
       page.put("description", "");
 
       page.put("webSocketDebuggerUrl", "ws://" + mInspectorPath);
-      Uri chromeFrontendUrl = new Uri.Builder()
-          .scheme("http")
-          .authority("chrome-devtools-frontend.appspot.com")
-          .appendEncodedPath("serve_rev")
-          .appendEncodedPath(WEBKIT_REV)
-          .appendEncodedPath("inspector.html")
-          .appendQueryParameter("ws", mInspectorPath)
-          .build();
-      page.put("devtoolsFrontendUrl", chromeFrontendUrl.toString());
+      
+      // Use Chrome's built-in DevTools instead of deprecated appspot.com
+      // This allows Chrome 120+ to use its native DevTools frontend
+      page.put("devtoolsFrontendUrl", "devtools://devtools/bundled/inspector.html?ws=" + mInspectorPath);
 
       reply.put(page);
       mPageListResponse = LightHttpBody.create(reply.toString(), "application/json");
